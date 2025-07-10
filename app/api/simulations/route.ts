@@ -4,15 +4,15 @@ import path from "path"
 
 export const runtime = "nodejs"
 
-const SIMULATIONS_FILE = path.join(process.cwd(), 'data', 'simulations.json')
+const SIMULATIONS_FILE = path.join('/tmp', 'simulations.json')
 
-// Ensure data directory exists
+// Ensure tmp directory exists (it should always exist on Vercel)
 async function ensureDataDir() {
-  const dataDir = path.join(process.cwd(), 'data')
+  // /tmp directory always exists on Vercel, but we'll check anyway
   try {
-    await fs.access(dataDir)
+    await fs.access('/tmp')
   } catch {
-    await fs.mkdir(dataDir, { recursive: true })
+    await fs.mkdir('/tmp', { recursive: true })
   }
 }
 

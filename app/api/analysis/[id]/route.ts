@@ -4,7 +4,7 @@ import path from "path"
 
 export const runtime = "nodejs"
 
-const ANALYSIS_FILE = path.join(process.cwd(), 'data', 'analysis.json')
+const ANALYSIS_FILE = path.join('/tmp', 'analysis.json')
 
 // Read analysis from file
 async function readAnalysis() {
@@ -67,8 +67,6 @@ export async function DELETE(
     analyses.splice(index, 1)
     
     // Save back to file
-    const dataDir = path.join(process.cwd(), 'data')
-    await fs.mkdir(dataDir, { recursive: true })
     await fs.writeFile(ANALYSIS_FILE, JSON.stringify(analyses, null, 2))
     
     return NextResponse.json({ 
