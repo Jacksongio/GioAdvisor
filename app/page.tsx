@@ -222,7 +222,7 @@ export default function PoliticalAdvisor() {
       console.log('Setup submitted successfully:', result)
       toast({
         title: "Success!",
-        description: "Simulation setup saved (overwrote previous setup)!",
+        description: "Simulation setup saved!",
         variant: "default",
       })
       
@@ -429,7 +429,7 @@ export default function PoliticalAdvisor() {
 
       <div className="container mx-auto px-4 py-8">
         <Tabs defaultValue="setup" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 bg-dark-card border border-dark-border">
+                          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 bg-dark-card border border-dark-border">
             <TabsTrigger
               value="setup"
               className="data-[state=active]:bg-flame data-[state=active]:text-white text-dark-text"
