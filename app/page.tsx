@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Globe, Users, Target, BarChart3, Settings, Play, FileText, AlertTriangle, Sword, Shield, RotateCcw } from "lucide-react"
+import { Globe, Users, Target, BarChart3, Play, FileText, AlertTriangle, Sword, Shield, RotateCcw, MessageCircle, Send } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -24,6 +24,11 @@ export default function PoliticalAdvisor() {
   const [isSimulating, setIsSimulating] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   
+  // Chat state
+  const [chatMessages, setChatMessages] = useState<Array<{role: string, content: string, timestamp: string}>>([])
+  const [chatInput, setChatInput] = useState("")
+  const [isChatting, setIsChatting] = useState(false)
+  
   // Economic factors sliders
   const [tradeDependencies, setTradeDependencies] = useState([50])
   const [sanctionsImpact, setSanctionsImpact] = useState([50])
@@ -40,6 +45,88 @@ export default function PoliticalAdvisor() {
   const [publicOpinion, setPublicOpinion] = useState([50])
   
   const { toast } = useToast()
+
+  // Send chat message to AI
+  const sendChatMessage = async () => {
+    if (!chatInput.trim()) return
+    
+    const userMessage = {
+      role: "user",
+      content: chatInput.trim(),
+      timestamp: new Date().toISOString()
+    }
+    
+    setChatMessages(prev => [...prev, userMessage])
+    setChatInput("")
+    setIsChatting(true)
+    
+    try {
+      // Prepare current simulation context
+      const contextData = {
+        // Setup data
+        selectedCountry: countries.find(c => c.code === selectedCountry)?.name || selectedCountry,
+        conflictScenario,
+        offensiveCountry: countries.find(c => c.code === offensiveCountry)?.name || offensiveCountry,
+        defensiveCountry: countries.find(c => c.code === defensiveCountry)?.name || defensiveCountry,
+        scenarioDetails,
+        severityLevel,
+        timeFrame,
+        // Analysis parameters
+        tradeDependencies: tradeDependencies[0],
+        sanctionsImpact: sanctionsImpact[0],
+        marketStability: marketStability[0],
+        defenseCapabilities: defenseCapabilities[0],
+        allianceSupport: allianceSupport[0],
+        strategicResources: strategicResources[0],
+        unSupport: unSupport[0],
+        regionalInfluence: regionalInfluence[0],
+        publicOpinion: publicOpinion[0],
+        // Current simulation results (if available)
+        simulationResults,
+        // User's question
+        userMessage: userMessage.content
+      }
+
+      const response = await fetch('/api/ai/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(contextData),
+      })
+
+      if (!response.ok) {
+        throw new Error('Chat request failed')
+      }
+
+      const result = await response.json()
+      
+      const aiMessage = {
+        role: "assistant",
+        content: result.response,
+        timestamp: new Date().toISOString()
+      }
+      
+      setChatMessages(prev => [...prev, aiMessage])
+
+    } catch (error) {
+      console.error('Chat error:', error)
+      const errorMessage = {
+        role: "assistant", 
+        content: "I apologize, but I'm having trouble connecting right now. Please try again in a moment.",
+        timestamp: new Date().toISOString()
+      }
+      setChatMessages(prev => [...prev, errorMessage])
+      
+      toast({
+        title: "Chat Error",
+        description: "Unable to connect to AI advisor. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsChatting(false)
+    }
+  }
 
   // Reset analysis sliders to 50
   const resetValues = () => {
@@ -79,10 +166,13 @@ export default function PoliticalAdvisor() {
     setUnSupport([50])
     setRegionalInfluence([50])
     setPublicOpinion([50])
+    // Clear chat
+    setChatMessages([])
+    setChatInput("")
     
     toast({
       title: "Form Cleared",
-      description: "All simulation setup and analysis parameters have been reset.",
+      description: "All simulation setup, analysis parameters, and chat history have been reset.",
       variant: "default",
     })
   }
@@ -235,24 +325,81 @@ export default function PoliticalAdvisor() {
       })
     }
 
-    // Simulate API call delay for analysis
-    await new Promise((resolve) => setTimeout(resolve, 3000))
+    // Get country names for better AI analysis
+    const selectedCountryName = countries.find(c => c.code === selectedCountry)?.name || selectedCountry
+    const offensiveCountryName = countries.find(c => c.code === offensiveCountry)?.name || offensiveCountry
+    const defensiveCountryName = countries.find(c => c.code === defensiveCountry)?.name || defensiveCountry
 
-    // Generate simulation results (could be enhanced to use the actual parameters)
-    setSimulationResults({
-      diplomaticResponse: 85,
-      militaryReadiness: 60,
-      economicImpact: -15,
-      publicSupport: 72,
-      allianceStrength: 88,
-      recommendations: [
-        "Engage in multilateral diplomatic talks",
-        "Strengthen economic sanctions",
-        "Increase intelligence sharing with allies",
-        "Prepare humanitarian aid packages",
-        "Monitor regional stability indicators",
-      ],
-    })
+    // Prepare data for AI analysis
+    const aiAnalysisData = {
+      ...analysisData,
+      selectedCountry: selectedCountryName,
+      offensiveCountry: offensiveCountryName,
+      defensiveCountry: defensiveCountryName
+    }
+
+    try {
+      // Call OpenAI analysis API
+      console.log('Sending data to AI analysis:', aiAnalysisData)
+      const aiResponse = await fetch('/api/ai/analyze', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(aiAnalysisData),
+      })
+
+      if (!aiResponse.ok) {
+        throw new Error('AI analysis failed')
+      }
+
+      const aiResult = await aiResponse.json()
+      console.log('AI analysis result:', aiResult)
+      
+      if (aiResult.success) {
+        setSimulationResults(aiResult.analysis)
+        toast({
+          title: "AI Analysis Complete",
+          description: "Your simulation has been analyzed using advanced AI.",
+          variant: "default",
+        })
+      } else {
+        // Use fallback results if AI analysis fails
+        setSimulationResults(aiResult.analysis)
+        toast({
+          title: "Analysis Complete",
+          description: "Showing fallback analysis due to AI service issues.",
+          variant: "destructive",
+        })
+      }
+
+    } catch (error) {
+      console.error('AI analysis error:', error)
+      
+      // Fallback to basic simulation results
+      setSimulationResults({
+        diplomaticResponse: 75,
+        militaryReadiness: 65,
+        economicImpact: -10,
+        publicSupport: 60,
+        allianceStrength: 70,
+        recommendations: [
+          "Engage in diplomatic negotiations to de-escalate tensions",
+          "Strengthen economic partnerships with allied nations", 
+          "Enhance intelligence sharing capabilities",
+          "Prepare contingency plans for various scenarios",
+          "Monitor public sentiment and maintain transparency"
+        ],
+        summary: "Basic analysis provided due to technical issues."
+      })
+      
+      toast({
+        title: "Analysis Warning",
+        description: "AI analysis unavailable. Showing basic recommendations.",
+        variant: "destructive",
+      })
+    }
+
     setIsSimulating(false)
   }
 
@@ -275,14 +422,6 @@ export default function PoliticalAdvisor() {
               <Badge variant="outline" className="border-flame text-flame bg-transparent">
                 Beta v1.0
               </Badge>
-              <Button
-                variant="outline"
-                size="sm"
-                className="border-dark-border text-dark-text hover:bg-dark-border bg-transparent"
-              >
-                <Settings className="w-4 h-4 mr-2" />
-                Settings
-              </Button>
             </div>
           </div>
         </div>
@@ -290,7 +429,7 @@ export default function PoliticalAdvisor() {
 
       <div className="container mx-auto px-4 py-8">
         <Tabs defaultValue="setup" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 bg-dark-card border border-dark-border">
+          <TabsList className="grid w-full grid-cols-4 bg-dark-card border border-dark-border">
             <TabsTrigger
               value="setup"
               className="data-[state=active]:bg-flame data-[state=active]:text-white text-dark-text"
@@ -308,6 +447,12 @@ export default function PoliticalAdvisor() {
               className="data-[state=active]:bg-flame data-[state=active]:text-white text-dark-text"
             >
               View Results
+            </TabsTrigger>
+            <TabsTrigger
+              value="chat"
+              className="data-[state=active]:bg-flame data-[state=active]:text-white text-dark-text"
+            >
+              Chat with AI
             </TabsTrigger>
           </TabsList>
 
@@ -792,12 +937,12 @@ export default function PoliticalAdvisor() {
                     {isSimulating ? (
                       <>
                         <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                        Saving & Running Analysis...
+                        AI Analysis in Progress...
                       </>
                     ) : (
                       <>
                         <Play className="w-5 h-5 mr-2" />
-                        Save & Run Political Analysis
+                        Run AI Political Analysis
                       </>
                     )}
                   </Button>
@@ -810,8 +955,23 @@ export default function PoliticalAdvisor() {
           <TabsContent value="results" className="space-y-6">
             {simulationResults ? (
               <div className="grid gap-6">
+                {/* AI Summary */}
+                {simulationResults.summary && (
+                  <Card className="border-dark-border bg-dark-card">
+                    <CardHeader className="bg-gradient-to-r from-flame/20 to-flame/10">
+                      <CardTitle className="flex items-center space-x-2 text-dark-text">
+                        <Target className="w-5 h-5 text-flame" />
+                        <span>AI Analysis Summary</span>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-6">
+                      <p className="text-dark-text text-lg leading-relaxed">{simulationResults.summary}</p>
+                    </CardContent>
+                  </Card>
+                )}
+
                 {/* Key Metrics */}
-                <div className="grid md:grid-cols-4 gap-4">
+                <div className="grid md:grid-cols-5 gap-4">
                   <Card className="border-dark-border bg-dark-card">
                     <CardContent className="p-6 text-center">
                       <div className="text-3xl font-bold text-flame mb-2">{simulationResults.diplomaticResponse}%</div>
@@ -841,6 +1001,14 @@ export default function PoliticalAdvisor() {
                       <div className="text-3xl font-bold text-flame mb-2">{simulationResults.publicSupport}%</div>
                       <div className="text-sm text-dark-muted">Public Support</div>
                       <Progress value={simulationResults.publicSupport} className="mt-2" />
+                    </CardContent>
+                  </Card>
+
+                  <Card className="border-dark-border bg-dark-card">
+                    <CardContent className="p-6 text-center">
+                      <div className="text-3xl font-bold text-flame mb-2">{simulationResults.allianceStrength}%</div>
+                      <div className="text-sm text-dark-muted">Alliance Strength</div>
+                      <Progress value={simulationResults.allianceStrength} className="mt-2" />
                     </CardContent>
                   </Card>
                 </div>
@@ -880,29 +1048,29 @@ export default function PoliticalAdvisor() {
                       <div className="flex justify-between items-center">
                         <span className="text-sm font-medium text-dark-text">Diplomatic Approach</span>
                         <div className="flex items-center space-x-2">
-                          <Progress value={85} className="w-32" />
-                          <span className="text-sm text-flame">85%</span>
+                          <Progress value={simulationResults.diplomaticResponse} className="w-32" />
+                          <span className="text-sm text-flame">{simulationResults.diplomaticResponse}%</span>
                         </div>
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-sm font-medium text-dark-text">Economic Measures</span>
                         <div className="flex items-center space-x-2">
-                          <Progress value={70} className="w-32" />
-                          <span className="text-sm text-flame">70%</span>
+                          <Progress value={Math.abs(simulationResults.economicImpact) + 50} className="w-32" />
+                          <span className="text-sm text-flame">{simulationResults.economicImpact}%</span>
                         </div>
                       </div>
                       <div className="flex justify-between items-center">
-                        <span className="text-sm font-medium text-dark-text">Military Posturing</span>
+                        <span className="text-sm font-medium text-dark-text">Military Readiness</span>
                         <div className="flex items-center space-x-2">
-                          <Progress value={45} className="w-32" />
-                          <span className="text-sm text-flame">45%</span>
+                          <Progress value={simulationResults.militaryReadiness} className="w-32" />
+                          <span className="text-sm text-flame">{simulationResults.militaryReadiness}%</span>
                         </div>
                       </div>
                       <div className="flex justify-between items-center">
-                        <span className="text-sm font-medium text-dark-text">International Coalition</span>
+                        <span className="text-sm font-medium text-dark-text">Alliance Strength</span>
                         <div className="flex items-center space-x-2">
-                          <Progress value={88} className="w-32" />
-                          <span className="text-sm text-flame">88%</span>
+                          <Progress value={simulationResults.allianceStrength} className="w-32" />
+                          <span className="text-sm text-flame">{simulationResults.allianceStrength}%</span>
                         </div>
                       </div>
                     </div>
@@ -926,6 +1094,151 @@ export default function PoliticalAdvisor() {
                 </CardContent>
               </Card>
             )}
+          </TabsContent>
+
+          {/* Chat Tab */}
+          <TabsContent value="chat" className="space-y-6">
+            <Card className="border-dark-border bg-dark-card">
+              <CardHeader className="bg-gradient-to-r from-flame/20 to-flame/10">
+                <CardTitle className="flex items-center space-x-2 text-dark-text">
+                  <MessageCircle className="w-5 h-5 text-flame" />
+                  <span>AI Political Advisor</span>
+                </CardTitle>
+                <CardDescription className="text-dark-muted">
+                  Ask questions and get advice about your current political simulation scenario
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-6">
+                {/* Current Scenario Summary */}
+                {selectedCountry && conflictScenario && (
+                  <Card className="bg-dark-border mb-6">
+                    <CardContent className="p-4">
+                      <h4 className="font-semibold text-dark-text mb-2">Current Scenario</h4>
+                      <div className="grid md:grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <span className="text-dark-muted">Your Country: </span>
+                          <span className="text-flame font-medium">
+                            {countries.find(c => c.code === selectedCountry)?.flag} {countries.find(c => c.code === selectedCountry)?.name || selectedCountry}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-dark-muted">Scenario: </span>
+                          <span className="text-dark-text font-medium">{conflictScenario}</span>
+                        </div>
+                        {offensiveCountry && (
+                          <div>
+                            <span className="text-dark-muted">Offensive Country: </span>
+                            <span className="text-dark-text font-medium">
+                              {countries.find(c => c.code === offensiveCountry)?.flag} {countries.find(c => c.code === offensiveCountry)?.name || offensiveCountry}
+                            </span>
+                          </div>
+                        )}
+                        {defensiveCountry && (
+                          <div>
+                            <span className="text-dark-muted">Defensive Country: </span>
+                            <span className="text-dark-text font-medium">
+                              {countries.find(c => c.code === defensiveCountry)?.flag} {countries.find(c => c.code === defensiveCountry)?.name || defensiveCountry}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Chat Messages */}
+                <div className="h-96 bg-dark-bg rounded-lg p-4 mb-4 overflow-y-auto space-y-4">
+                  {chatMessages.length === 0 ? (
+                    <div className="text-center text-dark-muted py-16">
+                      <MessageCircle className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                      <p className="text-lg mb-2">Start a conversation with your AI Political Advisor</p>
+                      <p className="text-sm">Ask questions about your scenario, strategies, or get expert geopolitical advice</p>
+                    </div>
+                  ) : (
+                    chatMessages.map((message, index) => (
+                      <div
+                        key={index}
+                        className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                      >
+                        <div
+                          className={`max-w-[80%] p-3 rounded-lg ${
+                            message.role === 'user'
+                              ? 'bg-flame text-white'
+                              : 'bg-dark-card border border-dark-border text-dark-text'
+                          }`}
+                        >
+                          <p className="whitespace-pre-wrap">{message.content}</p>
+                          <p className={`text-xs mt-2 opacity-70 ${
+                            message.role === 'user' ? 'text-white' : 'text-dark-muted'
+                          }`}>
+                            {new Date(message.timestamp).toLocaleTimeString()}
+                          </p>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                  {isChatting && (
+                    <div className="flex justify-start">
+                      <div className="bg-dark-card border border-dark-border text-dark-text p-3 rounded-lg">
+                        <div className="flex items-center space-x-2">
+                          <div className="animate-pulse">AI is thinking...</div>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-flame"></div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Chat Input */}
+                <div className="flex space-x-2">
+                  <input
+                    type="text"
+                    value={chatInput}
+                    onChange={(e) => setChatInput(e.target.value)}
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter' && !isChatting) {
+                        sendChatMessage()
+                      }
+                    }}
+                    placeholder="Ask about strategies, consequences, alternatives..."
+                    className="flex-1 px-4 py-3 bg-dark-bg border border-dark-border rounded-lg text-dark-text placeholder-dark-muted focus:outline-none focus:ring-2 focus:ring-flame focus:border-transparent"
+                    disabled={isChatting}
+                  />
+                  <Button
+                    onClick={sendChatMessage}
+                    disabled={!chatInput.trim() || isChatting}
+                    className="bg-flame hover:bg-flame/90 text-white px-6"
+                  >
+                    <Send className="w-5 h-5" />
+                  </Button>
+                </div>
+
+                {/* Quick Questions */}
+                {chatMessages.length === 0 && selectedCountry && conflictScenario && (
+                  <div className="mt-6">
+                    <h4 className="font-semibold text-dark-text mb-3">Quick Questions to Get Started:</h4>
+                    <div className="grid md:grid-cols-2 gap-2">
+                      {[
+                        "What are the best diplomatic approaches for this scenario?",
+                        "What are the potential economic consequences?", 
+                        "How should we engage with our allies?",
+                        "What are the main risks we should consider?"
+                      ].map((question, index) => (
+                        <Button
+                          key={index}
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setChatInput(question)}
+                          className="justify-start text-left h-auto p-3 border-dark-border text-dark-text hover:bg-dark-border bg-transparent"
+                        >
+                          {question}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </div>
