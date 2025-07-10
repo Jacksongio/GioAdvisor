@@ -1,0 +1,28 @@
+[
+  {
+    "id": "current",
+    "selectedCountry": "US",
+    "conflictScenario": "nuclear",
+    "offensiveCountry": "IL",
+    "defensiveCountry": "IR",
+    "scenarioDetails": "Israel struck iran nuclear base",
+    "severityLevel": "medium",
+    "timeFrame": "short",
+    "economicFactors": {
+      "tradeDependencies": 69,
+      "sanctionsImpact": 50,
+      "marketStability": 50
+    },
+    "militaryReadiness": {
+      "defenseCapabilities": 50,
+      "allianceSupport": 50,
+      "strategicResources": 50
+    },
+    "diplomaticRelations": {
+      "unSupport": 50,
+      "regionalInfluence": 50,
+      "publicOpinion": 50
+    },
+    "createdAt": "2025-07-10T20:02:34.407Z"
+  }
+]

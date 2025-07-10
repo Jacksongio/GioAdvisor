@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Globe, Users, Target, BarChart3, Settings, Play, FileText, AlertTriangle, Sword, Shield } from "lucide-react"
+import { Globe, Users, Target, BarChart3, Settings, Play, FileText, AlertTriangle, Sword, Shield, RotateCcw } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -9,115 +9,251 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Progress } from "@/components/ui/progress"
+import { Slider } from "@/components/ui/slider"
+import { useToast } from "@/hooks/use-toast"
 
 export default function PoliticalAdvisor() {
   const [selectedCountry, setSelectedCountry] = useState("")
   const [conflictScenario, setConflictScenario] = useState("")
   const [offensiveCountry, setOffensiveCountry] = useState("")
   const [defensiveCountry, setDefensiveCountry] = useState("")
+  const [scenarioDetails, setScenarioDetails] = useState("")
+  const [severityLevel, setSeverityLevel] = useState("")
+  const [timeFrame, setTimeFrame] = useState("")
   const [simulationResults, setSimulationResults] = useState<any>(null)
   const [isSimulating, setIsSimulating] = useState(false)
-  const [countries, setCountries] = useState<any[]>([])
-  const [conflictTypes, setConflictTypes] = useState<any[]>([])
-  const [isLoadingData, setIsLoadingData] = useState(true)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  
+  // Economic factors sliders
+  const [tradeDependencies, setTradeDependencies] = useState([50])
+  const [sanctionsImpact, setSanctionsImpact] = useState([50])
+  const [marketStability, setMarketStability] = useState([50])
+  
+  // Military readiness sliders
+  const [defenseCapabilities, setDefenseCapabilities] = useState([50])
+  const [allianceSupport, setAllianceSupport] = useState([50])
+  const [strategicResources, setStrategicResources] = useState([50])
+  
+  // Diplomatic relations sliders
+  const [unSupport, setUnSupport] = useState([50])
+  const [regionalInfluence, setRegionalInfluence] = useState([50])
+  const [publicOpinion, setPublicOpinion] = useState([50])
+  
+  const { toast } = useToast()
 
-  // Load countries and conflict types on component mount
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        const [countriesResponse, conflictsResponse] = await Promise.all([
-          fetch('/api/countries'),
-          fetch('/api/conflicts')
-        ])
-
-        const countriesData = await countriesResponse.json()
-        const conflictsData = await conflictsResponse.json()
-
-        if (countriesData.success) {
-          setCountries(countriesData.data.map((country: any) => ({
-            code: country.code,
-            name: country.name,
-            flag: country.flag,
-            power: country.power_rating
-          })))
-        }
-
-        if (conflictsData.success) {
-          setConflictTypes(conflictsData.data)
-        }
-      } catch (error) {
-        console.error('Failed to load data:', error)
-      } finally {
-        setIsLoadingData(false)
-      }
-    }
-
-    loadData()
-  }, [])
-
-  const runSimulation = async () => {
-    if (!selectedCountry || !conflictScenario || !offensiveCountry || !defensiveCountry) {
-      alert('Please select all required fields before running simulation')
-      return
-    }
-
-    setIsSimulating(true)
+  // Reset analysis sliders to 50
+  const resetValues = () => {
+    setTradeDependencies([50])
+    setSanctionsImpact([50])
+    setMarketStability([50])
+    setDefenseCapabilities([50])
+    setAllianceSupport([50])
+    setStrategicResources([50])
+    setUnSupport([50])
+    setRegionalInfluence([50])
+    setPublicOpinion([50])
     
+    toast({
+      title: "Values Reset",
+      description: "All analysis parameters have been reset to 50%.",
+      variant: "default",
+    })
+  }
+
+  // Clear all form fields
+  const clearForm = () => {
+    setSelectedCountry("")
+    setConflictScenario("")
+    setOffensiveCountry("")
+    setDefensiveCountry("")
+    setScenarioDetails("")
+    setSeverityLevel("")
+    setTimeFrame("")
+    // Reset all analysis parameters to 50
+    setTradeDependencies([50])
+    setSanctionsImpact([50])
+    setMarketStability([50])
+    setDefenseCapabilities([50])
+    setAllianceSupport([50])
+    setStrategicResources([50])
+    setUnSupport([50])
+    setRegionalInfluence([50])
+    setPublicOpinion([50])
+    
+    toast({
+      title: "Form Cleared",
+      description: "All simulation setup and analysis parameters have been reset.",
+      variant: "default",
+    })
+  }
+
+  interface Country {
+    code: string
+    name: string
+    flag: string
+    power: number
+    military: number
+    economic: number
+    diplomatic: number
+  }
+
+  const [countries, setCountries] = useState<Country[]>([])
+
+  // Submit setup data to database
+  const submitSetup = async () => {
+    setIsSubmitting(true)
+    
+    const setupData = {
+      selectedCountry,
+      conflictScenario,
+      offensiveCountry,
+      defensiveCountry,
+      scenarioDetails,
+      severityLevel,
+      timeFrame,
+      timestamp: new Date().toISOString()
+    }
+
     try {
-      const response = await fetch('/api/simulate', {
+      console.log('Submitting setup data:', setupData)
+      const response = await fetch('/api/simulations', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          selectedCountry,
-          conflictScenario,
-          offensiveCountry,
-          defensiveCountry,
-          economicFactors: {
-            tradeDependencies: 75,
-            sanctionsImpact: 60,
-            marketStability: 45
-          },
-          militaryFactors: {
-            readiness: 70,
-            capabilities: 80,
-            allianceSupport: 85
-          },
-          diplomaticFactors: {
-            influence: 65,
-            relationships: 72,
-            negotiationPosition: 58
-          }
-        }),
+        body: JSON.stringify(setupData),
       })
 
-      const data = await response.json()
-
-      if (data.success) {
-        setSimulationResults({
-          diplomaticResponse: data.data.analysis.diplomaticSuccess,
-          militaryReadiness: data.data.analysis.militaryReadiness,
-          economicImpact: data.data.analysis.economicImpact,
-          publicSupport: data.data.analysis.publicSupport,
-          allianceStrength: data.data.analysis.allianceStrength,
-          recommendations: data.data.recommendations,
-          summary: data.data.summary,
-          riskLevel: data.data.analysis.riskLevel,
-          economicVulnerability: data.data.analysis.economicVulnerability,
-          strategicAdvantage: data.data.analysis.strategicAdvantage,
-          conflictDetails: data.data.conflictDetails,
-          geopoliticalContext: data.data.geopoliticalContext
-        })
-      } else {
-        throw new Error(data.error || 'Simulation failed')
+      if (!response.ok) {
+        throw new Error('Failed to submit setup')
       }
+
+      const result = await response.json()
+      console.log('Setup submitted successfully:', result)
+      toast({
+        title: "Success!",
+        description: "Simulation setup saved (overwrote previous setup)!",
+        variant: "default",
+      })
+      
     } catch (error) {
-      console.error('Simulation error:', error)
-      alert('Failed to run simulation. Please try again.')
+      console.error('Error submitting setup:', error)
+      toast({
+        title: "Error",
+        description: "Failed to save simulation setup. Please try again.",
+        variant: "destructive",
+      })
     } finally {
-      setIsSimulating(false)
+      setIsSubmitting(false)
     }
+  }
+
+  useEffect(() => {
+    async function loadCountries() {
+      try {
+        const res = await fetch("/api/countries")
+        if (!res.ok) throw new Error("Failed to fetch countries")
+        const data: Country[] = await res.json()
+        // Sort by power descending for nicer UX
+        data.sort((a, b) => b.power - a.power)
+        setCountries(data)
+      } catch (err) {
+        console.error(err)
+      }
+    }
+    loadCountries()
+  }, [])
+
+  const conflictTypes = [
+    { id: "territorial", name: "Territorial Dispute", icon: "🗺️" },
+    { id: "trade", name: "Trade War", icon: "💼" },
+    { id: "cyber", name: "Cyber Attack", icon: "💻" },
+    { id: "nuclear", name: "Nuclear Threat", icon: "☢️" },
+    { id: "humanitarian", name: "Humanitarian Crisis", icon: "🏥" },
+    { id: "resource", name: "Resource Conflict", icon: "⛽" },
+    { id: "proxy", name: "Proxy War", icon: "🎭" },
+    { id: "sanctions", name: "Economic Sanctions", icon: "🚫" },
+  ]
+
+  const runSimulation = async () => {
+    setIsSimulating(true)
+    
+    // Collect all analysis parameters
+    const analysisData = {
+      // Setup data
+      selectedCountry,
+      conflictScenario,
+      offensiveCountry,
+      defensiveCountry,
+      scenarioDetails,
+      severityLevel,
+      timeFrame,
+      // Economic factors
+      tradeDependencies: tradeDependencies[0],
+      sanctionsImpact: sanctionsImpact[0],
+      marketStability: marketStability[0],
+      // Military readiness
+      defenseCapabilities: defenseCapabilities[0],
+      allianceSupport: allianceSupport[0],
+      strategicResources: strategicResources[0],
+      // Diplomatic relations
+      unSupport: unSupport[0],
+      regionalInfluence: regionalInfluence[0],
+      publicOpinion: publicOpinion[0]
+    }
+
+    try {
+      // Save analysis parameters to database
+      console.log('Submitting analysis data:', analysisData)
+      const response = await fetch('/api/analysis', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(analysisData),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to save analysis parameters')
+      }
+
+      const result = await response.json()
+      console.log('Analysis parameters saved:', result)
+      
+      toast({
+        title: "Analysis Saved",
+        description: "Analysis parameters have been saved to database.",
+        variant: "default",
+      })
+
+    } catch (error) {
+      console.error('Error saving analysis:', error)
+      toast({
+        title: "Warning",
+        description: "Failed to save analysis parameters, but simulation will continue.",
+        variant: "destructive",
+      })
+    }
+
+    // Simulate API call delay for analysis
+    await new Promise((resolve) => setTimeout(resolve, 3000))
+
+    // Generate simulation results (could be enhanced to use the actual parameters)
+    setSimulationResults({
+      diplomaticResponse: 85,
+      militaryReadiness: 60,
+      economicImpact: -15,
+      publicSupport: 72,
+      allianceStrength: 88,
+      recommendations: [
+        "Engage in multilateral diplomatic talks",
+        "Strengthen economic sanctions",
+        "Increase intelligence sharing with allies",
+        "Prepare humanitarian aid packages",
+        "Monitor regional stability indicators",
+      ],
+    })
+    setIsSimulating(false)
   }
 
   return (
@@ -192,7 +328,14 @@ export default function PoliticalAdvisor() {
                 <CardContent className="p-6">
                   <Select value={selectedCountry} onValueChange={setSelectedCountry}>
                     <SelectTrigger className="w-full bg-dark-bg border-dark-border text-dark-text">
-                      <SelectValue placeholder="Choose a country..." />
+                      {selectedCountry ? (
+                        <div className="flex items-center space-x-2">
+                          <span>{countries.find((c) => c.code === selectedCountry)?.flag}</span>
+                          <span>{countries.find((c) => c.code === selectedCountry)?.name}</span>
+                        </div>
+                      ) : (
+                        <SelectValue placeholder="Choose a country..." />
+                      )}
                     </SelectTrigger>
                     <SelectContent className="bg-dark-card border-dark-border">
                       {countries.map((country) => (
@@ -215,17 +358,20 @@ export default function PoliticalAdvisor() {
 
                   {selectedCountry && (
                     <div className="mt-4 p-4 bg-dark-border rounded-lg">
-                      <h4 className="font-semibold text-dark-text mb-2">Country Profile</h4>
+                      <h4 className="font-semibold text-dark-text mb-2 flex items-center space-x-2">
+                        <span>{countries.find((c) => c.code === selectedCountry)?.flag}</span>
+                        <span>Country Profile</span>
+                      </h4>
                       <div className="space-y-2 text-sm">
                         <div className="flex justify-between items-center">
                           <span className="text-dark-muted">Military Strength:</span>
                           <div className="flex items-center space-x-2">
                             <Progress
-                              value={countries.find((c) => c.code === selectedCountry)?.power || 0}
+                              value={countries.find((c) => c.code === selectedCountry)?.military || 0}
                               className="w-20"
                             />
                             <span className="text-flame font-medium">
-                              {countries.find((c) => c.code === selectedCountry)?.power}%
+                              {countries.find((c) => c.code === selectedCountry)?.military}%
                             </span>
                           </div>
                         </div>
@@ -233,11 +379,11 @@ export default function PoliticalAdvisor() {
                           <span className="text-dark-muted">Economic Power:</span>
                           <div className="flex items-center space-x-2">
                             <Progress
-                              value={(countries.find((c) => c.code === selectedCountry)?.power || 0) - 10}
+                              value={countries.find((c) => c.code === selectedCountry)?.economic || 0}
                               className="w-20"
                             />
                             <span className="text-flame font-medium">
-                              {(countries.find((c) => c.code === selectedCountry)?.power || 0) - 10}%
+                              {countries.find((c) => c.code === selectedCountry)?.economic}%
                             </span>
                           </div>
                         </div>
@@ -245,11 +391,11 @@ export default function PoliticalAdvisor() {
                           <span className="text-dark-muted">Diplomatic Influence:</span>
                           <div className="flex items-center space-x-2">
                             <Progress
-                              value={(countries.find((c) => c.code === selectedCountry)?.power || 0) - 5}
+                              value={countries.find((c) => c.code === selectedCountry)?.diplomatic || 0}
                               className="w-20"
                             />
                             <span className="text-flame font-medium">
-                              {(countries.find((c) => c.code === selectedCountry)?.power || 0) - 5}%
+                              {countries.find((c) => c.code === selectedCountry)?.diplomatic}%
                             </span>
                           </div>
                         </div>
@@ -301,7 +447,14 @@ export default function PoliticalAdvisor() {
                       </label>
                       <Select value={offensiveCountry} onValueChange={setOffensiveCountry}>
                         <SelectTrigger className="bg-dark-bg border-dark-border text-dark-text">
-                          <SelectValue placeholder="Select aggressor..." />
+                          {offensiveCountry ? (
+                            <div className="flex items-center space-x-2">
+                              <span>{countries.find((c) => c.code === offensiveCountry)?.flag}</span>
+                              <span>{countries.find((c) => c.code === offensiveCountry)?.name}</span>
+                            </div>
+                          ) : (
+                            <SelectValue placeholder="Select aggressor..." />
+                          )}
                         </SelectTrigger>
                         <SelectContent className="bg-dark-card border-dark-border">
                           {countries.map((country) => (
@@ -328,7 +481,14 @@ export default function PoliticalAdvisor() {
                       </label>
                       <Select value={defensiveCountry} onValueChange={setDefensiveCountry}>
                         <SelectTrigger className="bg-dark-bg border-dark-border text-dark-text">
-                          <SelectValue placeholder="Select defender..." />
+                          {defensiveCountry ? (
+                            <div className="flex items-center space-x-2">
+                              <span>{countries.find((c) => c.code === defensiveCountry)?.flag}</span>
+                              <span>{countries.find((c) => c.code === defensiveCountry)?.name}</span>
+                            </div>
+                          ) : (
+                            <SelectValue placeholder="Select defender..." />
+                          )}
                         </SelectTrigger>
                         <SelectContent className="bg-dark-card border-dark-border">
                           {countries.map((country) => (
@@ -354,13 +514,15 @@ export default function PoliticalAdvisor() {
                     <Textarea
                       placeholder="Describe the specific conflict scenario, involved parties, and key factors..."
                       className="min-h-[100px] bg-dark-bg border-dark-border text-dark-text placeholder:text-dark-muted"
+                      value={scenarioDetails}
+                      onChange={(e) => setScenarioDetails(e.target.value)}
                     />
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="text-sm font-medium text-dark-text mb-2 block">Severity Level</label>
-                      <Select>
+                      <Select value={severityLevel} onValueChange={setSeverityLevel}>
                         <SelectTrigger className="bg-dark-bg border-dark-border text-dark-text">
                           <SelectValue placeholder="Select severity" />
                         </SelectTrigger>
@@ -383,7 +545,7 @@ export default function PoliticalAdvisor() {
 
                     <div>
                       <label className="text-sm font-medium text-dark-text mb-2 block">Time Frame</label>
-                      <Select>
+                      <Select value={timeFrame} onValueChange={setTimeFrame}>
                         <SelectTrigger className="bg-dark-bg border-dark-border text-dark-text">
                           <SelectValue placeholder="Response timeframe" />
                         </SelectTrigger>
@@ -407,7 +569,36 @@ export default function PoliticalAdvisor() {
                 </CardContent>
               </Card>
             </div>
-          </TabsContent>
+              
+            <div className="flex justify-between mt-8">
+              <Button
+                onClick={clearForm}
+                variant="outline"
+                className="border-dark-border text-dark-text hover:bg-dark-border bg-transparent px-6 py-3 text-lg"
+              >
+                <RotateCcw className="w-5 h-5 mr-2" />
+                Clear All Fields
+              </Button>
+              
+              <Button
+                onClick={submitSetup}
+                disabled={!selectedCountry || !conflictScenario || !offensiveCountry || !defensiveCountry || isSubmitting}
+                className="bg-flame hover:bg-flame/90 text-white px-8 py-3 text-lg"
+              >
+                {isSubmitting ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                    Saving Setup...
+                  </>
+                ) : (
+                  <>
+                    <Play className="w-5 h-5 mr-2" />
+                    Save Simulation Setup
+                  </>
+                )}
+              </Button>
+            </div>
+            </TabsContent>
 
           {/* Simulate Tab */}
           <TabsContent value="simulate" className="space-y-6">
@@ -425,54 +616,135 @@ export default function PoliticalAdvisor() {
                 <div className="grid md:grid-cols-3 gap-6">
                   <div className="space-y-4">
                     <h4 className="font-semibold text-dark-text">Economic Factors</h4>
-                    <div className="space-y-3">
-                      <div>
-                        <label className="text-sm text-dark-muted">Trade Dependencies</label>
-                        <Progress value={75} className="mt-1" />
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <label className="text-sm text-dark-muted">Trade Dependencies</label>
+                          <span className="text-sm text-flame font-medium">{tradeDependencies[0]}%</span>
+                        </div>
+                        <Slider
+                          value={tradeDependencies}
+                          onValueChange={setTradeDependencies}
+                          max={100}
+                          step={1}
+                          className="w-full"
+                        />
                       </div>
-                      <div>
-                        <label className="text-sm text-dark-muted">Economic Sanctions Impact</label>
-                        <Progress value={60} className="mt-1" />
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <label className="text-sm text-dark-muted">Economic Sanctions Impact</label>
+                          <span className="text-sm text-flame font-medium">{sanctionsImpact[0]}%</span>
+                        </div>
+                        <Slider
+                          value={sanctionsImpact}
+                          onValueChange={setSanctionsImpact}
+                          max={100}
+                          step={1}
+                          className="w-full"
+                        />
                       </div>
-                      <div>
-                        <label className="text-sm text-dark-muted">Market Stability</label>
-                        <Progress value={45} className="mt-1" />
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <label className="text-sm text-dark-muted">Market Stability</label>
+                          <span className="text-sm text-flame font-medium">{marketStability[0]}%</span>
+                        </div>
+                        <Slider
+                          value={marketStability}
+                          onValueChange={setMarketStability}
+                          max={100}
+                          step={1}
+                          className="w-full"
+                        />
                       </div>
                     </div>
                   </div>
 
                   <div className="space-y-4">
                     <h4 className="font-semibold text-dark-text">Military Readiness</h4>
-                    <div className="space-y-3">
-                      <div>
-                        <label className="text-sm text-dark-muted">Defense Capabilities</label>
-                        <Progress value={80} className="mt-1" />
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <label className="text-sm text-dark-muted">Defense Capabilities</label>
+                          <span className="text-sm text-flame font-medium">{defenseCapabilities[0]}%</span>
+                        </div>
+                        <Slider
+                          value={defenseCapabilities}
+                          onValueChange={setDefenseCapabilities}
+                          max={100}
+                          step={1}
+                          className="w-full"
+                        />
                       </div>
-                      <div>
-                        <label className="text-sm text-dark-muted">Alliance Support</label>
-                        <Progress value={85} className="mt-1" />
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <label className="text-sm text-dark-muted">Alliance Support</label>
+                          <span className="text-sm text-flame font-medium">{allianceSupport[0]}%</span>
+                        </div>
+                        <Slider
+                          value={allianceSupport}
+                          onValueChange={setAllianceSupport}
+                          max={100}
+                          step={1}
+                          className="w-full"
+                        />
                       </div>
-                      <div>
-                        <label className="text-sm text-dark-muted">Strategic Resources</label>
-                        <Progress value={70} className="mt-1" />
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <label className="text-sm text-dark-muted">Strategic Resources</label>
+                          <span className="text-sm text-flame font-medium">{strategicResources[0]}%</span>
+                        </div>
+                        <Slider
+                          value={strategicResources}
+                          onValueChange={setStrategicResources}
+                          max={100}
+                          step={1}
+                          className="w-full"
+                        />
                       </div>
                     </div>
                   </div>
 
                   <div className="space-y-4">
                     <h4 className="font-semibold text-dark-text">Diplomatic Relations</h4>
-                    <div className="space-y-3">
-                      <div>
-                        <label className="text-sm text-dark-muted">UN Support</label>
-                        <Progress value={65} className="mt-1" />
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <label className="text-sm text-dark-muted">UN Support</label>
+                          <span className="text-sm text-flame font-medium">{unSupport[0]}%</span>
+                        </div>
+                        <Slider
+                          value={unSupport}
+                          onValueChange={setUnSupport}
+                          max={100}
+                          step={1}
+                          className="w-full"
+                        />
                       </div>
-                      <div>
-                        <label className="text-sm text-dark-muted">Regional Influence</label>
-                        <Progress value={72} className="mt-1" />
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <label className="text-sm text-dark-muted">Regional Influence</label>
+                          <span className="text-sm text-flame font-medium">{regionalInfluence[0]}%</span>
+                        </div>
+                        <Slider
+                          value={regionalInfluence}
+                          onValueChange={setRegionalInfluence}
+                          max={100}
+                          step={1}
+                          className="w-full"
+                        />
                       </div>
-                      <div>
-                        <label className="text-sm text-dark-muted">Public Opinion</label>
-                        <Progress value={58} className="mt-1" />
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <label className="text-sm text-dark-muted">Public Opinion</label>
+                          <span className="text-sm text-flame font-medium">{publicOpinion[0]}%</span>
+                        </div>
+                        <Slider
+                          value={publicOpinion}
+                          onValueChange={setPublicOpinion}
+                          max={100}
+                          step={1}
+                          className="w-full"
+                        />
                       </div>
                     </div>
                   </div>
@@ -502,7 +774,16 @@ export default function PoliticalAdvisor() {
                   </div>
                 )}
 
-                <div className="flex justify-center pt-6">
+                <div className="flex justify-between items-center pt-6">
+                  <Button
+                    onClick={resetValues}
+                    variant="outline"
+                    className="border-dark-border text-dark-text hover:bg-dark-border bg-transparent px-6 py-3 text-lg"
+                  >
+                    <RotateCcw className="w-5 h-5 mr-2" />
+                    Reset Values
+                  </Button>
+                  
                   <Button
                     onClick={runSimulation}
                     disabled={!selectedCountry || !conflictScenario || isSimulating}
@@ -511,12 +792,12 @@ export default function PoliticalAdvisor() {
                     {isSimulating ? (
                       <>
                         <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                        Running Simulation...
+                        Saving & Running Analysis...
                       </>
                     ) : (
                       <>
                         <Play className="w-5 h-5 mr-2" />
-                        Run Political Analysis
+                        Save & Run Political Analysis
                       </>
                     )}
                   </Button>
