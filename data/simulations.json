@@ -3,12 +3,12 @@
     "id": "current",
     "selectedCountry": "US",
     "conflictScenario": "nuclear",
-    "offensiveCountry": "IL",
-    "defensiveCountry": "IR",
-    "scenarioDetails": "Israel struck iran nuclear base",
+    "offensiveCountry": "FR",
+    "defensiveCountry": "DE",
+    "scenarioDetails": "France Nuked Germany, all of the country is gone",
     "severityLevel": "medium",
-    "timeFrame": "short",
-    "timestamp": "2025-07-10T20:02:24.654Z",
-    "createdAt": "2025-07-10T20:02:24.806Z"
+    "timeFrame": "immediate",
+    "timestamp": "2025-07-10T20:32:11.577Z",
+    "createdAt": "2025-07-10T20:32:11.702Z"
   }
 ]
