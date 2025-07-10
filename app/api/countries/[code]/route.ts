@@ -1,73 +1,25 @@
-import { NextResponse } from 'next/server'
-import { readFileSync } from 'fs'
-import { join } from 'path'
+import { NextRequest, NextResponse } from "next/server"
+// @ts-ignore
+import rawCountries from "world-countries"
 
-export async function GET(
-  request: Request,
-  { params }: { params: { code: string } }
-) {
-  try {
-    const filePath = join(process.cwd(), 'data', 'countries.json')
-    const fileContents = readFileSync(filePath, 'utf8')
-    const data = JSON.parse(fileContents)
+export const runtime = "edge"
 
-    const country = data.countries.find(
-      (c: any) => c.code.toLowerCase() === params.code.toLowerCase()
-    )
+const countries: any[] = rawCountries as any[]
 
-    if (!country) {
-      return NextResponse.json(
-        { 
-          success: false, 
-          error: 'Country not found' 
-        },
-        { status: 404 }
-      )
-    }
-
-    // Get related countries data for allies, rivals, etc.
-    const relatedCountries = {
-      allies: data.countries.filter((c: any) => 
-        country.allies.includes(c.code)
-      ).map((c: any) => ({ 
-        code: c.code, 
-        name: c.name, 
-        flag: c.flag, 
-        power_rating: c.power_rating 
-      })),
-      rivals: data.countries.filter((c: any) => 
-        country.rivals.includes(c.code)
-      ).map((c: any) => ({ 
-        code: c.code, 
-        name: c.name, 
-        flag: c.flag, 
-        power_rating: c.power_rating 
-      })),
-      trade_dependencies: data.countries.filter((c: any) => 
-        country.trade_dependencies.includes(c.code)
-      ).map((c: any) => ({ 
-        code: c.code, 
-        name: c.name, 
-        flag: c.flag, 
-        gdp: c.gdp 
-      }))
-    }
-
-    return NextResponse.json({
-      success: true,
-      data: {
-        ...country,
-        related_countries: relatedCountries
-      }
-    })
-  } catch (error) {
-    console.error('Error loading country:', error)
-    return NextResponse.json(
-      { 
-        success: false, 
-        error: 'Failed to load country data' 
-      },
-      { status: 500 }
-    )
+export async function GET(req: NextRequest, { params }: { params: { code: string } }) {
+  const code = params.code.toUpperCase()
+  const country = countries.find((c) => c.cca2 === code)
+  if (!country) {
+    return NextResponse.json({ error: "Country not found" }, { status: 404 })
   }
+  return NextResponse.json({
+    code: country.cca2,
+    name: country.name.common,
+    flag: country.flag,
+    region: country.region,
+    subregion: country.subregion,
+    population: country.population,
+    area: country.area,
+    latlng: country.latlng,
+  })
 } 

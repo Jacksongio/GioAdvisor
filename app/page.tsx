@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Globe, Users, Target, BarChart3, Settings, Play, FileText, AlertTriangle, Sword, Shield } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -17,107 +17,56 @@ export default function PoliticalAdvisor() {
   const [defensiveCountry, setDefensiveCountry] = useState("")
   const [simulationResults, setSimulationResults] = useState<any>(null)
   const [isSimulating, setIsSimulating] = useState(false)
-  const [countries, setCountries] = useState<any[]>([])
-  const [conflictTypes, setConflictTypes] = useState<any[]>([])
-  const [isLoadingData, setIsLoadingData] = useState(true)
 
-  // Load countries and conflict types on component mount
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        const [countriesResponse, conflictsResponse] = await Promise.all([
-          fetch('/api/countries'),
-          fetch('/api/conflicts')
-        ])
+  const countries = [
+    { code: "US", name: "United States", flag: "🇺🇸", power: 95 },
+    { code: "CN", name: "China", flag: "🇨🇳", power: 90 },
+    { code: "RU", name: "Russia", flag: "🇷🇺", power: 85 },
+    { code: "GB", name: "United Kingdom", flag: "🇬🇧", power: 80 },
+    { code: "FR", name: "France", flag: "🇫🇷", power: 78 },
+    { code: "DE", name: "Germany", flag: "🇩🇪", power: 76 },
+    { code: "JP", name: "Japan", flag: "🇯🇵", power: 74 },
+    { code: "IN", name: "India", flag: "🇮🇳", power: 72 },
+    { code: "BR", name: "Brazil", flag: "🇧🇷", power: 65 },
+    { code: "CA", name: "Canada", flag: "🇨🇦", power: 63 },
+    { code: "AU", name: "Australia", flag: "🇦🇺", power: 60 },
+    { code: "KR", name: "South Korea", flag: "🇰🇷", power: 58 },
+    { code: "IT", name: "Italy", flag: "🇮🇹", power: 55 },
+    { code: "ES", name: "Spain", flag: "🇪🇸", power: 52 },
+    { code: "TR", name: "Turkey", flag: "🇹🇷", power: 50 },
+  ]
 
-        const countriesData = await countriesResponse.json()
-        const conflictsData = await conflictsResponse.json()
-
-        if (countriesData.success) {
-          setCountries(countriesData.data.map((country: any) => ({
-            code: country.code,
-            name: country.name,
-            flag: country.flag,
-            power: country.power_rating
-          })))
-        }
-
-        if (conflictsData.success) {
-          setConflictTypes(conflictsData.data)
-        }
-      } catch (error) {
-        console.error('Failed to load data:', error)
-      } finally {
-        setIsLoadingData(false)
-      }
-    }
-
-    loadData()
-  }, [])
+  const conflictTypes = [
+    { id: "territorial", name: "Territorial Dispute", icon: "🗺️" },
+    { id: "trade", name: "Trade War", icon: "💼" },
+    { id: "cyber", name: "Cyber Attack", icon: "💻" },
+    { id: "nuclear", name: "Nuclear Threat", icon: "☢️" },
+    { id: "humanitarian", name: "Humanitarian Crisis", icon: "🏥" },
+    { id: "resource", name: "Resource Conflict", icon: "⛽" },
+    { id: "proxy", name: "Proxy War", icon: "🎭" },
+    { id: "sanctions", name: "Economic Sanctions", icon: "🚫" },
+  ]
 
   const runSimulation = async () => {
-    if (!selectedCountry || !conflictScenario || !offensiveCountry || !defensiveCountry) {
-      alert('Please select all required fields before running simulation')
-      return
-    }
-
     setIsSimulating(true)
-    
-    try {
-      const response = await fetch('/api/simulate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          selectedCountry,
-          conflictScenario,
-          offensiveCountry,
-          defensiveCountry,
-          economicFactors: {
-            tradeDependencies: 75,
-            sanctionsImpact: 60,
-            marketStability: 45
-          },
-          militaryFactors: {
-            readiness: 70,
-            capabilities: 80,
-            allianceSupport: 85
-          },
-          diplomaticFactors: {
-            influence: 65,
-            relationships: 72,
-            negotiationPosition: 58
-          }
-        }),
-      })
+    // Simulate API call delay
+    await new Promise((resolve) => setTimeout(resolve, 3000))
 
-      const data = await response.json()
-
-      if (data.success) {
-        setSimulationResults({
-          diplomaticResponse: data.data.analysis.diplomaticSuccess,
-          militaryReadiness: data.data.analysis.militaryReadiness,
-          economicImpact: data.data.analysis.economicImpact,
-          publicSupport: data.data.analysis.publicSupport,
-          allianceStrength: data.data.analysis.allianceStrength,
-          recommendations: data.data.recommendations,
-          summary: data.data.summary,
-          riskLevel: data.data.analysis.riskLevel,
-          economicVulnerability: data.data.analysis.economicVulnerability,
-          strategicAdvantage: data.data.analysis.strategicAdvantage,
-          conflictDetails: data.data.conflictDetails,
-          geopoliticalContext: data.data.geopoliticalContext
-        })
-      } else {
-        throw new Error(data.error || 'Simulation failed')
-      }
-    } catch (error) {
-      console.error('Simulation error:', error)
-      alert('Failed to run simulation. Please try again.')
-    } finally {
-      setIsSimulating(false)
-    }
+    setSimulationResults({
+      diplomaticResponse: 85,
+      militaryReadiness: 60,
+      economicImpact: -15,
+      publicSupport: 72,
+      allianceStrength: 88,
+      recommendations: [
+        "Engage in multilateral diplomatic talks",
+        "Strengthen economic sanctions",
+        "Increase intelligence sharing with allies",
+        "Prepare humanitarian aid packages",
+        "Monitor regional stability indicators",
+      ],
+    })
+    setIsSimulating(false)
   }
 
   return (
