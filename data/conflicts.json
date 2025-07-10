@@ -1,0 +1,228 @@
+{
+  "conflicts": [
+    {
+      "id": "territorial",
+      "name": "Territorial Dispute",
+      "icon": "🗺️",
+      "description": "Conflicts over land ownership, borders, or territorial sovereignty",
+      "typical_duration": "months to decades",
+      "economic_impact_factor": 0.15,
+      "military_requirement": 70,
+      "diplomatic_complexity": 85,
+      "civilian_impact": "medium",
+      "international_involvement": "high",
+      "escalation_potential": "high",
+      "resolution_difficulty": "very high",
+      "key_factors": [
+        "Historical claims",
+        "Strategic resources",
+        "Population displacement",
+        "International law",
+        "Military positioning"
+      ],
+      "typical_responses": [
+        "Diplomatic negotiations",
+        "International arbitration",
+        "Military posturing",
+        "Economic sanctions",
+        "Peacekeeping forces"
+      ]
+    },
+    {
+      "id": "trade",
+      "name": "Trade War",
+      "icon": "💼",
+      "description": "Economic conflicts involving tariffs, sanctions, and trade restrictions",
+      "typical_duration": "months to years",
+      "economic_impact_factor": 0.25,
+      "military_requirement": 20,
+      "diplomatic_complexity": 60,
+      "civilian_impact": "high",
+      "international_involvement": "medium",
+      "escalation_potential": "medium",
+      "resolution_difficulty": "medium",
+      "key_factors": [
+        "Trade balance",
+        "Economic dependencies",
+        "Supply chain disruption",
+        "Currency fluctuations",
+        "Market access"
+      ],
+      "typical_responses": [
+        "Retaliatory tariffs",
+        "Trade negotiations",
+        "Alternative partnerships",
+        "WTO disputes",
+        "Economic diversification"
+      ]
+    },
+    {
+      "id": "cyber",
+      "name": "Cyber Attack",
+      "icon": "💻",
+      "description": "Digital warfare targeting infrastructure, data, or information systems",
+      "typical_duration": "days to months",
+      "economic_impact_factor": 0.10,
+      "military_requirement": 30,
+      "diplomatic_complexity": 75,
+      "civilian_impact": "high",
+      "international_involvement": "medium",
+      "escalation_potential": "very high",
+      "resolution_difficulty": "high",
+      "key_factors": [
+        "Cyber capabilities",
+        "Critical infrastructure",
+        "Attribution difficulty",
+        "Digital sovereignty",
+        "Information warfare"
+      ],
+      "typical_responses": [
+        "Cybersecurity enhancement",
+        "Digital forensics",
+        "Retaliatory cyber operations",
+        "International cooperation",
+        "Infrastructure hardening"
+      ]
+    },
+    {
+      "id": "nuclear",
+      "name": "Nuclear Threat",
+      "icon": "☢️",
+      "description": "Conflicts involving nuclear weapons, proliferation, or nuclear facilities",
+      "typical_duration": "weeks to years",
+      "economic_impact_factor": 0.20,
+      "military_requirement": 95,
+      "diplomatic_complexity": 95,
+      "civilian_impact": "extreme",
+      "international_involvement": "extreme",
+      "escalation_potential": "extreme",
+      "resolution_difficulty": "extreme",
+      "key_factors": [
+        "Nuclear arsenal",
+        "Delivery systems",
+        "Deterrence doctrine",
+        "Non-proliferation treaties",
+        "Nuclear security"
+      ],
+      "typical_responses": [
+        "Diplomatic intervention",
+        "International sanctions",
+        "Nuclear inspections",
+        "Security guarantees",
+        "Disarmament negotiations"
+      ]
+    },
+    {
+      "id": "humanitarian",
+      "name": "Humanitarian Crisis",
+      "icon": "🏥",
+      "description": "Conflicts arising from refugee flows, natural disasters, or humanitarian emergencies",
+      "typical_duration": "months to years",
+      "economic_impact_factor": 0.12,
+      "military_requirement": 40,
+      "diplomatic_complexity": 70,
+      "civilian_impact": "extreme",
+      "international_involvement": "high",
+      "escalation_potential": "medium",
+      "resolution_difficulty": "high",
+      "key_factors": [
+        "Refugee populations",
+        "Resource scarcity",
+        "International aid",
+        "Border security",
+        "Human rights"
+      ],
+      "typical_responses": [
+        "Humanitarian aid",
+        "Refugee resettlement",
+        "International assistance",
+        "Peacekeeping operations",
+        "Development programs"
+      ]
+    },
+    {
+      "id": "resource",
+      "name": "Resource Conflict",
+      "icon": "⛽",
+      "description": "Disputes over natural resources like oil, water, minerals, or energy",
+      "typical_duration": "years to decades",
+      "economic_impact_factor": 0.30,
+      "military_requirement": 60,
+      "diplomatic_complexity": 80,
+      "civilian_impact": "high",
+      "international_involvement": "high",
+      "escalation_potential": "high",
+      "resolution_difficulty": "very high",
+      "key_factors": [
+        "Resource accessibility",
+        "Economic value",
+        "Environmental impact",
+        "Energy security",
+        "Supply chain control"
+      ],
+      "typical_responses": [
+        "Resource sharing agreements",
+        "Alternative sources",
+        "Technology development",
+        "Strategic reserves",
+        "International partnerships"
+      ]
+    },
+    {
+      "id": "proxy",
+      "name": "Proxy War",
+      "icon": "🎭",
+      "description": "Indirect conflicts fought through allied or proxy forces",
+      "typical_duration": "years to decades",
+      "economic_impact_factor": 0.18,
+      "military_requirement": 80,
+      "diplomatic_complexity": 90,
+      "civilian_impact": "very high",
+      "international_involvement": "very high",
+      "escalation_potential": "high",
+      "resolution_difficulty": "extreme",
+      "key_factors": [
+        "Proxy relationships",
+        "Regional influence",
+        "Ideological alignment",
+        "Military support",
+        "Geopolitical interests"
+      ],
+      "typical_responses": [
+        "Military assistance",
+        "Intelligence sharing",
+        "Economic support",
+        "Diplomatic isolation",
+        "Peace negotiations"
+      ]
+    },
+    {
+      "id": "sanctions",
+      "name": "Economic Sanctions",
+      "icon": "🚫",
+      "description": "Economic and diplomatic penalties imposed to change behavior",
+      "typical_duration": "months to decades",
+      "economic_impact_factor": 0.22,
+      "military_requirement": 15,
+      "diplomatic_complexity": 65,
+      "civilian_impact": "high",
+      "international_involvement": "high",
+      "escalation_potential": "medium",
+      "resolution_difficulty": "high",
+      "key_factors": [
+        "Economic vulnerabilities",
+        "International cooperation",
+        "Sanction effectiveness",
+        "Alternative partnerships",
+        "Compliance mechanisms"
+      ],
+      "typical_responses": [
+        "Counter-sanctions",
+        "Economic diversification",
+        "International appeals",
+        "Diplomatic negotiations",
+        "Alternative trading blocs"
+      ]
+    }
+  ]
+} 
