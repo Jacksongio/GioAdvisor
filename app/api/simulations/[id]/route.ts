@@ -4,7 +4,7 @@ import path from "path"
 
 export const runtime = "nodejs"
 
-const SIMULATIONS_FILE = path.join(process.cwd(), 'data', 'simulations.json')
+const SIMULATIONS_FILE = path.join('/tmp', 'simulations.json')
 
 // Read simulations from file
 async function readSimulations() {
@@ -67,8 +67,6 @@ export async function DELETE(
     simulations.splice(index, 1)
     
     // Save back to file
-    const dataDir = path.join(process.cwd(), 'data')
-    await fs.mkdir(dataDir, { recursive: true })
     await fs.writeFile(SIMULATIONS_FILE, JSON.stringify(simulations, null, 2))
     
     return NextResponse.json({ 
