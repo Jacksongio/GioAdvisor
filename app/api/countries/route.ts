@@ -13,20 +13,130 @@ interface CountryResponse {
   population: number
   area: number
   latlng: number[]
+  power: number
+  military: number
+  economic: number
+  diplomatic: number
 }
 
-const countries: any[] = rawCountries as any[]
+// Generate flag emoji from country code
+function getFlagEmoji(countryCode: string): string {
+  if (!countryCode || countryCode.length !== 2) return "🏳️"
+  const codePoints = countryCode
+    .toUpperCase()
+    .split('')
+    .map(char => 127397 + char.charCodeAt(0))
+  return String.fromCodePoint(...codePoints)
+}
+
+// Since population data isn't available, use area as proxy for calculations
+const maxArea = Math.max(...(rawCountries as any[]).map((c: any) => c.area || 0))
+
+// Realistic power rankings based on actual geopolitical influence
+const powerRankings: Record<string, { military: number; economic: number; diplomatic: number }> = {
+  // Superpowers
+  "US": { military: 95, economic: 95, diplomatic: 90 },
+  "CN": { military: 90, economic: 92, diplomatic: 85 },
+  "RU": { military: 88, economic: 65, diplomatic: 75 },
+  
+  // Major Powers
+  "GB": { military: 78, economic: 85, diplomatic: 88 },
+  "FR": { military: 75, economic: 82, diplomatic: 85 },
+  "DE": { military: 65, economic: 88, diplomatic: 82 },
+  "JP": { military: 65, economic: 85, diplomatic: 75 },
+  "IN": { military: 80, economic: 75, diplomatic: 70 },
+  
+  // Regional Powers
+  "BR": { military: 55, economic: 65, diplomatic: 60 },
+  "CA": { military: 50, economic: 70, diplomatic: 75 },
+  "AU": { military: 48, economic: 68, diplomatic: 65 },
+  "KR": { military: 60, economic: 75, diplomatic: 55 },
+  "IT": { military: 52, economic: 72, diplomatic: 70 },
+  "ES": { military: 45, economic: 65, diplomatic: 65 },
+  "TR": { military: 58, economic: 55, diplomatic: 50 },
+  "IL": { military: 75, economic: 60, diplomatic: 45 },
+  "SA": { military: 55, economic: 68, diplomatic: 55 },
+  "IR": { military: 65, economic: 45, diplomatic: 40 },
+  "PK": { military: 70, economic: 40, diplomatic: 35 },
+  "EG": { military: 50, economic: 35, diplomatic: 45 },
+  "ZA": { military: 40, economic: 50, diplomatic: 55 },
+  "AR": { military: 35, economic: 45, diplomatic: 50 },
+  "MX": { military: 30, economic: 55, diplomatic: 45 },
+  "ID": { military: 45, economic: 50, diplomatic: 45 },
+  "TH": { military: 40, economic: 48, diplomatic: 40 },
+  "VN": { military: 55, economic: 45, diplomatic: 35 },
+  "PH": { military: 35, economic: 42, diplomatic: 40 },
+  "MY": { military: 30, economic: 50, diplomatic: 45 },
+  "SG": { military: 35, economic: 75, diplomatic: 60 },
+  "AE": { military: 40, economic: 65, diplomatic: 55 },
+  "QA": { military: 25, economic: 60, diplomatic: 45 },
+  "KW": { military: 20, economic: 55, diplomatic: 40 },
+  "NO": { military: 35, economic: 70, diplomatic: 65 },
+  "SE": { military: 30, economic: 72, diplomatic: 70 },
+  "DK": { military: 25, economic: 68, diplomatic: 65 },
+  "FI": { military: 30, economic: 65, diplomatic: 60 },
+  "NL": { military: 35, economic: 75, diplomatic: 70 },
+  "BE": { military: 25, economic: 68, diplomatic: 70 },
+  "CH": { military: 30, economic: 80, diplomatic: 75 },
+  "AT": { military: 20, economic: 65, diplomatic: 65 },
+  "PL": { military: 45, economic: 58, diplomatic: 55 },
+  "CZ": { military: 25, economic: 55, diplomatic: 55 },
+  "HU": { military: 20, economic: 50, diplomatic: 50 },
+  "GR": { military: 40, economic: 45, diplomatic: 50 },
+  "PT": { military: 25, economic: 55, diplomatic: 60 },
+  "IE": { military: 15, economic: 70, diplomatic: 65 },
+  "NZ": { military: 20, economic: 55, diplomatic: 60 },
+  "UA": { military: 60, economic: 25, diplomatic: 30 },
+  "BY": { military: 35, economic: 20, diplomatic: 15 },
+}
+
+const countries: any[] = (rawCountries as any[]).map((c: any) => {
+  const area = c.area || 0
+  const areaRank = area / maxArea
+  
+  // Get predefined power ranking or calculate based on area/region
+  const ranking = powerRankings[c.cca2]
+  let military: number, economic: number, diplomatic: number
+  
+  if (ranking) {
+    military = ranking.military
+    economic = ranking.economic
+    diplomatic = ranking.diplomatic
+  } else {
+    // Fallback calculation for smaller/unlisted countries
+    const regionPower = c.region === "Europe" ? 15 : c.region === "Asia" ? 12 : c.region === "Americas" ? 8 : 5
+    military = Math.min(Math.round(areaRank * 30 + regionPower), 45)
+    economic = Math.min(Math.round(areaRank * 25 + regionPower), 40)
+    diplomatic = Math.min(Math.round(areaRank * 20 + regionPower), 35)
+  }
+  
+  const power = Math.round((military + economic + diplomatic) / 3)
+  
+  return { 
+    ...c, 
+    flag: getFlagEmoji(c.cca2),
+    population: Math.round(areaRank * 1400000000), // Estimate based on area
+    military, 
+    economic, 
+    diplomatic, 
+    power 
+  }
+})
 
 export async function GET() {
   const payload: CountryResponse[] = countries.map((c: any) => ({
     code: c.cca2,
     name: c.name.common,
     flag: c.flag,
-    region: c.region,
-    subregion: c.subregion,
+    region: c.region || "Unknown",
+    subregion: c.subregion || "Unknown",
     population: c.population,
-    area: c.area,
-    latlng: c.latlng,
+    area: c.area || 0,
+    latlng: c.latlng || [0, 0],
+    power: c.power,
+    military: c.military,
+    economic: c.economic,
+    diplomatic: c.diplomatic,
   }))
 
   return NextResponse.json(payload)

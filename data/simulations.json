@@ -1,0 +1,14 @@
+[
+  {
+    "id": "current",
+    "selectedCountry": "US",
+    "conflictScenario": "nuclear",
+    "offensiveCountry": "IL",
+    "defensiveCountry": "IR",
+    "scenarioDetails": "Israel struck iran nuclear base",
+    "severityLevel": "medium",
+    "timeFrame": "short",
+    "timestamp": "2025-07-10T20:02:24.654Z",
+    "createdAt": "2025-07-10T20:02:24.806Z"
+  }
+]
