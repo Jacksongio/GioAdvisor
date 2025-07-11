@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Globe, Users, Target, BarChart3, Play, FileText, AlertTriangle, Sword, Shield, RotateCcw, MessageCircle, Send } from "lucide-react"
+import { Globe, Users, Target, BarChart3, Play, FileText, AlertTriangle, Sword, Shield, RotateCcw, MessageCircle, Send, Check, ChevronsUpDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -10,6 +10,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Progress } from "@/components/ui/progress"
 import { Slider } from "@/components/ui/slider"
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { useToast } from "@/hooks/use-toast"
 
 export default function PoliticalAdvisor() {
@@ -28,6 +30,14 @@ export default function PoliticalAdvisor() {
   const [chatMessages, setChatMessages] = useState<Array<{role: string, content: string, timestamp: string}>>([])
   const [chatInput, setChatInput] = useState("")
   const [isChatting, setIsChatting] = useState(false)
+  
+  // Tab navigation state
+  const [activeTab, setActiveTab] = useState("setup")
+  
+  // Country dropdown states
+  const [selectedCountryOpen, setSelectedCountryOpen] = useState(false)
+  const [offensiveCountryOpen, setOffensiveCountryOpen] = useState(false)
+  const [defensiveCountryOpen, setDefensiveCountryOpen] = useState(false)
   
   // Economic factors sliders
   const [tradeDependencies, setTradeDependencies] = useState([50])
@@ -222,9 +232,12 @@ export default function PoliticalAdvisor() {
       console.log('Setup submitted successfully:', result)
       toast({
         title: "Success!",
-        description: "Simulation setup saved!",
+        description: "Simulation setup saved! Redirecting to analysis...",
         variant: "default",
       })
+      
+      // Redirect to Run Analysis tab
+      setActiveTab("simulate")
       
     } catch (error) {
       console.error('Error submitting setup:', error)
@@ -263,6 +276,8 @@ export default function PoliticalAdvisor() {
     { id: "resource", name: "Resource Conflict", icon: "⛽" },
     { id: "proxy", name: "Proxy War", icon: "🎭" },
     { id: "sanctions", name: "Economic Sanctions", icon: "🚫" },
+    { id: "terrorist", name: "Terrorist Attack", icon: "💥" },
+    { id: "other", name: "Other", icon: "❓" },
   ]
 
   const runSimulation = async () => {
@@ -360,17 +375,23 @@ export default function PoliticalAdvisor() {
         setSimulationResults(aiResult.analysis)
         toast({
           title: "AI Analysis Complete",
-          description: "Your simulation has been analyzed using advanced AI.",
+          description: "Your simulation has been analyzed using advanced AI. You are now redirected to the results page.",
           variant: "default",
         })
+        
+        // Redirect to View Results tab
+        setActiveTab("results")
       } else {
         // Use fallback results if AI analysis fails
         setSimulationResults(aiResult.analysis)
         toast({
           title: "Analysis Complete",
-          description: "Showing fallback analysis due to AI service issues.",
+          description: "Showing fallback analysis due to AI service issues. Redirecting to results...",
           variant: "destructive",
         })
+        
+        // Redirect to View Results tab even with fallback
+        setActiveTab("results")
       }
 
     } catch (error) {
@@ -395,23 +416,26 @@ export default function PoliticalAdvisor() {
       
       toast({
         title: "Analysis Warning",
-        description: "AI analysis unavailable. Showing basic recommendations.",
+        description: "AI analysis unavailable. Showing basic recommendations. Redirecting to results...",
         variant: "destructive",
       })
+      
+      // Redirect to View Results tab even with basic results
+      setActiveTab("results")
     }
 
     setIsSimulating(false)
   }
 
   return (
-    <div className="min-h-screen bg-dark-bg text-dark-text">
+    <div className="bg-dark-bg text-dark-text">
       {/* Header */}
       <header className="border-b border-dark-border bg-dark-card/80 backdrop-blur-sm">
-        <div className="container mx-auto px-4 py-4">
+        <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-flame rounded-lg flex items-center justify-center">
-                <Globe className="w-6 h-6 text-white" />
+            <div className="flex items-center space-x-4">
+              <div className="w-12 h-12 bg-flame rounded-lg flex items-center justify-center">
+                <Globe className="w-7 h-7 text-white" />
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-dark-text">GioAdvisor</h1>
@@ -419,87 +443,112 @@ export default function PoliticalAdvisor() {
               </div>
             </div>
             <div className="flex items-center space-x-2">
-              <Badge variant="outline" className="border-flame text-flame bg-transparent">
-                Beta v1.0
+              <Badge variant="outline" className="border-flame text-flame bg-transparent text-sm px-3 py-1">
+                Beta v1.1
               </Badge>
             </div>
           </div>
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-8">
-        <Tabs defaultValue="setup" className="space-y-6">
-                          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 bg-dark-card border border-dark-border">
+      <div className="container mx-auto px-6 py-8 pb-96">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 bg-dark-card border border-dark-border h-12">
             <TabsTrigger
               value="setup"
-              className="data-[state=active]:bg-flame data-[state=active]:text-white text-dark-text"
+              className="data-[state=active]:bg-flame data-[state=active]:text-white text-dark-text text-base"
             >
               Setup Simulation
             </TabsTrigger>
             <TabsTrigger
               value="simulate"
-              className="data-[state=active]:bg-flame data-[state=active]:text-white text-dark-text"
+              className="data-[state=active]:bg-flame data-[state=active]:text-white text-dark-text text-base"
             >
               Run Analysis
             </TabsTrigger>
             <TabsTrigger
               value="results"
-              className="data-[state=active]:bg-flame data-[state=active]:text-white text-dark-text"
+              className="data-[state=active]:bg-flame data-[state=active]:text-white text-dark-text text-base"
             >
               View Results
             </TabsTrigger>
             <TabsTrigger
               value="chat"
-              className="data-[state=active]:bg-flame data-[state=active]:text-white text-dark-text"
+              className="data-[state=active]:bg-flame data-[state=active]:text-white text-dark-text text-base"
             >
               Chat with AI
             </TabsTrigger>
           </TabsList>
 
-          {/* Setup Tab */}
-          <TabsContent value="setup" className="space-y-6">
+                    {/* Setup Tab */}
+          <TabsContent value="setup" className="space-y-8">
             <div className="grid md:grid-cols-2 gap-6">
               {/* Country Selection */}
-              <Card className="border-dark-border bg-dark-card">
-                <CardHeader className="bg-gradient-to-r from-flame/20 to-flame/10">
-                  <CardTitle className="flex items-center space-x-2 text-dark-text">
+              <Card className="border-dark-border bg-dark-card h-fit">
+                <CardHeader className="bg-gradient-to-r from-flame/20 to-flame/10 py-4">
+                  <CardTitle className="flex items-center space-x-3 text-dark-text text-lg">
                     <Users className="w-5 h-5 text-flame" />
                     <span>Select Your Country</span>
                   </CardTitle>
-                  <CardDescription className="text-dark-muted">
+                  <CardDescription className="text-dark-muted text-base">
                     Choose which country you want to simulate as
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="p-6">
-                  <Select value={selectedCountry} onValueChange={setSelectedCountry}>
-                    <SelectTrigger className="w-full bg-dark-bg border-dark-border text-dark-text">
-                      {selectedCountry ? (
-                        <div className="flex items-center space-x-2">
-                          <span>{countries.find((c) => c.code === selectedCountry)?.flag}</span>
-                          <span>{countries.find((c) => c.code === selectedCountry)?.name}</span>
-                        </div>
-                      ) : (
-                        <SelectValue placeholder="Choose a country..." />
-                      )}
-                    </SelectTrigger>
-                    <SelectContent className="bg-dark-card border-dark-border">
-                      {countries.map((country) => (
-                        <SelectItem
-                          key={country.code}
-                          value={country.code}
-                          className="text-dark-text hover:bg-dark-border"
-                        >
-                          <div className="flex items-center space-x-3">
-                            <span className="text-lg">{country.flag}</span>
-                            <span>{country.name}</span>
-                            <Badge variant="secondary" className="ml-auto bg-dark-border text-dark-text">
-                              Power: {country.power}
-                            </Badge>
+                  <Popover open={selectedCountryOpen} onOpenChange={setSelectedCountryOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        aria-expanded={selectedCountryOpen}
+                        className="w-full justify-between bg-dark-bg border-dark-border text-dark-text hover:bg-dark-border hover:text-dark-text"
+                      >
+                        {selectedCountry ? (
+                          <div className="flex items-center space-x-2">
+                            <span>{countries.find((c) => c.code === selectedCountry)?.flag}</span>
+                            <span>{countries.find((c) => c.code === selectedCountry)?.name}</span>
                           </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                        ) : (
+                          "Choose a country..."
+                        )}
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[400px] p-0 bg-dark-card border-dark-border">
+                      <Command className="bg-dark-card">
+                        <CommandInput placeholder="Search countries..." className="text-dark-text" />
+                        <CommandList>
+                          <CommandEmpty>No country found.</CommandEmpty>
+                          <CommandGroup>
+                            {countries.map((country) => (
+                              <CommandItem
+                                key={country.code}
+                                value={`${country.name} ${country.code}`}
+                                onSelect={() => {
+                                  setSelectedCountry(country.code)
+                                  setSelectedCountryOpen(false)
+                                }}
+                                className="text-dark-text hover:bg-dark-border"
+                              >
+                                <div className="flex items-center space-x-3 w-full">
+                                  <span className="text-lg">{country.flag}</span>
+                                  <span className="flex-1">{country.name}</span>
+                                  <Badge variant="secondary" className="bg-dark-border text-dark-text">
+                                    Power: {country.power}
+                                  </Badge>
+                                  <Check
+                                    className={`ml-2 h-4 w-4 ${
+                                      selectedCountry === country.code ? "opacity-100" : "opacity-0"
+                                    }`}
+                                  />
+                                </div>
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
 
                   {selectedCountry && (
                     <div className="mt-4 p-4 bg-dark-border rounded-lg">
@@ -551,33 +600,33 @@ export default function PoliticalAdvisor() {
               </Card>
 
               {/* Conflict Scenario */}
-              <Card className="border-dark-border bg-dark-card">
-                <CardHeader className="bg-gradient-to-r from-flame/20 to-flame/10">
-                  <CardTitle className="flex items-center space-x-2 text-dark-text">
+              <Card className="border-dark-border bg-dark-card min-h-[600px] flex flex-col">
+                <CardHeader className="bg-gradient-to-r from-flame/20 to-flame/10 py-4">
+                  <CardTitle className="flex items-center space-x-3 text-dark-text text-lg">
                     <AlertTriangle className="w-5 h-5 text-flame" />
                     <span>Conflict Scenario</span>
                   </CardTitle>
-                  <CardDescription className="text-dark-muted">
+                  <CardDescription className="text-dark-muted text-base">
                     Define the conflict situation to analyze
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="p-6 space-y-4">
+                <CardContent className="p-6 space-y-4 flex-1">
                   <div>
-                    <label className="text-sm font-medium text-dark-text mb-2 block">Conflict Type</label>
-                    <div className="grid grid-cols-2 gap-2">
+                    <label className="text-base font-medium text-dark-text mb-3 block">Conflict Type</label>
+                    <div className="grid grid-cols-2 gap-3">
                       {conflictTypes.map((type) => (
                         <Button
                           key={type.id}
                           variant={conflictScenario === type.id ? "default" : "outline"}
-                          className={`justify-start ${
+                          className={`justify-start py-3 px-4 ${
                             conflictScenario === type.id
                               ? "bg-flame hover:bg-flame/90 text-white"
                               : "border-dark-border text-dark-text hover:bg-dark-border bg-transparent"
                           }`}
                           onClick={() => setConflictScenario(type.id)}
                         >
-                          <span className="mr-2">{type.icon}</span>
-                          {type.name}
+                          <span className="mr-3 text-lg">{type.icon}</span>
+                          <span className="text-base">{type.name}</span>
                         </Button>
                       ))}
                     </div>
@@ -586,79 +635,137 @@ export default function PoliticalAdvisor() {
                   {/* Offensive and Defensive Country Selection */}
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-sm font-medium text-dark-text mb-2 block flex items-center">
-                        <Sword className="w-4 h-4 mr-2 text-flame" />
+                      <label className="text-base font-medium text-dark-text mb-3 block flex items-center">
+                        <Sword className="w-5 h-5 mr-2 text-flame" />
                         Offensive Country
                       </label>
-                      <Select value={offensiveCountry} onValueChange={setOffensiveCountry}>
-                        <SelectTrigger className="bg-dark-bg border-dark-border text-dark-text">
-                          {offensiveCountry ? (
-                            <div className="flex items-center space-x-2">
-                              <span>{countries.find((c) => c.code === offensiveCountry)?.flag}</span>
-                              <span>{countries.find((c) => c.code === offensiveCountry)?.name}</span>
-                            </div>
-                          ) : (
-                            <SelectValue placeholder="Select aggressor..." />
-                          )}
-                        </SelectTrigger>
-                        <SelectContent className="bg-dark-card border-dark-border">
-                          {countries.map((country) => (
-                            <SelectItem
-                              key={country.code}
-                              value={country.code}
-                              className="text-dark-text hover:bg-dark-border"
-                              disabled={country.code === defensiveCountry}
-                            >
+                      <Popover open={offensiveCountryOpen} onOpenChange={setOffensiveCountryOpen}>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            aria-expanded={offensiveCountryOpen}
+                            className="w-full justify-between bg-dark-bg border-dark-border text-dark-text hover:bg-dark-border hover:text-dark-text"
+                          >
+                            {offensiveCountry ? (
                               <div className="flex items-center space-x-2">
-                                <span>{country.flag}</span>
-                                <span>{country.name}</span>
+                                <span>{countries.find((c) => c.code === offensiveCountry)?.flag}</span>
+                                <span>{countries.find((c) => c.code === offensiveCountry)?.name}</span>
                               </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                            ) : (
+                              "Select aggressor..."
+                            )}
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[350px] p-0 bg-dark-card border-dark-border">
+                          <Command className="bg-dark-card">
+                            <CommandInput placeholder="Search countries..." className="text-dark-text" />
+                            <CommandList>
+                              <CommandEmpty>No country found.</CommandEmpty>
+                              <CommandGroup>
+                                {countries.map((country) => (
+                                  <CommandItem
+                                    key={country.code}
+                                    value={`${country.name} ${country.code}`}
+                                    disabled={country.code === defensiveCountry}
+                                    onSelect={() => {
+                                      if (country.code !== defensiveCountry) {
+                                        setOffensiveCountry(country.code)
+                                        setOffensiveCountryOpen(false)
+                                      }
+                                    }}
+                                    className={`text-dark-text hover:bg-dark-border ${
+                                      country.code === defensiveCountry ? "opacity-50 cursor-not-allowed" : ""
+                                    }`}
+                                  >
+                                    <div className="flex items-center space-x-2 w-full">
+                                      <span>{country.flag}</span>
+                                      <span className="flex-1">{country.name}</span>
+                                      <Check
+                                        className={`ml-2 h-4 w-4 ${
+                                          offensiveCountry === country.code ? "opacity-100" : "opacity-0"
+                                        }`}
+                                      />
+                                    </div>
+                                  </CommandItem>
+                                ))}
+                              </CommandGroup>
+                            </CommandList>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
                     </div>
 
                     <div>
-                      <label className="text-sm font-medium text-dark-text mb-2 block flex items-center">
-                        <Shield className="w-4 h-4 mr-2 text-flame" />
+                      <label className="text-base font-medium text-dark-text mb-3 block flex items-center">
+                        <Shield className="w-5 h-5 mr-2 text-flame" />
                         Defensive Country
                       </label>
-                      <Select value={defensiveCountry} onValueChange={setDefensiveCountry}>
-                        <SelectTrigger className="bg-dark-bg border-dark-border text-dark-text">
-                          {defensiveCountry ? (
-                            <div className="flex items-center space-x-2">
-                              <span>{countries.find((c) => c.code === defensiveCountry)?.flag}</span>
-                              <span>{countries.find((c) => c.code === defensiveCountry)?.name}</span>
-                            </div>
-                          ) : (
-                            <SelectValue placeholder="Select defender..." />
-                          )}
-                        </SelectTrigger>
-                        <SelectContent className="bg-dark-card border-dark-border">
-                          {countries.map((country) => (
-                            <SelectItem
-                              key={country.code}
-                              value={country.code}
-                              className="text-dark-text hover:bg-dark-border"
-                              disabled={country.code === offensiveCountry}
-                            >
+                      <Popover open={defensiveCountryOpen} onOpenChange={setDefensiveCountryOpen}>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            aria-expanded={defensiveCountryOpen}
+                            className="w-full justify-between bg-dark-bg border-dark-border text-dark-text hover:bg-dark-border hover:text-dark-text"
+                          >
+                            {defensiveCountry ? (
                               <div className="flex items-center space-x-2">
-                                <span>{country.flag}</span>
-                                <span>{country.name}</span>
+                                <span>{countries.find((c) => c.code === defensiveCountry)?.flag}</span>
+                                <span>{countries.find((c) => c.code === defensiveCountry)?.name}</span>
                               </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                            ) : (
+                              "Select defender..."
+                            )}
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[350px] p-0 bg-dark-card border-dark-border">
+                          <Command className="bg-dark-card">
+                            <CommandInput placeholder="Search countries..." className="text-dark-text" />
+                            <CommandList>
+                              <CommandEmpty>No country found.</CommandEmpty>
+                              <CommandGroup>
+                                {countries.map((country) => (
+                                  <CommandItem
+                                    key={country.code}
+                                    value={`${country.name} ${country.code}`}
+                                    disabled={country.code === offensiveCountry}
+                                    onSelect={() => {
+                                      if (country.code !== offensiveCountry) {
+                                        setDefensiveCountry(country.code)
+                                        setDefensiveCountryOpen(false)
+                                      }
+                                    }}
+                                    className={`text-dark-text hover:bg-dark-border ${
+                                      country.code === offensiveCountry ? "opacity-50 cursor-not-allowed" : ""
+                                    }`}
+                                  >
+                                    <div className="flex items-center space-x-2 w-full">
+                                      <span>{country.flag}</span>
+                                      <span className="flex-1">{country.name}</span>
+                                      <Check
+                                        className={`ml-2 h-4 w-4 ${
+                                          defensiveCountry === country.code ? "opacity-100" : "opacity-0"
+                                        }`}
+                                      />
+                                    </div>
+                                  </CommandItem>
+                                ))}
+                              </CommandGroup>
+                            </CommandList>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
                     </div>
                   </div>
 
                   <div>
-                    <label className="text-sm font-medium text-dark-text mb-2 block">Scenario Details</label>
+                    <label className="text-base font-medium text-dark-text mb-3 block">Scenario Details</label>
                     <Textarea
                       placeholder="Describe the specific conflict scenario, involved parties, and key factors..."
-                      className="min-h-[100px] bg-dark-bg border-dark-border text-dark-text placeholder:text-dark-muted"
+                      className="min-h-[120px] bg-dark-bg border-dark-border text-dark-text placeholder:text-dark-muted text-base p-4"
                       value={scenarioDetails}
                       onChange={(e) => setScenarioDetails(e.target.value)}
                     />
@@ -666,7 +773,7 @@ export default function PoliticalAdvisor() {
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-sm font-medium text-dark-text mb-2 block">Severity Level</label>
+                      <label className="text-base font-medium text-dark-text mb-3 block">Severity Level</label>
                       <Select value={severityLevel} onValueChange={setSeverityLevel}>
                         <SelectTrigger className="bg-dark-bg border-dark-border text-dark-text">
                           <SelectValue placeholder="Select severity" />
@@ -689,7 +796,7 @@ export default function PoliticalAdvisor() {
                     </div>
 
                     <div>
-                      <label className="text-sm font-medium text-dark-text mb-2 block">Time Frame</label>
+                      <label className="text-base font-medium text-dark-text mb-3 block">Time Frame</label>
                       <Select value={timeFrame} onValueChange={setTimeFrame}>
                         <SelectTrigger className="bg-dark-bg border-dark-border text-dark-text">
                           <SelectValue placeholder="Response timeframe" />
@@ -715,11 +822,11 @@ export default function PoliticalAdvisor() {
               </Card>
             </div>
               
-            <div className="flex justify-between mt-8">
+            <div className="flex justify-between pt-6 border-t border-dark-border">
               <Button
                 onClick={clearForm}
                 variant="outline"
-                className="border-dark-border text-dark-text hover:bg-dark-border bg-transparent px-6 py-3 text-lg"
+                className="border-dark-border text-dark-text hover:bg-dark-border bg-transparent px-6 py-3 text-base"
               >
                 <RotateCcw className="w-5 h-5 mr-2" />
                 Clear All Fields
@@ -728,7 +835,7 @@ export default function PoliticalAdvisor() {
               <Button
                 onClick={submitSetup}
                 disabled={!selectedCountry || !conflictScenario || !offensiveCountry || !defensiveCountry || isSubmitting}
-                className="bg-flame hover:bg-flame/90 text-white px-8 py-3 text-lg"
+                className="bg-flame hover:bg-flame/90 text-white px-8 py-3 text-base"
               >
                 {isSubmitting ? (
                   <>
@@ -743,205 +850,207 @@ export default function PoliticalAdvisor() {
                 )}
               </Button>
             </div>
-            </TabsContent>
+          </TabsContent>
 
           {/* Simulate Tab */}
-          <TabsContent value="simulate" className="space-y-6">
-            <Card className="border-dark-border bg-dark-card">
-              <CardHeader className="bg-gradient-to-r from-flame/20 to-flame/10">
-                <CardTitle className="flex items-center space-x-2 text-dark-text">
-                  <Target className="w-5 h-5 text-flame" />
-                  <span>Simulation Parameters</span>
+          <TabsContent value="simulate" className="flex-1 min-h-0 flex flex-col mt-4">
+            <Card className="border-dark-border bg-dark-card flex-1 min-h-0 flex flex-col">
+              <CardHeader className="bg-gradient-to-r from-flame/20 to-flame/10 py-3 flex-shrink-0">
+                <CardTitle className="flex items-center space-x-2 text-dark-text text-base">
+                  <Target className="w-4 h-4 text-flame" />
+                  <span>Advanced Parameters (Optional)</span>
                 </CardTitle>
-                <CardDescription className="text-dark-muted">
+                <CardDescription className="text-dark-muted text-sm">
                   Configure advanced settings for your political simulation
                 </CardDescription>
               </CardHeader>
-              <CardContent className="p-6 space-y-6">
-                <div className="grid md:grid-cols-3 gap-6">
-                  <div className="space-y-4">
-                    <h4 className="font-semibold text-dark-text">Economic Factors</h4>
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <div className="flex justify-between items-center">
-                          <label className="text-sm text-dark-muted">Trade Dependencies</label>
-                          <span className="text-sm text-flame font-medium">{tradeDependencies[0]}%</span>
+              <CardContent className="p-4 flex-1 min-h-0 flex flex-col">
+                <div className="flex-1 overflow-y-auto">
+                  <div className="grid md:grid-cols-3 gap-4 mb-4">
+                    <div className="space-y-3">
+                      <h4 className="font-semibold text-dark-text text-sm">Economic Factors</h4>
+                      <div className="space-y-3">
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-center">
+                            <label className="text-sm text-dark-muted">Trade Dependencies</label>
+                            <span className="text-sm text-flame font-medium">{tradeDependencies[0]}%</span>
+                          </div>
+                          <Slider
+                            value={tradeDependencies}
+                            onValueChange={setTradeDependencies}
+                            max={100}
+                            step={1}
+                            className="w-full"
+                          />
                         </div>
-                        <Slider
-                          value={tradeDependencies}
-                          onValueChange={setTradeDependencies}
-                          max={100}
-                          step={1}
-                          className="w-full"
-                        />
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-center">
+                            <label className="text-sm text-dark-muted">Economic Sanctions Impact</label>
+                            <span className="text-sm text-flame font-medium">{sanctionsImpact[0]}%</span>
+                          </div>
+                          <Slider
+                            value={sanctionsImpact}
+                            onValueChange={setSanctionsImpact}
+                            max={100}
+                            step={1}
+                            className="w-full"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-center">
+                            <label className="text-sm text-dark-muted">Market Stability</label>
+                            <span className="text-sm text-flame font-medium">{marketStability[0]}%</span>
+                          </div>
+                          <Slider
+                            value={marketStability}
+                            onValueChange={setMarketStability}
+                            max={100}
+                            step={1}
+                            className="w-full"
+                          />
+                        </div>
                       </div>
-                      <div className="space-y-2">
-                        <div className="flex justify-between items-center">
-                          <label className="text-sm text-dark-muted">Economic Sanctions Impact</label>
-                          <span className="text-sm text-flame font-medium">{sanctionsImpact[0]}%</span>
+                    </div>
+
+                    <div className="space-y-3">
+                      <h4 className="font-semibold text-dark-text text-sm">Military Readiness</h4>
+                      <div className="space-y-3">
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-center">
+                            <label className="text-sm text-dark-muted">Defense Capabilities</label>
+                            <span className="text-sm text-flame font-medium">{defenseCapabilities[0]}%</span>
+                          </div>
+                          <Slider
+                            value={defenseCapabilities}
+                            onValueChange={setDefenseCapabilities}
+                            max={100}
+                            step={1}
+                            className="w-full"
+                          />
                         </div>
-                        <Slider
-                          value={sanctionsImpact}
-                          onValueChange={setSanctionsImpact}
-                          max={100}
-                          step={1}
-                          className="w-full"
-                        />
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-center">
+                            <label className="text-sm text-dark-muted">Alliance Support</label>
+                            <span className="text-sm text-flame font-medium">{allianceSupport[0]}%</span>
+                          </div>
+                          <Slider
+                            value={allianceSupport}
+                            onValueChange={setAllianceSupport}
+                            max={100}
+                            step={1}
+                            className="w-full"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-center">
+                            <label className="text-sm text-dark-muted">Strategic Resources</label>
+                            <span className="text-sm text-flame font-medium">{strategicResources[0]}%</span>
+                          </div>
+                          <Slider
+                            value={strategicResources}
+                            onValueChange={setStrategicResources}
+                            max={100}
+                            step={1}
+                            className="w-full"
+                          />
+                        </div>
                       </div>
-                      <div className="space-y-2">
-                        <div className="flex justify-between items-center">
-                          <label className="text-sm text-dark-muted">Market Stability</label>
-                          <span className="text-sm text-flame font-medium">{marketStability[0]}%</span>
+                    </div>
+
+                    <div className="space-y-3">
+                      <h4 className="font-semibold text-dark-text text-sm">Diplomatic Relations</h4>
+                      <div className="space-y-3">
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-center">
+                            <label className="text-sm text-dark-muted">UN Support</label>
+                            <span className="text-sm text-flame font-medium">{unSupport[0]}%</span>
+                          </div>
+                          <Slider
+                            value={unSupport}
+                            onValueChange={setUnSupport}
+                            max={100}
+                            step={1}
+                            className="w-full"
+                          />
                         </div>
-                        <Slider
-                          value={marketStability}
-                          onValueChange={setMarketStability}
-                          max={100}
-                          step={1}
-                          className="w-full"
-                        />
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-center">
+                            <label className="text-sm text-dark-muted">Regional Influence</label>
+                            <span className="text-sm text-flame font-medium">{regionalInfluence[0]}%</span>
+                          </div>
+                          <Slider
+                            value={regionalInfluence}
+                            onValueChange={setRegionalInfluence}
+                            max={100}
+                            step={1}
+                            className="w-full"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-center">
+                            <label className="text-sm text-dark-muted">Public Opinion</label>
+                            <span className="text-sm text-flame font-medium">{publicOpinion[0]}%</span>
+                          </div>
+                          <Slider
+                            value={publicOpinion}
+                            onValueChange={setPublicOpinion}
+                            max={100}
+                            step={1}
+                            className="w-full"
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
 
-                  <div className="space-y-4">
-                    <h4 className="font-semibold text-dark-text">Military Readiness</h4>
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <div className="flex justify-between items-center">
-                          <label className="text-sm text-dark-muted">Defense Capabilities</label>
-                          <span className="text-sm text-flame font-medium">{defenseCapabilities[0]}%</span>
+                  {/* Conflict Overview */}
+                  {offensiveCountry && defensiveCountry && (
+                    <div className="p-3 bg-dark-border rounded-lg">
+                      <h4 className="font-semibold text-dark-text mb-2 text-sm">Conflict Overview</h4>
+                      <div className="flex items-center justify-center space-x-6">
+                        <div className="text-center">
+                          <div className="text-xl mb-1">{countries.find((c) => c.code === offensiveCountry)?.flag}</div>
+                          <div className="text-xs text-dark-text font-medium">
+                            {countries.find((c) => c.code === offensiveCountry)?.name}
+                          </div>
+                          <div className="text-xs text-flame">Offensive</div>
                         </div>
-                        <Slider
-                          value={defenseCapabilities}
-                          onValueChange={setDefenseCapabilities}
-                          max={100}
-                          step={1}
-                          className="w-full"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <div className="flex justify-between items-center">
-                          <label className="text-sm text-dark-muted">Alliance Support</label>
-                          <span className="text-sm text-flame font-medium">{allianceSupport[0]}%</span>
+                        <div className="text-flame text-xl">⚔️</div>
+                        <div className="text-center">
+                          <div className="text-xl mb-1">{countries.find((c) => c.code === defensiveCountry)?.flag}</div>
+                          <div className="text-xs text-dark-text font-medium">
+                            {countries.find((c) => c.code === defensiveCountry)?.name}
+                          </div>
+                          <div className="text-xs text-flame">Defensive</div>
                         </div>
-                        <Slider
-                          value={allianceSupport}
-                          onValueChange={setAllianceSupport}
-                          max={100}
-                          step={1}
-                          className="w-full"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <div className="flex justify-between items-center">
-                          <label className="text-sm text-dark-muted">Strategic Resources</label>
-                          <span className="text-sm text-flame font-medium">{strategicResources[0]}%</span>
-                        </div>
-                        <Slider
-                          value={strategicResources}
-                          onValueChange={setStrategicResources}
-                          max={100}
-                          step={1}
-                          className="w-full"
-                        />
                       </div>
                     </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    <h4 className="font-semibold text-dark-text">Diplomatic Relations</h4>
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <div className="flex justify-between items-center">
-                          <label className="text-sm text-dark-muted">UN Support</label>
-                          <span className="text-sm text-flame font-medium">{unSupport[0]}%</span>
-                        </div>
-                        <Slider
-                          value={unSupport}
-                          onValueChange={setUnSupport}
-                          max={100}
-                          step={1}
-                          className="w-full"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <div className="flex justify-between items-center">
-                          <label className="text-sm text-dark-muted">Regional Influence</label>
-                          <span className="text-sm text-flame font-medium">{regionalInfluence[0]}%</span>
-                        </div>
-                        <Slider
-                          value={regionalInfluence}
-                          onValueChange={setRegionalInfluence}
-                          max={100}
-                          step={1}
-                          className="w-full"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <div className="flex justify-between items-center">
-                          <label className="text-sm text-dark-muted">Public Opinion</label>
-                          <span className="text-sm text-flame font-medium">{publicOpinion[0]}%</span>
-                        </div>
-                        <Slider
-                          value={publicOpinion}
-                          onValueChange={setPublicOpinion}
-                          max={100}
-                          step={1}
-                          className="w-full"
-                        />
-                      </div>
-                    </div>
-                  </div>
+                  )}
                 </div>
 
-                {/* Conflict Overview */}
-                {offensiveCountry && defensiveCountry && (
-                  <div className="mt-6 p-4 bg-dark-border rounded-lg">
-                    <h4 className="font-semibold text-dark-text mb-3">Conflict Overview</h4>
-                    <div className="flex items-center justify-center space-x-8">
-                      <div className="text-center">
-                        <div className="text-2xl mb-2">{countries.find((c) => c.code === offensiveCountry)?.flag}</div>
-                        <div className="text-sm text-dark-text font-medium">
-                          {countries.find((c) => c.code === offensiveCountry)?.name}
-                        </div>
-                        <div className="text-xs text-flame">Offensive</div>
-                      </div>
-                      <div className="text-flame text-2xl">⚔️</div>
-                      <div className="text-center">
-                        <div className="text-2xl mb-2">{countries.find((c) => c.code === defensiveCountry)?.flag}</div>
-                        <div className="text-sm text-dark-text font-medium">
-                          {countries.find((c) => c.code === defensiveCountry)?.name}
-                        </div>
-                        <div className="text-xs text-flame">Defensive</div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                <div className="flex justify-between items-center pt-6">
+                <div className="flex justify-between items-center pt-4 border-t border-dark-border flex-shrink-0">
                   <Button
                     onClick={resetValues}
                     variant="outline"
-                    className="border-dark-border text-dark-text hover:bg-dark-border bg-transparent px-6 py-3 text-lg"
+                    className="border-dark-border text-dark-text hover:bg-dark-border bg-transparent px-4 py-2"
                   >
-                    <RotateCcw className="w-5 h-5 mr-2" />
+                    <RotateCcw className="w-4 h-4 mr-2" />
                     Reset Values
                   </Button>
                   
                   <Button
                     onClick={runSimulation}
                     disabled={!selectedCountry || !conflictScenario || isSimulating}
-                    className="bg-flame hover:bg-flame/90 text-white px-8 py-3 text-lg"
+                    className="bg-flame hover:bg-flame/90 text-white px-6 py-2"
                   >
                     {isSimulating ? (
                       <>
-                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                         AI Analysis in Progress...
                       </>
                     ) : (
                       <>
-                        <Play className="w-5 h-5 mr-2" />
+                        <Play className="w-4 h-4 mr-2" />
                         Run AI Political Analysis
                       </>
                     )}
@@ -952,169 +1061,172 @@ export default function PoliticalAdvisor() {
           </TabsContent>
 
           {/* Results Tab */}
-          <TabsContent value="results" className="space-y-6">
-            {simulationResults ? (
-              <div className="grid gap-6">
-                {/* AI Summary */}
-                {simulationResults.summary && (
+          <TabsContent value="results" className="flex-1 min-h-0 mt-4">
+            <div className="h-full overflow-y-auto">
+              {simulationResults ? (
+                <div className="grid gap-4 pb-4">
+                  {/* AI Summary */}
+                  {simulationResults.summary && (
+                    <Card className="border-dark-border bg-dark-card">
+                      <CardHeader className="bg-gradient-to-r from-flame/20 to-flame/10 py-3">
+                        <CardTitle className="flex items-center space-x-2 text-dark-text text-base">
+                          <Target className="w-4 h-4 text-flame" />
+                          <span>AI Analysis Summary</span>
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-4">
+                        <p className="text-dark-text leading-relaxed text-sm">{simulationResults.summary}</p>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {/* Key Metrics */}
+                  <div className="grid grid-cols-5 gap-3">
+                    <Card className="border-dark-border bg-dark-card">
+                      <CardContent className="p-4 text-center">
+                        <div className="text-2xl font-bold text-flame mb-1">{simulationResults.diplomaticResponse}%</div>
+                        <div className="text-xs text-dark-muted">Diplomatic Success</div>
+                        <Progress value={simulationResults.diplomaticResponse} className="mt-2" />
+                      </CardContent>
+                    </Card>
+
+                    <Card className="border-dark-border bg-dark-card">
+                      <CardContent className="p-4 text-center">
+                        <div className="text-2xl font-bold text-flame mb-1">{simulationResults.militaryReadiness}%</div>
+                        <div className="text-xs text-dark-muted">Military Readiness</div>
+                        <Progress value={simulationResults.militaryReadiness} className="mt-2" />
+                      </CardContent>
+                    </Card>
+
+                    <Card className="border-dark-border bg-dark-card">
+                      <CardContent className="p-4 text-center">
+                        <div className="text-2xl font-bold text-flame mb-1">{simulationResults.economicImpact}%</div>
+                        <div className="text-xs text-dark-muted">Economic Impact</div>
+                        <Progress value={Math.abs(simulationResults.economicImpact)} className="mt-2" />
+                      </CardContent>
+                    </Card>
+
+                    <Card className="border-dark-border bg-dark-card">
+                      <CardContent className="p-4 text-center">
+                        <div className="text-2xl font-bold text-flame mb-1">{simulationResults.publicSupport}%</div>
+                        <div className="text-xs text-dark-muted">Public Support</div>
+                        <Progress value={simulationResults.publicSupport} className="mt-2" />
+                      </CardContent>
+                    </Card>
+
+                    <Card className="border-dark-border bg-dark-card">
+                      <CardContent className="p-4 text-center">
+                        <div className="text-2xl font-bold text-flame mb-1">{simulationResults.allianceStrength}%</div>
+                        <div className="text-xs text-dark-muted">Alliance Strength</div>
+                        <Progress value={simulationResults.allianceStrength} className="mt-2" />
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  {/* Recommendations */}
                   <Card className="border-dark-border bg-dark-card">
-                    <CardHeader className="bg-gradient-to-r from-flame/20 to-flame/10">
-                      <CardTitle className="flex items-center space-x-2 text-dark-text">
-                        <Target className="w-5 h-5 text-flame" />
-                        <span>AI Analysis Summary</span>
+                    <CardHeader className="bg-gradient-to-r from-flame/20 to-flame/10 py-3">
+                      <CardTitle className="flex items-center space-x-2 text-dark-text text-base">
+                        <FileText className="w-4 h-4 text-flame" />
+                        <span>Strategic Recommendations</span>
                       </CardTitle>
                     </CardHeader>
-                    <CardContent className="p-6">
-                      <p className="text-dark-text text-lg leading-relaxed">{simulationResults.summary}</p>
-                    </CardContent>
-                  </Card>
-                )}
-
-                {/* Key Metrics */}
-                <div className="grid md:grid-cols-5 gap-4">
-                  <Card className="border-dark-border bg-dark-card">
-                    <CardContent className="p-6 text-center">
-                      <div className="text-3xl font-bold text-flame mb-2">{simulationResults.diplomaticResponse}%</div>
-                      <div className="text-sm text-dark-muted">Diplomatic Success</div>
-                      <Progress value={simulationResults.diplomaticResponse} className="mt-2" />
-                    </CardContent>
-                  </Card>
-
-                  <Card className="border-dark-border bg-dark-card">
-                    <CardContent className="p-6 text-center">
-                      <div className="text-3xl font-bold text-flame mb-2">{simulationResults.militaryReadiness}%</div>
-                      <div className="text-sm text-dark-muted">Military Readiness</div>
-                      <Progress value={simulationResults.militaryReadiness} className="mt-2" />
+                    <CardContent className="p-4">
+                      <div className="space-y-3">
+                        {simulationResults.recommendations.map((rec: string, index: number) => (
+                          <div key={index} className="flex items-start space-x-3 p-3 bg-dark-border rounded-lg">
+                            <div className="w-5 h-5 bg-flame rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                              {index + 1}
+                            </div>
+                            <p className="text-dark-text text-sm">{rec}</p>
+                          </div>
+                        ))}
+                      </div>
                     </CardContent>
                   </Card>
 
+                  {/* Analysis Chart */}
                   <Card className="border-dark-border bg-dark-card">
-                    <CardContent className="p-6 text-center">
-                      <div className="text-3xl font-bold text-flame mb-2">{simulationResults.economicImpact}%</div>
-                      <div className="text-sm text-dark-muted">Economic Impact</div>
-                      <Progress value={Math.abs(simulationResults.economicImpact)} className="mt-2" />
-                    </CardContent>
-                  </Card>
-
-                  <Card className="border-dark-border bg-dark-card">
-                    <CardContent className="p-6 text-center">
-                      <div className="text-3xl font-bold text-flame mb-2">{simulationResults.publicSupport}%</div>
-                      <div className="text-sm text-dark-muted">Public Support</div>
-                      <Progress value={simulationResults.publicSupport} className="mt-2" />
-                    </CardContent>
-                  </Card>
-
-                  <Card className="border-dark-border bg-dark-card">
-                    <CardContent className="p-6 text-center">
-                      <div className="text-3xl font-bold text-flame mb-2">{simulationResults.allianceStrength}%</div>
-                      <div className="text-sm text-dark-muted">Alliance Strength</div>
-                      <Progress value={simulationResults.allianceStrength} className="mt-2" />
+                    <CardHeader className="py-3">
+                      <CardTitle className="flex items-center space-x-2 text-dark-text text-base">
+                        <BarChart3 className="w-4 h-4 text-flame" />
+                        <span>Response Analysis</span>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-4">
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm font-medium text-dark-text">Diplomatic Approach</span>
+                          <div className="flex items-center space-x-2">
+                            <Progress value={simulationResults.diplomaticResponse} className="w-24" />
+                            <span className="text-sm text-flame">{simulationResults.diplomaticResponse}%</span>
+                          </div>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm font-medium text-dark-text">Economic Measures</span>
+                          <div className="flex items-center space-x-2">
+                            <Progress value={Math.abs(simulationResults.economicImpact) + 50} className="w-24" />
+                            <span className="text-sm text-flame">{simulationResults.economicImpact}%</span>
+                          </div>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm font-medium text-dark-text">Military Readiness</span>
+                          <div className="flex items-center space-x-2">
+                            <Progress value={simulationResults.militaryReadiness} className="w-24" />
+                            <span className="text-sm text-flame">{simulationResults.militaryReadiness}%</span>
+                          </div>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm font-medium text-dark-text">Alliance Strength</span>
+                          <div className="flex items-center space-x-2">
+                            <Progress value={simulationResults.allianceStrength} className="w-24" />
+                            <span className="text-sm text-flame">{simulationResults.allianceStrength}%</span>
+                          </div>
+                        </div>
+                      </div>
                     </CardContent>
                   </Card>
                 </div>
-
-                {/* Recommendations */}
-                <Card className="border-dark-border bg-dark-card">
-                  <CardHeader className="bg-gradient-to-r from-flame/20 to-flame/10">
-                    <CardTitle className="flex items-center space-x-2 text-dark-text">
-                      <FileText className="w-5 h-5 text-flame" />
-                      <span>Strategic Recommendations</span>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-6">
-                    <div className="space-y-4">
-                      {simulationResults.recommendations.map((rec: string, index: number) => (
-                        <div key={index} className="flex items-start space-x-3 p-4 bg-dark-border rounded-lg">
-                          <div className="w-6 h-6 bg-flame rounded-full flex items-center justify-center text-white text-sm font-bold">
-                            {index + 1}
-                          </div>
-                          <p className="text-dark-text">{rec}</p>
-                        </div>
-                      ))}
+              ) : (
+                <Card className="border-dark-border bg-dark-card h-full flex items-center justify-center">
+                  <CardContent className="p-8 text-center">
+                    <div className="w-12 h-12 bg-dark-border rounded-full flex items-center justify-center mx-auto mb-4">
+                      <BarChart3 className="w-6 h-6 text-dark-muted" />
                     </div>
+                    <h3 className="text-lg font-semibold text-dark-text mb-2">No Results Yet</h3>
+                    <p className="text-dark-muted mb-4 text-sm">Run a simulation to see detailed analysis and recommendations</p>
+                    <Button
+                      variant="outline"
+                      className="border-flame text-flame hover:bg-flame hover:text-white bg-transparent"
+                      onClick={() => setActiveTab("simulate")}
+                    >
+                      Go to Simulation
+                    </Button>
                   </CardContent>
                 </Card>
-
-                {/* Analysis Chart */}
-                <Card className="border-dark-border bg-dark-card">
-                  <CardHeader>
-                    <CardTitle className="flex items-center space-x-2 text-dark-text">
-                      <BarChart3 className="w-5 h-5 text-flame" />
-                      <span>Response Analysis</span>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-6">
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm font-medium text-dark-text">Diplomatic Approach</span>
-                        <div className="flex items-center space-x-2">
-                          <Progress value={simulationResults.diplomaticResponse} className="w-32" />
-                          <span className="text-sm text-flame">{simulationResults.diplomaticResponse}%</span>
-                        </div>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm font-medium text-dark-text">Economic Measures</span>
-                        <div className="flex items-center space-x-2">
-                          <Progress value={Math.abs(simulationResults.economicImpact) + 50} className="w-32" />
-                          <span className="text-sm text-flame">{simulationResults.economicImpact}%</span>
-                        </div>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm font-medium text-dark-text">Military Readiness</span>
-                        <div className="flex items-center space-x-2">
-                          <Progress value={simulationResults.militaryReadiness} className="w-32" />
-                          <span className="text-sm text-flame">{simulationResults.militaryReadiness}%</span>
-                        </div>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm font-medium text-dark-text">Alliance Strength</span>
-                        <div className="flex items-center space-x-2">
-                          <Progress value={simulationResults.allianceStrength} className="w-32" />
-                          <span className="text-sm text-flame">{simulationResults.allianceStrength}%</span>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            ) : (
-              <Card className="border-dark-border bg-dark-card">
-                <CardContent className="p-12 text-center">
-                  <div className="w-16 h-16 bg-dark-border rounded-full flex items-center justify-center mx-auto mb-4">
-                    <BarChart3 className="w-8 h-8 text-dark-muted" />
-                  </div>
-                  <h3 className="text-xl font-semibold text-dark-text mb-2">No Results Yet</h3>
-                  <p className="text-dark-muted mb-6">Run a simulation to see detailed analysis and recommendations</p>
-                  <Button
-                    variant="outline"
-                    className="border-flame text-flame hover:bg-flame hover:text-white bg-transparent"
-                  >
-                    Go to Simulation
-                  </Button>
-                </CardContent>
-              </Card>
-            )}
+              )}
+            </div>
           </TabsContent>
 
           {/* Chat Tab */}
-          <TabsContent value="chat" className="space-y-6">
-            <Card className="border-dark-border bg-dark-card">
-              <CardHeader className="bg-gradient-to-r from-flame/20 to-flame/10">
-                <CardTitle className="flex items-center space-x-2 text-dark-text">
+          <TabsContent value="chat" className="flex-1 min-h-0 mt-4">
+            <Card className="border-dark-border bg-dark-card min-h-[600px] flex flex-col">
+              <CardHeader className="bg-gradient-to-r from-flame/20 to-flame/10 py-4 flex-shrink-0">
+                <CardTitle className="flex items-center space-x-3 text-dark-text text-lg">
                   <MessageCircle className="w-5 h-5 text-flame" />
                   <span>AI Political Advisor</span>
                 </CardTitle>
-                <CardDescription className="text-dark-muted">
+                <CardDescription className="text-dark-muted text-base">
                   Ask questions and get advice about your current political simulation scenario
                 </CardDescription>
               </CardHeader>
-              <CardContent className="p-6">
+              <CardContent className="p-6 flex-1 min-h-0 flex flex-col">
                 {/* Current Scenario Summary */}
                 {selectedCountry && conflictScenario && (
-                  <Card className="bg-dark-border mb-6">
+                  <Card className="bg-dark-border mb-4 flex-shrink-0">
                     <CardContent className="p-4">
-                      <h4 className="font-semibold text-dark-text mb-2">Current Scenario</h4>
-                      <div className="grid md:grid-cols-2 gap-4 text-sm">
+                      <h4 className="font-semibold text-dark-text mb-3 text-base">Current Scenario</h4>
+                      <div className="grid md:grid-cols-2 gap-4 text-base">
                         <div>
                           <span className="text-dark-muted">Your Country: </span>
                           <span className="text-flame font-medium">
@@ -1147,50 +1259,54 @@ export default function PoliticalAdvisor() {
                 )}
 
                 {/* Chat Messages */}
-                <div className="h-96 bg-dark-bg rounded-lg p-4 mb-4 overflow-y-auto space-y-4">
+                <div className="flex-1 bg-dark-bg rounded-lg p-4 mb-4 overflow-y-auto min-h-0">
                   {chatMessages.length === 0 ? (
-                    <div className="text-center text-dark-muted py-16">
-                      <MessageCircle className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                      <p className="text-lg mb-2">Start a conversation with your AI Political Advisor</p>
-                      <p className="text-sm">Ask questions about your scenario, strategies, or get expert geopolitical advice</p>
+                    <div className="h-full flex items-center justify-center text-center text-dark-muted">
+                      <div>
+                        <MessageCircle className="w-10 h-10 mx-auto mb-4 opacity-50" />
+                        <p className="mb-3 font-medium text-base">Start a conversation with your AI Political Advisor</p>
+                        <p className="text-base">Ask questions about your scenario, strategies, or get expert geopolitical advice</p>
+                      </div>
                     </div>
                   ) : (
-                    chatMessages.map((message, index) => (
-                      <div
-                        key={index}
-                        className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                      >
+                    <div className="space-y-4">
+                      {chatMessages.map((message, index) => (
                         <div
-                          className={`max-w-[80%] p-3 rounded-lg ${
-                            message.role === 'user'
-                              ? 'bg-flame text-white'
-                              : 'bg-dark-card border border-dark-border text-dark-text'
-                          }`}
+                          key={index}
+                          className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                         >
-                          <p className="whitespace-pre-wrap">{message.content}</p>
-                          <p className={`text-xs mt-2 opacity-70 ${
-                            message.role === 'user' ? 'text-white' : 'text-dark-muted'
-                          }`}>
-                            {new Date(message.timestamp).toLocaleTimeString()}
-                          </p>
+                          <div
+                            className={`max-w-[80%] p-4 rounded-lg ${
+                              message.role === 'user'
+                                ? 'bg-flame text-white'
+                                : 'bg-dark-card border border-dark-border text-dark-text'
+                            }`}
+                          >
+                            <p className="whitespace-pre-wrap text-base">{message.content}</p>
+                            <p className={`text-sm mt-2 opacity-70 ${
+                              message.role === 'user' ? 'text-white' : 'text-dark-muted'
+                            }`}>
+                              {new Date(message.timestamp).toLocaleTimeString()}
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                    ))
-                  )}
-                  {isChatting && (
-                    <div className="flex justify-start">
-                      <div className="bg-dark-card border border-dark-border text-dark-text p-3 rounded-lg">
-                        <div className="flex items-center space-x-2">
-                          <div className="animate-pulse">AI is thinking...</div>
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-flame"></div>
+                      ))}
+                      {isChatting && (
+                        <div className="flex justify-start">
+                          <div className="bg-dark-card border border-dark-border text-dark-text p-4 rounded-lg">
+                            <div className="flex items-center space-x-3">
+                              <div className="animate-pulse text-base">AI is thinking...</div>
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-flame"></div>
+                            </div>
+                          </div>
                         </div>
-                      </div>
+                      )}
                     </div>
                   )}
                 </div>
 
                 {/* Chat Input */}
-                <div className="flex space-x-2">
+                <div className="flex space-x-3 flex-shrink-0">
                   <input
                     type="text"
                     value={chatInput}
@@ -1201,13 +1317,13 @@ export default function PoliticalAdvisor() {
                       }
                     }}
                     placeholder="Ask about strategies, consequences, alternatives..."
-                    className="flex-1 px-4 py-3 bg-dark-bg border border-dark-border rounded-lg text-dark-text placeholder-dark-muted focus:outline-none focus:ring-2 focus:ring-flame focus:border-transparent"
+                    className="flex-1 px-4 py-3 bg-dark-bg border border-dark-border rounded-lg text-dark-text placeholder-dark-muted focus:outline-none focus:ring-2 focus:ring-flame focus:border-transparent text-base"
                     disabled={isChatting}
                   />
                   <Button
                     onClick={sendChatMessage}
                     disabled={!chatInput.trim() || isChatting}
-                    className="bg-flame hover:bg-flame/90 text-white px-6"
+                    className="bg-flame hover:bg-flame/90 text-white px-6 py-3 text-base"
                   >
                     <Send className="w-5 h-5" />
                   </Button>
@@ -1215,9 +1331,9 @@ export default function PoliticalAdvisor() {
 
                 {/* Quick Questions */}
                 {chatMessages.length === 0 && selectedCountry && conflictScenario && (
-                  <div className="mt-6">
-                    <h4 className="font-semibold text-dark-text mb-3">Quick Questions to Get Started:</h4>
-                    <div className="grid md:grid-cols-2 gap-2">
+                  <div className="mt-4 flex-shrink-0">
+                    <h4 className="font-semibold text-dark-text mb-3 text-base">Quick Questions to Get Started:</h4>
+                    <div className="grid md:grid-cols-2 gap-3">
                       {[
                         "What are the best diplomatic approaches for this scenario?",
                         "What are the potential economic consequences?", 
@@ -1229,7 +1345,7 @@ export default function PoliticalAdvisor() {
                           variant="outline"
                           size="sm"
                           onClick={() => setChatInput(question)}
-                          className="justify-start text-left h-auto p-3 border-dark-border text-dark-text hover:bg-dark-border bg-transparent"
+                          className="justify-start text-left h-auto p-3 border-dark-border text-dark-text hover:bg-dark-border bg-transparent text-sm"
                         >
                           {question}
                         </Button>
