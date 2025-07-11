@@ -13,6 +13,7 @@ import { Slider } from "@/components/ui/slider"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { useToast } from "@/hooks/use-toast"
+import { FlagIcon } from "@/components/ui/flag-icon"
 
 export default function PoliticalAdvisor() {
   const [selectedCountry, setSelectedCountry] = useState("")
@@ -505,7 +506,7 @@ export default function PoliticalAdvisor() {
                       >
                         {selectedCountry ? (
                           <div className="flex items-center space-x-2">
-                            <span>{countries.find((c) => c.code === selectedCountry)?.flag}</span>
+                            <FlagIcon countryCode={selectedCountry} className="w-6 h-4" />
                             <span>{countries.find((c) => c.code === selectedCountry)?.name}</span>
                           </div>
                         ) : (
@@ -531,7 +532,7 @@ export default function PoliticalAdvisor() {
                                 className="text-dark-text hover:bg-dark-border"
                               >
                                 <div className="flex items-center space-x-3 w-full">
-                                  <span className="text-lg">{country.flag}</span>
+                                  <FlagIcon countryCode={country.code} className="w-6 h-4" />
                                   <span className="flex-1">{country.name}</span>
                                   <Badge variant="secondary" className="bg-dark-border text-dark-text">
                                     Power: {country.power}
@@ -553,7 +554,7 @@ export default function PoliticalAdvisor() {
                   {selectedCountry && (
                     <div className="mt-4 p-4 bg-dark-border rounded-lg">
                       <h4 className="font-semibold text-dark-text mb-2 flex items-center space-x-2">
-                        <span>{countries.find((c) => c.code === selectedCountry)?.flag}</span>
+                        <FlagIcon countryCode={selectedCountry} className="w-6 h-4" />
                         <span>Country Profile</span>
                       </h4>
                       <div className="space-y-2 text-sm">
@@ -649,7 +650,7 @@ export default function PoliticalAdvisor() {
                           >
                             {offensiveCountry ? (
                               <div className="flex items-center space-x-2">
-                                <span>{countries.find((c) => c.code === offensiveCountry)?.flag}</span>
+                                <FlagIcon countryCode={offensiveCountry} className="w-6 h-4" />
                                 <span>{countries.find((c) => c.code === offensiveCountry)?.name}</span>
                               </div>
                             ) : (
@@ -680,7 +681,7 @@ export default function PoliticalAdvisor() {
                                     }`}
                                   >
                                     <div className="flex items-center space-x-2 w-full">
-                                      <span>{country.flag}</span>
+                                      <FlagIcon countryCode={country.code} className="w-6 h-4" />
                                       <span className="flex-1">{country.name}</span>
                                       <Check
                                         className={`ml-2 h-4 w-4 ${
@@ -712,7 +713,7 @@ export default function PoliticalAdvisor() {
                           >
                             {defensiveCountry ? (
                               <div className="flex items-center space-x-2">
-                                <span>{countries.find((c) => c.code === defensiveCountry)?.flag}</span>
+                                <FlagIcon countryCode={defensiveCountry} className="w-6 h-4" />
                                 <span>{countries.find((c) => c.code === defensiveCountry)?.name}</span>
                               </div>
                             ) : (
@@ -743,7 +744,7 @@ export default function PoliticalAdvisor() {
                                     }`}
                                   >
                                     <div className="flex items-center space-x-2 w-full">
-                                      <span>{country.flag}</span>
+                                      <FlagIcon countryCode={country.code} className="w-6 h-4" />
                                       <span className="flex-1">{country.name}</span>
                                       <Check
                                         className={`ml-2 h-4 w-4 ${
@@ -1009,7 +1010,9 @@ export default function PoliticalAdvisor() {
                       <h4 className="font-semibold text-dark-text mb-2 text-sm">Conflict Overview</h4>
                       <div className="flex items-center justify-center space-x-6">
                         <div className="text-center">
-                          <div className="text-xl mb-1">{countries.find((c) => c.code === offensiveCountry)?.flag}</div>
+                          <div className="flex justify-center mb-1">
+                            <FlagIcon countryCode={offensiveCountry} className="w-8 h-6" />
+                          </div>
                           <div className="text-xs text-dark-text font-medium">
                             {countries.find((c) => c.code === offensiveCountry)?.name}
                           </div>
@@ -1017,7 +1020,9 @@ export default function PoliticalAdvisor() {
                         </div>
                         <div className="text-flame text-xl">⚔️</div>
                         <div className="text-center">
-                          <div className="text-xl mb-1">{countries.find((c) => c.code === defensiveCountry)?.flag}</div>
+                          <div className="flex justify-center mb-1">
+                            <FlagIcon countryCode={defensiveCountry} className="w-8 h-6" />
+                          </div>
                           <div className="text-xs text-dark-text font-medium">
                             {countries.find((c) => c.code === defensiveCountry)?.name}
                           </div>
@@ -1229,8 +1234,9 @@ export default function PoliticalAdvisor() {
                       <div className="grid md:grid-cols-2 gap-4 text-base">
                         <div>
                           <span className="text-dark-muted">Your Country: </span>
-                          <span className="text-flame font-medium">
-                            {countries.find(c => c.code === selectedCountry)?.flag} {countries.find(c => c.code === selectedCountry)?.name || selectedCountry}
+                          <span className="text-flame font-medium flex items-center gap-2">
+                            <FlagIcon countryCode={selectedCountry} className="w-6 h-4" />
+                            {countries.find(c => c.code === selectedCountry)?.name || selectedCountry}
                           </span>
                         </div>
                         <div>
@@ -1240,16 +1246,18 @@ export default function PoliticalAdvisor() {
                         {offensiveCountry && (
                           <div>
                             <span className="text-dark-muted">Offensive Country: </span>
-                            <span className="text-dark-text font-medium">
-                              {countries.find(c => c.code === offensiveCountry)?.flag} {countries.find(c => c.code === offensiveCountry)?.name || offensiveCountry}
+                            <span className="text-dark-text font-medium flex items-center gap-2">
+                              <FlagIcon countryCode={offensiveCountry} className="w-6 h-4" />
+                              {countries.find(c => c.code === offensiveCountry)?.name || offensiveCountry}
                             </span>
                           </div>
                         )}
                         {defensiveCountry && (
                           <div>
                             <span className="text-dark-muted">Defensive Country: </span>
-                            <span className="text-dark-text font-medium">
-                              {countries.find(c => c.code === defensiveCountry)?.flag} {countries.find(c => c.code === defensiveCountry)?.name || defensiveCountry}
+                            <span className="text-dark-text font-medium flex items-center gap-2">
+                              <FlagIcon countryCode={defensiveCountry} className="w-6 h-4" />
+                              {countries.find(c => c.code === defensiveCountry)?.name || defensiveCountry}
                             </span>
                           </div>
                         )}
