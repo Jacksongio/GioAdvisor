@@ -429,7 +429,7 @@ export default function PoliticalAdvisor() {
   }
 
   return (
-    <div className="bg-dark-bg text-dark-text">
+    <div className="bg-dark-bg text-dark-text h-dvh flex flex-col">
       {/* Header */}
       <header className="border-b border-dark-border bg-dark-card/80 backdrop-blur-sm">
         <div className="container mx-auto px-6 py-4">
@@ -452,7 +452,7 @@ export default function PoliticalAdvisor() {
         </div>
       </header>
 
-      <div className="container mx-auto px-6 py-8 pb-96">
+      <div className="container mx-auto px-6 py-8 pb-12 lg:pb-96 flex-1 overflow-y-auto">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
           <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 bg-dark-card border border-dark-border h-12">
             <TabsTrigger
@@ -486,7 +486,7 @@ export default function PoliticalAdvisor() {
             <div className="grid md:grid-cols-2 gap-6">
               {/* Country Selection */}
               <Card className="border-dark-border bg-dark-card h-fit">
-                <CardHeader className="bg-gradient-to-r from-flame/20 to-flame/10 py-4">
+                <CardHeader className="bg-gradient-to-r from-flame/20 to-flame/10 py-4 tight-v">
                   <CardTitle className="flex items-center space-x-3 text-dark-text text-lg">
                     <Users className="w-5 h-5 text-flame" />
                     <span>Select Your Country</span>
@@ -602,7 +602,7 @@ export default function PoliticalAdvisor() {
 
               {/* Conflict Scenario */}
               <Card className="border-dark-border bg-dark-card min-h-[600px] flex flex-col">
-                <CardHeader className="bg-gradient-to-r from-flame/20 to-flame/10 py-4">
+                <CardHeader className="bg-gradient-to-r from-flame/20 to-flame/10 py-4 tight-v">
                   <CardTitle className="flex items-center space-x-3 text-dark-text text-lg">
                     <AlertTriangle className="w-5 h-5 text-flame" />
                     <span>Conflict Scenario</span>
@@ -855,8 +855,8 @@ export default function PoliticalAdvisor() {
 
           {/* Simulate Tab */}
           <TabsContent value="simulate" className="flex-1 min-h-0 flex flex-col mt-4">
-            <Card className="border-dark-border bg-dark-card flex-1 min-h-0 flex flex-col">
-              <CardHeader className="bg-gradient-to-r from-flame/20 to-flame/10 py-3 flex-shrink-0">
+            <Card className="border-dark-border bg-dark-card min-h-[50vh] lg:min-h-[600px] min-h-responsive flex flex-col">
+              <CardHeader className="bg-gradient-to-r from-flame/20 to-flame/10 py-4 tight-v flex-shrink-0">
                 <CardTitle className="flex items-center space-x-2 text-dark-text text-base">
                   <Target className="w-4 h-4 text-flame" />
                   <span>Advanced Parameters (Optional)</span>
@@ -1215,8 +1215,8 @@ export default function PoliticalAdvisor() {
 
           {/* Chat Tab */}
           <TabsContent value="chat" className="flex-1 min-h-0 mt-4">
-            <Card className="border-dark-border bg-dark-card min-h-[600px] flex flex-col">
-              <CardHeader className="bg-gradient-to-r from-flame/20 to-flame/10 py-4 flex-shrink-0">
+            <Card className="border-dark-border bg-dark-card min-h-[50vh] lg:min-h-[600px] flex flex-col">
+              <CardHeader className="bg-gradient-to-r from-flame/20 to-flame/10 py-4 tight-v flex-shrink-0">
                 <CardTitle className="flex items-center space-x-3 text-dark-text text-lg">
                   <MessageCircle className="w-5 h-5 text-flame" />
                   <span>AI Political Advisor</span>
