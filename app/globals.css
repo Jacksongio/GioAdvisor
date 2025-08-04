@@ -108,3 +108,24 @@
 .bg-dark-gradient {
   background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #2a2a2a 100%);
 }
+
+/* Responsive height adjustments for short viewports */
+@media (max-height: 820px) {
+  :root {
+    font-size: 87.5%; /* reduce root font-size to 14px (28px at 200% scaling) */
+  }
+  header .container {
+    padding-top: 0.5rem !important;
+    padding-bottom: 0.5rem !important;
+  }
+  /* Utility for compact vertical padding / gaps */
+  .tight-v {
+    padding-top: 0.75rem !important;
+    padding-bottom: 0.75rem !important;
+    gap: 0.5rem !important;
+  }
+  /* Utility to reduce min-height of large cards */
+  .min-h-responsive {
+    min-height: 40vh !important;
+  }
+}
