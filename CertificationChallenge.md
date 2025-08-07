@@ -51,3 +51,7 @@ Some conclusions I can draw from this are:
 - Context precision improved by 15% which is what the goal was, while maintaining a perfect score of 1.00. However the Faithfulness decreased and this may have introduced factual inconsistencies which we do not want.
 ## Articulate changes that you expect to make to your app in the second half of the course.
 - I will improve the recall, and definitely the speed. It is FAR too slow now to be useable. I also want to improve the dataset so that it has much more information to recall. The design also needs to be drastically improved.
+- 
+# VIDEO UPDATE:
+### By the submission date I submitted the video as a downloaded mp4 in my repo. I have just learned during my breakout room on Aug 7 that I need the link. The link is attached below:
+https://www.loom.com/share/04206d62d19d4470a7c907980ba7fa8a?sid=ea585461-4512-47ab-b3b6-3767ec40288a
