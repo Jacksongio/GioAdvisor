@@ -64,15 +64,15 @@ export async function POST(req: NextRequest) {
         let relevanceBoost = 0
         const content = treaty.content.toLowerCase()
         
-        // Boost relevance based on scenario type
-        if (scenario.includes('nuclear') && content.includes('nuclear')) relevanceBoost += 0.4
-        if (scenario.includes('trade') && content.includes('trade')) relevanceBoost += 0.4
-        if (scenario.includes('territorial') && (content.includes('territorial') || content.includes('border') || content.includes('dispute'))) relevanceBoost += 0.4
-        if (scenario.includes('environmental') && content.includes('environment')) relevanceBoost += 0.4
-        if (scenario.includes('cyber') && content.includes('cyber')) relevanceBoost += 0.4
-        if (scenario.includes('space') && content.includes('space')) relevanceBoost += 0.4
-        if (scenario.includes('diplomatic') && content.includes('diplomatic')) relevanceBoost += 0.3
-        if (scenario.includes('economic') && (content.includes('economic') || content.includes('trade'))) relevanceBoost += 0.3
+        // Boost relevance based on military scenario type
+        if (scenario.includes('nuclear') && content.includes('nuclear')) relevanceBoost += 0.5
+        if (scenario.includes('territorial') && (content.includes('territorial') || content.includes('border') || content.includes('military') || content.includes('armed conflict'))) relevanceBoost += 0.5
+        if (scenario.includes('proxy') && (content.includes('proxy') || content.includes('indirect') || content.includes('military assistance'))) relevanceBoost += 0.5
+        if (scenario.includes('conventional') && (content.includes('conventional') || content.includes('warfare') || content.includes('military'))) relevanceBoost += 0.5
+        if (scenario.includes('naval') && (content.includes('naval') || content.includes('maritime') || content.includes('sea'))) relevanceBoost += 0.5
+        if (scenario.includes('air') && (content.includes('air') || content.includes('aviation') || content.includes('airspace'))) relevanceBoost += 0.5
+        if (content.includes('military') || content.includes('armed') || content.includes('war') || content.includes('conflict')) relevanceBoost += 0.3
+        if (content.includes('defense') || content.includes('security') || content.includes('alliance')) relevanceBoost += 0.3
         
         // Boost for country-specific relevance
         countries.forEach(country => {

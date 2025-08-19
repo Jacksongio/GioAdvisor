@@ -1,17 +1,17 @@
-# Political Advisor - Global Conflict Simulation Platform
+# GioAdvisor - Military Conflict Simulation Platform
 
-A sophisticated web application for simulating political scenarios and analyzing international conflicts with advanced AI-powered insights.
+A sophisticated web application for simulating military conflict scenarios and analyzing international warfare with advanced AI-powered strategic insights.
 
-![Political Advisor Screenshot](https://via.placeholder.com/800x400/cf5c36/ffffff?text=Political+Advisor+Dashboard)
+![GioAdvisor Screenshot](https://via.placeholder.com/800x400/cf5c36/ffffff?text=GioAdvisor+Military+Dashboard)
 
 ## 🌟 Features
 
-- **Country Simulation**: Choose from 15+ major world powers with detailed power ratings
-- **Conflict Analysis**: Simulate various conflict types including territorial disputes, trade wars, cyber attacks, and more
-- **Advanced Parameters**: Configure economic, military, and diplomatic factors
-- **Strategic Recommendations**: Get AI-powered insights and strategic advice
-- **Dark Theme Interface**: Professional dark UI with orange flame accents
-- **Responsive Design**: Works seamlessly on desktop and mobile devices
+- **Military Force Simulation**: Choose from 15+ major world powers with detailed military capabilities
+- **Military Conflict Analysis**: Simulate various military conflict types including territorial conflicts, nuclear threats, proxy wars, conventional warfare, naval conflicts, and air campaigns
+- **Strategic Parameters**: Configure economic, military readiness, and diplomatic factors for comprehensive war simulation
+- **Military Strategic Recommendations**: Get AI-powered military insights and strategic warfare advice
+- **Dark Theme Interface**: Professional dark UI with orange flame accents for tactical operations
+- **Responsive Design**: Works seamlessly on desktop and mobile devices for field operations
 
 ## 🚀 Getting Started
 
@@ -106,20 +106,20 @@ political-advisor/
 
 ## 📱 Usage
 
-### Setting Up a Simulation
+### Setting Up a Military Simulation
 
-1. **Select Your Country**: Choose which nation you want to simulate as
-2. **Define Conflict**: Select conflict type and specify offensive/defensive countries
-3. **Configure Parameters**: Adjust economic, military, and diplomatic factors
-4. **Run Analysis**: Execute the simulation to get strategic insights
+1. **Select Your Military Force**: Choose which nation's military you want to command
+2. **Define Military Conflict**: Select military conflict type and specify attacking/defending forces
+3. **Configure Military Parameters**: Adjust economic, military readiness, and diplomatic factors for warfare analysis
+4. **Execute Military Analysis**: Run the simulation to get strategic military insights
 
-### Understanding Results
+### Understanding Military Results
 
-- **Diplomatic Success**: Effectiveness of diplomatic approaches
-- **Military Readiness**: Defense capabilities and preparedness
-- **Economic Impact**: Financial consequences of the conflict
-- **Public Support**: Domestic approval ratings
-- **Strategic Recommendations**: AI-generated action items
+- **Diplomatic Response**: Effectiveness of diplomatic approaches during military conflict
+- **Military Readiness**: Defense capabilities, alliance support, and strategic resources
+- **Economic Impact**: Financial consequences of military engagement
+- **Public Support**: Domestic approval for military action
+- **Military Strategic Recommendations**: AI-generated tactical and strategic action items
 
 ## 🔧 Development
 

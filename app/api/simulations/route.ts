@@ -40,8 +40,8 @@ export async function POST(req: NextRequest) {
     const body = await req.json()
     
     // Validate required fields
-    const { selectedCountry, conflictScenario, offensiveCountry, defensiveCountry } = body
-    if (!selectedCountry || !conflictScenario || !offensiveCountry || !defensiveCountry) {
+    const { selectedCountry, offensiveCountry, defensiveCountry } = body
+    if (!selectedCountry || !offensiveCountry || !defensiveCountry) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }

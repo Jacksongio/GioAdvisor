@@ -288,17 +288,16 @@ Be precise, factual, and cite your sources from the treaty database.`
 
     let queryTerms = []
 
-    // Add scenario-specific terms
-    if (scenario.includes('nuclear')) queryTerms.push('nuclear', 'non-proliferation', 'disarmament')
-    if (scenario.includes('trade') || scenario.includes('economic')) queryTerms.push('trade', 'economic', 'sanctions')
-    if (scenario.includes('territorial') || scenario.includes('border')) queryTerms.push('territorial', 'border', 'dispute')
-    if (scenario.includes('environmental')) queryTerms.push('environmental', 'climate', 'conservation')
-    if (scenario.includes('cyber')) queryTerms.push('cyber', 'telecommunications', 'information')
-    if (scenario.includes('space')) queryTerms.push('space', 'satellite', 'outer space')
-    if (scenario.includes('diplomatic')) queryTerms.push('diplomatic', 'consular', 'immunity')
+    // Add military scenario-specific terms
+    if (scenario.includes('nuclear')) queryTerms.push('nuclear', 'non-proliferation', 'disarmament', 'weapons')
+    if (scenario.includes('territorial')) queryTerms.push('territorial', 'border', 'military occupation', 'armed conflict')
+    if (scenario.includes('proxy')) queryTerms.push('proxy war', 'military assistance', 'indirect warfare')
+    if (scenario.includes('conventional')) queryTerms.push('conventional warfare', 'military operations', 'armed forces')
+    if (scenario.includes('naval')) queryTerms.push('naval', 'maritime', 'sea warfare', 'naval blockade')
+    if (scenario.includes('air')) queryTerms.push('air warfare', 'aviation', 'airspace', 'aerial operations')
 
-    // Add universal terms for any conflict
-    queryTerms.push('united nations', 'geneva', 'peace', 'security')
+    // Add universal terms for military conflicts
+    queryTerms.push('united nations', 'geneva conventions', 'military', 'armed conflict', 'war', 'defense', 'security', 'peace')
 
     return queryTerms.join(' ')
   }

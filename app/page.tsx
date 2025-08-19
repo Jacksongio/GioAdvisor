@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Globe, Users, Target, BarChart3, Play, FileText, AlertTriangle, Sword, Shield, RotateCcw, MessageCircle, Send, Check, ChevronsUpDown, Settings, Loader2 } from "lucide-react"
+import { Globe, Users, Target, BarChart3, Play, FileText, AlertTriangle, Sword, Shield, RotateCcw, MessageCircle, Send, Check, ChevronsUpDown, Settings, Loader2, Award } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -209,58 +209,6 @@ export default function PoliticalAdvisor() {
 
   const [countries, setCountries] = useState<Country[]>([])
 
-  // Submit setup data to database
-  const submitSetup = async () => {
-    setIsSubmitting(true)
-    
-    const setupData = {
-      selectedCountry,
-      conflictScenario,
-      offensiveCountry,
-      defensiveCountry,
-      scenarioDetails,
-      severityLevel,
-      timeFrame,
-      timestamp: new Date().toISOString()
-    }
-
-    try {
-      console.log('Submitting setup data:', setupData)
-      const response = await fetch('/api/simulations', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(setupData),
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to submit setup')
-      }
-
-      const result = await response.json()
-      console.log('Setup submitted successfully:', result)
-      toast({
-        title: "Success!",
-        description: "Simulation setup saved! Redirecting to analysis...",
-        variant: "default",
-      })
-      
-      // Redirect to Run Analysis tab
-      setActiveTab("simulate")
-      
-    } catch (error) {
-      console.error('Error submitting setup:', error)
-      toast({
-        title: "Error",
-        description: "Failed to save simulation setup. Please try again.",
-        variant: "destructive",
-      })
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
-
   useEffect(() => {
     async function loadCountries() {
       try {
@@ -278,26 +226,98 @@ export default function PoliticalAdvisor() {
   }, [])
 
   const conflictTypes = [
-    { id: "territorial", name: "Territorial Dispute", icon: "🗺️" },
-    { id: "trade", name: "Trade War", icon: "💼" },
-    { id: "cyber", name: "Cyber Attack", icon: "💻" },
-    { id: "nuclear", name: "Nuclear Threat", icon: "☢️" },
-    { id: "humanitarian", name: "Humanitarian Crisis", icon: "🏥" },
-    { id: "resource", name: "Resource Conflict", icon: "⛽" },
-    { id: "proxy", name: "Proxy War", icon: "🎭" },
-    { id: "sanctions", name: "Economic Sanctions", icon: "🚫" },
-    { id: "terrorist", name: "Terrorist Attack", icon: "💥" },
-    { id: "other", name: "Other", icon: "❓" },
+    { id: "territorial", name: "Territorial Military Conflict", icon: "🗺️" },
+    { id: "nuclear", name: "Nuclear Military Threat", icon: "☢️" },
+    { id: "proxy", name: "Proxy Military War", icon: "🎭" },
+    { id: "conventional", name: "Conventional Military War", icon: "⚔️" },
+    { id: "naval", name: "Naval Military Conflict", icon: "🚢" },
+    { id: "air", name: "Air Military Campaign", icon: "✈️" },
   ]
+
+  // Automatically detect conflict type from scenario details
+  const detectConflictType = (details: string): string => {
+    if (!details) return ""
+    
+    const lowerDetails = details.toLowerCase()
+    
+    // Nuclear keywords (highest priority)
+    if (lowerDetails.includes('nuclear') || lowerDetails.includes('nuke') || 
+        lowerDetails.includes('atomic') || lowerDetails.includes('warhead') ||
+        lowerDetails.includes('radiation') || lowerDetails.includes('fallout')) {
+      return "nuclear"
+    }
+    
+    // Naval keywords
+    if (lowerDetails.includes('naval') || lowerDetails.includes('navy') || 
+        lowerDetails.includes('fleet') || lowerDetails.includes('ship') ||
+        lowerDetails.includes('submarine') || lowerDetails.includes('maritime') ||
+        lowerDetails.includes('sea') || lowerDetails.includes('ocean') ||
+        lowerDetails.includes('blockade') || lowerDetails.includes('port')) {
+      return "naval"
+    }
+    
+    // Air keywords
+    if (lowerDetails.includes('air force') || lowerDetails.includes('aircraft') || 
+        lowerDetails.includes('fighter') || lowerDetails.includes('bomber') ||
+        lowerDetails.includes('missile') || lowerDetails.includes('drone') ||
+        lowerDetails.includes('airspace') || lowerDetails.includes('bombing') ||
+        lowerDetails.includes('aerial') || lowerDetails.includes('helicopter')) {
+      return "air"
+    }
+    
+    // Proxy war keywords
+    if (lowerDetails.includes('proxy') || lowerDetails.includes('indirect') || 
+        lowerDetails.includes('militia') || lowerDetails.includes('rebel') ||
+        lowerDetails.includes('insurgent') || lowerDetails.includes('guerrilla') ||
+        lowerDetails.includes('support') || lowerDetails.includes('backing')) {
+      return "proxy"
+    }
+    
+    // Territorial keywords
+    if (lowerDetails.includes('territorial') || lowerDetails.includes('border') || 
+        lowerDetails.includes('invasion') || lowerDetails.includes('occupy') ||
+        lowerDetails.includes('annex') || lowerDetails.includes('territory') ||
+        lowerDetails.includes('land') || lowerDetails.includes('region') ||
+        lowerDetails.includes('disputed') || lowerDetails.includes('claim')) {
+      return "territorial"
+    }
+    
+    // Default to conventional if military terms but no specific type detected
+    if (lowerDetails.includes('military') || lowerDetails.includes('army') || 
+        lowerDetails.includes('troops') || lowerDetails.includes('soldier') ||
+        lowerDetails.includes('war') || lowerDetails.includes('battle') ||
+        lowerDetails.includes('combat') || lowerDetails.includes('attack') ||
+        lowerDetails.includes('defense') || lowerDetails.includes('offensive')) {
+      return "conventional"
+    }
+    
+    return ""
+  }
+
+  // Auto-detect conflict type when scenario details change
+  useEffect(() => {
+    if (scenarioDetails.trim()) {
+      const detectedType = detectConflictType(scenarioDetails)
+      if (detectedType && detectedType !== conflictScenario) {
+        setConflictScenario(detectedType)
+      }
+    }
+  }, [scenarioDetails])
 
   const runSimulation = async () => {
     setIsSimulating(true)
+    
+    // Ensure conflict type is detected from scenario details if not already set
+    const currentConflictScenario = conflictScenario || detectConflictType(scenarioDetails)
+    if (!conflictScenario && currentConflictScenario) {
+      setConflictScenario(currentConflictScenario)
+    }
     
     // Collect all analysis parameters
     const analysisData = {
       // Setup data
       selectedCountry,
-      conflictScenario,
+      conflictScenario: currentConflictScenario,
       offensiveCountry,
       defensiveCountry,
       scenarioDetails,
@@ -421,7 +441,7 @@ export default function PoliticalAdvisor() {
           "Prepare contingency plans for various scenarios",
           "Monitor public sentiment and maintain transparency"
         ],
-        summary: "Basic analysis provided due to technical issues."
+        summary: "**SCENARIO CONTEXT:** This analysis represents a fallback assessment due to temporary AI service limitations. The specific military conflict scenario requires detailed intelligence analysis that considers multiple strategic factors.\n\n**STRATEGIC IMPLICATIONS:** Without access to real-time geopolitical data, this assessment provides general strategic guidance. The conflict situation demands careful evaluation of regional power dynamics and international response mechanisms.\n\n**RISK ASSESSMENT:** Military conflicts of this nature typically involve escalation risks, economic disruption, and diplomatic challenges. Success depends on multilateral coordination and strategic resource allocation.\n\n**TACTICAL CONSIDERATIONS:** Military preparedness, alliance coordination, and diplomatic engagement remain critical factors. Intelligence gathering and strategic communication are essential for favorable outcomes.\n\n**RECOMMENDATIONS:** The provided recommendations represent established geopolitical best practices. For mission-critical decisions, consult with specialized military and diplomatic advisors familiar with current regional conditions."
       })
       
       toast({
@@ -442,17 +462,35 @@ export default function PoliticalAdvisor() {
       {/* Header */}
       <header className="border-b border-dark-border bg-dark-card/80 backdrop-blur-sm">
         <div className="container mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
+          <div className="flex items-center justify-between w-full">
+            <div className="flex items-center space-x-4 flex-1">
               <div className="w-12 h-12 bg-flame rounded-lg flex items-center justify-center">
                 <Globe className="w-7 h-7 text-white" />
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-dark-text">GioAdvisor</h1>
-                <p className="text-sm text-dark-muted">Global Conflict Simulation Platform</p>
+                <p className="text-sm text-dark-muted">Military Conflict Simulation Platform</p>
               </div>
             </div>
-            <div className="flex items-center space-x-2">
+            
+            <div className="hidden lg:flex items-center justify-center flex-1">
+              <div className="text-center">
+                <p className="text-lg font-semibold text-dark-text">Strategic Command Center</p>
+                <p className="text-xs text-dark-muted">Real-time military analysis & intelligence</p>
+              </div>
+            </div>
+            
+            <div className="flex items-center justify-end space-x-4 flex-1">
+              <div className="hidden sm:flex items-center space-x-4 text-sm text-dark-muted">
+                <div className="flex items-center space-x-2">
+                  <Target className="w-4 h-4" />
+                  <span>Military Intelligence</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Shield className="w-4 h-4" />
+                  <span>Strategic Analysis</span>
+                </div>
+              </div>
               <Badge variant="outline" className="border-flame text-flame bg-transparent text-sm px-3 py-1">
                 Beta v1.1
               </Badge>
@@ -463,19 +501,14 @@ export default function PoliticalAdvisor() {
 
       <div className="container mx-auto px-6 py-8 pb-12 lg:pb-96 flex-1 overflow-y-auto">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 bg-dark-card border border-dark-border h-12">
+          <TabsList className="grid w-full grid-cols-3 bg-dark-card border border-dark-border h-12">
             <TabsTrigger
               value="setup"
               className="data-[state=active]:bg-flame data-[state=active]:text-white text-dark-text text-base"
             >
               Setup Simulation
             </TabsTrigger>
-            <TabsTrigger
-              value="simulate"
-              className="data-[state=active]:bg-flame data-[state=active]:text-white text-dark-text text-base"
-            >
-              Run Analysis
-            </TabsTrigger>
+
             <TabsTrigger
               value="results"
               className="data-[state=active]:bg-flame data-[state=active]:text-white text-dark-text text-base"
@@ -609,45 +642,26 @@ export default function PoliticalAdvisor() {
                 </CardContent>
               </Card>
 
-              {/* Conflict Scenario */}
+              {/* Military Conflict Scenario */}
               <Card className="border-dark-border bg-dark-card min-h-[600px] flex flex-col">
                 <CardHeader className="bg-gradient-to-r from-flame/20 to-flame/10 py-4 tight-v">
                   <CardTitle className="flex items-center space-x-3 text-dark-text text-lg">
                     <AlertTriangle className="w-5 h-5 text-flame" />
-                    <span>Conflict Scenario</span>
+                    <span>Military Conflict Scenario</span>
                   </CardTitle>
                   <CardDescription className="text-dark-muted text-base">
-                    Define the conflict situation to analyze
+                    Define the military conflict situation to analyze
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="p-6 space-y-4 flex-1">
-                  <div>
-                    <label className="text-base font-medium text-dark-text mb-3 block">Conflict Type</label>
-                    <div className="grid grid-cols-2 gap-3">
-                      {conflictTypes.map((type) => (
-                        <Button
-                          key={type.id}
-                          variant={conflictScenario === type.id ? "default" : "outline"}
-                          className={`justify-start py-3 px-4 ${
-                            conflictScenario === type.id
-                              ? "bg-flame hover:bg-flame/90 text-white"
-                              : "border-dark-border text-dark-text hover:bg-dark-border bg-transparent"
-                          }`}
-                          onClick={() => setConflictScenario(type.id)}
-                        >
-                          <span className="mr-3 text-lg">{type.icon}</span>
-                          <span className="text-base">{type.name}</span>
-                        </Button>
-                      ))}
-                    </div>
-                  </div>
 
-                  {/* Offensive and Defensive Country Selection */}
+
+                  {/* Attacking and Defending Military Forces */}
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="text-base font-medium text-dark-text mb-3 block flex items-center">
                         <Sword className="w-5 h-5 mr-2 text-flame" />
-                        Offensive Country
+                        Attacking Military Force
                       </label>
                       <Popover open={offensiveCountryOpen} onOpenChange={setOffensiveCountryOpen}>
                         <PopoverTrigger asChild>
@@ -710,7 +724,7 @@ export default function PoliticalAdvisor() {
                     <div>
                       <label className="text-base font-medium text-dark-text mb-3 block flex items-center">
                         <Shield className="w-5 h-5 mr-2 text-flame" />
-                        Defensive Country
+                        Defending Military Force
                       </label>
                       <Popover open={defensiveCountryOpen} onOpenChange={setDefensiveCountryOpen}>
                         <PopoverTrigger asChild>
@@ -772,13 +786,21 @@ export default function PoliticalAdvisor() {
                   </div>
 
                   <div>
-                    <label className="text-base font-medium text-dark-text mb-3 block">Scenario Details</label>
+                    <label className="text-base font-medium text-dark-text mb-3 block">Military Scenario Details</label>
                     <Textarea
-                      placeholder="Describe the specific conflict scenario, involved parties, and key factors..."
+                      placeholder="Describe your military conflict scenario in detail. Include specific military actions, weapons, forces, or tactical elements. The system will automatically detect the conflict type (nuclear, territorial, naval, air, proxy, or conventional) based on your description..."
                       className="min-h-[120px] bg-dark-bg border-dark-border text-dark-text placeholder:text-dark-muted text-base p-4"
                       value={scenarioDetails}
                       onChange={(e) => setScenarioDetails(e.target.value)}
                     />
+                    {conflictScenario && (
+                      <div className="mt-3 flex items-center text-sm text-dark-muted">
+                        <span className="mr-2">📊 Auto-detected conflict type:</span>
+                        <span className="text-flame font-medium">
+                          {conflictTypes.find(type => type.id === conflictScenario)?.icon} {conflictTypes.find(type => type.id === conflictScenario)?.name}
+                        </span>
+                      </div>
+                    )}
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
@@ -843,235 +865,23 @@ export default function PoliticalAdvisor() {
               </Button>
               
               <Button
-                onClick={submitSetup}
-                disabled={!selectedCountry || !conflictScenario || !offensiveCountry || !defensiveCountry || isSubmitting}
+                onClick={runSimulation}
+                disabled={!selectedCountry || !offensiveCountry || !defensiveCountry || !scenarioDetails.trim() || isSimulating}
                 className="bg-flame hover:bg-flame/90 text-white px-8 py-3 text-base"
               >
-                {isSubmitting ? (
+                {isSimulating ? (
                   <>
                     <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                    Saving Setup...
+                    AI Analysis in Progress...
                   </>
                 ) : (
                   <>
                     <Play className="w-5 h-5 mr-2" />
-                    Save Simulation Setup
+                    Run AI Political Analysis
                   </>
                 )}
               </Button>
             </div>
-          </TabsContent>
-
-          {/* Simulate Tab */}
-          <TabsContent value="simulate" className="flex-1 min-h-0 flex flex-col mt-4">
-            <Card className="border-dark-border bg-dark-card min-h-[50vh] lg:min-h-[600px] min-h-responsive flex flex-col">
-              <CardHeader className="bg-gradient-to-r from-flame/20 to-flame/10 py-4 tight-v flex-shrink-0">
-                <CardTitle className="flex items-center space-x-2 text-dark-text text-base">
-                  <Target className="w-4 h-4 text-flame" />
-                  <span>Advanced Parameters (Optional)</span>
-                </CardTitle>
-                <CardDescription className="text-dark-muted text-sm">
-                  Configure advanced settings for your political simulation
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="p-4 flex-1 min-h-0 flex flex-col">
-                <div className="flex-1 overflow-y-auto">
-                  <div className="grid md:grid-cols-3 gap-4 mb-4">
-                    <div className="space-y-3">
-                      <h4 className="font-semibold text-dark-text text-sm">Economic Factors</h4>
-                      <div className="space-y-3">
-                        <div className="space-y-2">
-                          <div className="flex justify-between items-center">
-                            <label className="text-sm text-dark-muted">Trade Dependencies</label>
-                            <span className="text-sm text-flame font-medium">{tradeDependencies[0]}%</span>
-                          </div>
-                          <Slider
-                            value={tradeDependencies}
-                            onValueChange={setTradeDependencies}
-                            max={100}
-                            step={1}
-                            className="w-full"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <div className="flex justify-between items-center">
-                            <label className="text-sm text-dark-muted">Economic Sanctions Impact</label>
-                            <span className="text-sm text-flame font-medium">{sanctionsImpact[0]}%</span>
-                          </div>
-                          <Slider
-                            value={sanctionsImpact}
-                            onValueChange={setSanctionsImpact}
-                            max={100}
-                            step={1}
-                            className="w-full"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <div className="flex justify-between items-center">
-                            <label className="text-sm text-dark-muted">Market Stability</label>
-                            <span className="text-sm text-flame font-medium">{marketStability[0]}%</span>
-                          </div>
-                          <Slider
-                            value={marketStability}
-                            onValueChange={setMarketStability}
-                            max={100}
-                            step={1}
-                            className="w-full"
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="space-y-3">
-                      <h4 className="font-semibold text-dark-text text-sm">Military Readiness</h4>
-                      <div className="space-y-3">
-                        <div className="space-y-2">
-                          <div className="flex justify-between items-center">
-                            <label className="text-sm text-dark-muted">Defense Capabilities</label>
-                            <span className="text-sm text-flame font-medium">{defenseCapabilities[0]}%</span>
-                          </div>
-                          <Slider
-                            value={defenseCapabilities}
-                            onValueChange={setDefenseCapabilities}
-                            max={100}
-                            step={1}
-                            className="w-full"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <div className="flex justify-between items-center">
-                            <label className="text-sm text-dark-muted">Alliance Support</label>
-                            <span className="text-sm text-flame font-medium">{allianceSupport[0]}%</span>
-                          </div>
-                          <Slider
-                            value={allianceSupport}
-                            onValueChange={setAllianceSupport}
-                            max={100}
-                            step={1}
-                            className="w-full"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <div className="flex justify-between items-center">
-                            <label className="text-sm text-dark-muted">Strategic Resources</label>
-                            <span className="text-sm text-flame font-medium">{strategicResources[0]}%</span>
-                          </div>
-                          <Slider
-                            value={strategicResources}
-                            onValueChange={setStrategicResources}
-                            max={100}
-                            step={1}
-                            className="w-full"
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="space-y-3">
-                      <h4 className="font-semibold text-dark-text text-sm">Diplomatic Relations</h4>
-                      <div className="space-y-3">
-                        <div className="space-y-2">
-                          <div className="flex justify-between items-center">
-                            <label className="text-sm text-dark-muted">UN Support</label>
-                            <span className="text-sm text-flame font-medium">{unSupport[0]}%</span>
-                          </div>
-                          <Slider
-                            value={unSupport}
-                            onValueChange={setUnSupport}
-                            max={100}
-                            step={1}
-                            className="w-full"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <div className="flex justify-between items-center">
-                            <label className="text-sm text-dark-muted">Regional Influence</label>
-                            <span className="text-sm text-flame font-medium">{regionalInfluence[0]}%</span>
-                          </div>
-                          <Slider
-                            value={regionalInfluence}
-                            onValueChange={setRegionalInfluence}
-                            max={100}
-                            step={1}
-                            className="w-full"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <div className="flex justify-between items-center">
-                            <label className="text-sm text-dark-muted">Public Opinion</label>
-                            <span className="text-sm text-flame font-medium">{publicOpinion[0]}%</span>
-                          </div>
-                          <Slider
-                            value={publicOpinion}
-                            onValueChange={setPublicOpinion}
-                            max={100}
-                            step={1}
-                            className="w-full"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Conflict Overview */}
-                  {offensiveCountry && defensiveCountry && (
-                    <div className="p-3 bg-dark-border rounded-lg">
-                      <h4 className="font-semibold text-dark-text mb-2 text-sm">Conflict Overview</h4>
-                      <div className="flex items-center justify-center space-x-6">
-                        <div className="text-center">
-                          <div className="flex justify-center mb-1">
-                            <FlagIcon countryCode={offensiveCountry} className="w-8 h-6" />
-                          </div>
-                          <div className="text-xs text-dark-text font-medium">
-                            {countries.find((c) => c.code === offensiveCountry)?.name}
-                          </div>
-                          <div className="text-xs text-flame">Offensive</div>
-                        </div>
-                        <div className="text-flame text-xl">⚔️</div>
-                        <div className="text-center">
-                          <div className="flex justify-center mb-1">
-                            <FlagIcon countryCode={defensiveCountry} className="w-8 h-6" />
-                          </div>
-                          <div className="text-xs text-dark-text font-medium">
-                            {countries.find((c) => c.code === defensiveCountry)?.name}
-                          </div>
-                          <div className="text-xs text-flame">Defensive</div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex justify-between items-center pt-4 border-t border-dark-border flex-shrink-0">
-                  <Button
-                    onClick={resetValues}
-                    variant="outline"
-                    className="border-dark-border text-dark-text hover:bg-dark-border bg-transparent px-4 py-2"
-                  >
-                    <RotateCcw className="w-4 h-4 mr-2" />
-                    Reset Values
-                  </Button>
-                  
-                  <Button
-                    onClick={runSimulation}
-                    disabled={!selectedCountry || !conflictScenario || isSimulating}
-                    className="bg-flame hover:bg-flame/90 text-white px-6 py-2"
-                  >
-                    {isSimulating ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        AI Analysis in Progress...
-                      </>
-                    ) : (
-                      <>
-                        <Play className="w-4 h-4 mr-2" />
-                        Run AI Political Analysis
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
           </TabsContent>
 
           {/* Results Tab */}
@@ -1088,8 +898,22 @@ export default function PoliticalAdvisor() {
                           <span>AI Analysis Summary</span>
                         </CardTitle>
                       </CardHeader>
-                      <CardContent className="p-4">
-                        <p className="text-dark-text leading-relaxed text-sm">{simulationResults.summary}</p>
+                      <CardContent className="p-6">
+                        <div className="text-dark-text leading-relaxed text-sm space-y-4">
+                          {simulationResults.summary.split('\n\n').map((paragraph: string, index: number) => (
+                            <div key={index} className="space-y-2">
+                              {paragraph.includes('**') ? (
+                                <div dangerouslySetInnerHTML={{
+                                  __html: paragraph
+                                    .replace(/\*\*(.*?)\*\*/g, '<strong class="text-flame font-semibold">$1</strong>')
+                                    .replace(/\n/g, '<br />')
+                                }} />
+                              ) : (
+                                <p className="text-dark-muted">{paragraph}</p>
+                              )}
+                            </div>
+                          ))}
+                        </div>
                       </CardContent>
                     </Card>
                   )}
@@ -1159,44 +983,141 @@ export default function PoliticalAdvisor() {
                     </CardContent>
                   </Card>
 
-                  {/* Analysis Chart */}
+                  {/* Strategic Response Matrix */}
                   <Card className="border-dark-border bg-dark-card">
                     <CardHeader className="py-3">
                       <CardTitle className="flex items-center space-x-2 text-dark-text text-base">
-                        <BarChart3 className="w-4 h-4 text-flame" />
-                        <span>Response Analysis</span>
+                        <Target className="w-4 h-4 text-flame" />
+                        <span>Strategic Response Options</span>
                       </CardTitle>
+                      <CardDescription className="text-dark-muted text-sm">
+                        Military response strategies ranked by effectiveness and risk
+                      </CardDescription>
                     </CardHeader>
                     <CardContent className="p-4">
-                      <div className="space-y-3">
-                        <div className="flex justify-between items-center">
-                          <span className="text-sm font-medium text-dark-text">Diplomatic Approach</span>
-                          <div className="flex items-center space-x-2">
-                            <Progress value={simulationResults.diplomaticResponse} className="w-24" />
-                            <span className="text-sm text-flame">{simulationResults.diplomaticResponse}%</span>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* Diplomatic Response */}
+                        <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center space-x-2">
+                              <Users className="w-4 h-4 text-blue-400" />
+                              <span className="font-medium text-dark-text">Diplomatic Resolution</span>
+                            </div>
+                            <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">
+                              Recommended
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-dark-muted mb-3">
+                            Negotiate through international channels, UN mediation, and multilateral talks.
+                          </p>
+                          <div className="grid grid-cols-2 gap-2 text-xs">
+                            <div className="bg-green-500/10 rounded p-2">
+                              <span className="text-green-400 font-medium">Pros:</span>
+                              <div className="text-dark-muted">• Low casualties</div>
+                              <div className="text-dark-muted">• Preserves alliances</div>
+                            </div>
+                            <div className="bg-red-500/10 rounded p-2">
+                              <span className="text-red-400 font-medium">Risks:</span>
+                              <div className="text-dark-muted">• Time-sensitive</div>
+                              <div className="text-dark-muted">• May show weakness</div>
+                            </div>
                           </div>
                         </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-sm font-medium text-dark-text">Economic Measures</span>
-                          <div className="flex items-center space-x-2">
-                            <Progress value={Math.abs(simulationResults.economicImpact) + 50} className="w-24" />
-                            <span className="text-sm text-flame">{simulationResults.economicImpact}%</span>
+
+                        {/* Military Response */}
+                        <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4">
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center space-x-2">
+                              <Sword className="w-4 h-4 text-red-400" />
+                              <span className="font-medium text-dark-text">Military Action</span>
+                            </div>
+                            <Badge className="bg-red-500/20 text-red-400 border-red-500/30">
+                              High Risk
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-dark-muted mb-3">
+                            Direct military intervention with allied support and strategic coordination.
+                          </p>
+                          <div className="grid grid-cols-2 gap-2 text-xs">
+                            <div className="bg-green-500/10 rounded p-2">
+                              <span className="text-green-400 font-medium">Pros:</span>
+                              <div className="text-dark-muted">• Decisive action</div>
+                              <div className="text-dark-muted">• Strong deterrent</div>
+                            </div>
+                            <div className="bg-red-500/10 rounded p-2">
+                              <span className="text-red-400 font-medium">Risks:</span>
+                              <div className="text-dark-muted">• High casualties</div>
+                              <div className="text-dark-muted">• Escalation risk</div>
+                            </div>
                           </div>
                         </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-sm font-medium text-dark-text">Military Readiness</span>
-                          <div className="flex items-center space-x-2">
-                            <Progress value={simulationResults.militaryReadiness} className="w-24" />
-                            <span className="text-sm text-flame">{simulationResults.militaryReadiness}%</span>
+
+                        {/* Economic Response */}
+                        <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4">
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center space-x-2">
+                              <Globe className="w-4 h-4 text-yellow-400" />
+                              <span className="font-medium text-dark-text">Economic Pressure</span>
+                            </div>
+                            <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30">
+                              Moderate Risk
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-dark-muted mb-3">
+                            Coordinated sanctions, trade restrictions, and financial pressure campaigns.
+                          </p>
+                          <div className="grid grid-cols-2 gap-2 text-xs">
+                            <div className="bg-green-500/10 rounded p-2">
+                              <span className="text-green-400 font-medium">Pros:</span>
+                              <div className="text-dark-muted">• Non-violent</div>
+                              <div className="text-dark-muted">• Broad support</div>
+                            </div>
+                            <div className="bg-red-500/10 rounded p-2">
+                              <span className="text-red-400 font-medium">Risks:</span>
+                              <div className="text-dark-muted">• Slow effects</div>
+                              <div className="text-dark-muted">• Economic blowback</div>
+                            </div>
                           </div>
                         </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-sm font-medium text-dark-text">Alliance Strength</span>
-                          <div className="flex items-center space-x-2">
-                            <Progress value={simulationResults.allianceStrength} className="w-24" />
-                            <span className="text-sm text-flame">{simulationResults.allianceStrength}%</span>
+
+                        {/* Alliance Response */}
+                        <div className="bg-purple-500/10 border border-purple-500/20 rounded-lg p-4">
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center space-x-2">
+                              <Shield className="w-4 h-4 text-purple-400" />
+                              <span className="font-medium text-dark-text">Coalition Building</span>
+                            </div>
+                            <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/30">
+                              Low Risk
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-dark-muted mb-3">
+                            Mobilize international coalitions and strengthen defensive partnerships.
+                          </p>
+                          <div className="grid grid-cols-2 gap-2 text-xs">
+                            <div className="bg-green-500/10 rounded p-2">
+                              <span className="text-green-400 font-medium">Pros:</span>
+                              <div className="text-dark-muted">• Shared burden</div>
+                              <div className="text-dark-muted">• Legitimacy</div>
+                            </div>
+                            <div className="bg-red-500/10 rounded p-2">
+                              <span className="text-red-400 font-medium">Risks:</span>
+                              <div className="text-dark-muted">• Complex coordination</div>
+                              <div className="text-dark-muted">• Divided interests</div>
+                            </div>
                           </div>
                         </div>
+                      </div>
+
+                      {/* Recommended Strategy */}
+                      <div className="mt-6 bg-gradient-to-r from-flame/20 to-flame/10 border border-flame/30 rounded-lg p-4">
+                        <div className="flex items-center space-x-2 mb-3">
+                          <Award className="w-5 h-5 text-flame" />
+                          <span className="font-semibold text-dark-text">AI Recommended Strategy</span>
+                        </div>
+                        <p className="text-sm text-dark-text leading-relaxed">
+                          🎯 <strong>Hybrid Strategy Recommended:</strong> Begin with diplomatic engagement while simultaneously building coalition support. Maintain economic pressure as leverage and keep military options in reserve. This multi-layered approach maximizes flexibility while minimizing escalation risks.
+                        </p>
                       </div>
                     </CardContent>
                   </Card>
@@ -1212,9 +1133,9 @@ export default function PoliticalAdvisor() {
                     <Button
                       variant="outline"
                       className="border-flame text-flame hover:bg-flame hover:text-white bg-transparent"
-                      onClick={() => setActiveTab("simulate")}
+                      onClick={() => setActiveTab("setup")}
                     >
-                      Go to Simulation
+                      Go to Setup
                     </Button>
                   </CardContent>
                 </Card>
