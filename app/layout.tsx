@@ -7,12 +7,12 @@ import { Toaster } from "@/components/ui/toaster"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "GioAdvisor - Global Conflict Simulation Platform",
-  description: "Simulate political scenarios and analyze international conflicts with advanced AI-powered insights.",
+  title: "GioAdvisor - Military Conflict Simulation Platform",
+  description: "Simulate military conflict scenarios and analyze international warfare with advanced AI-powered strategic insights.",
   icons: {
     shortcut: '/favicon.ico'
   },
-  keywords: ["political simulation", "conflict analysis", "international relations", "diplomacy", "geopolitics"],
+  keywords: ["military simulation", "conflict analysis", "warfare strategy", "military planning", "geopolitics", "defense strategy"],
     generator: 'v0.dev',
   viewport: 'width=device-width, initial-scale=1, maximum-scale=1'
 }

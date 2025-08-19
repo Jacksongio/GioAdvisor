@@ -13,7 +13,7 @@
     The software will look intuitive to the user, and most importantly the flow will be simple and fast.
 ## Describe the tools you plan to use in each part of your stack. Write one sentence on why you made each tooling choice.
 1. LLM - OpenAI; I made this choice because its fast and I am very aware of its uses.
-2. Embedding Model; text-embedding-ada-002; this model excels at capturing semantic relationships in legal and diplomatic text.
+2. Embedding Model; text-embedding-3-small; this model excels at capturing semantic relationships in legal and diplomatic text.
 3. Orchestration - Next.js API routes; this provides a seamless full-stack integration allowing us to build specialized orchestration logic for treaty analysis.
 4. Vector Database - In-memory vector store - For our focused treaty dataset, in memory storage provide optimal performance.
 5. Monitoring - Console logging - Simple logging provides sufficient visibility for development.

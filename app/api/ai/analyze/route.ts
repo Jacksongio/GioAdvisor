@@ -76,10 +76,18 @@ Please provide a realistic analysis from ${selectedCountryName}'s perspective. R
     "<recommendation 4>",
     "<recommendation 5>"
   ],
-  "summary": "<2-3 sentence overall assessment>"
+  "summary": "<comprehensive 4-6 paragraph analysis>"
 }
 
 Consider the geopolitical realities, current parameters, and provide realistic percentages. Economic impact can be negative. Make recommendations specific and actionable.
+
+For the summary, provide a comprehensive analysis that includes:
+1. SCENARIO CONTEXT: Detailed assessment of the specific military conflict described, referencing the exact scenario details provided
+2. STRATEGIC IMPLICATIONS: Analysis of how this conflict affects regional power dynamics and global stability from ${selectedCountryName}'s perspective
+3. RISK ASSESSMENT: Evaluation of military, economic, and diplomatic risks with specific references to the countries and conflict type involved
+4. TACTICAL CONSIDERATIONS: Military and strategic factors specific to the conflict type (${conflictScenario}) and the nations involved
+5. TIMELINE ANALYSIS: How the situation might evolve over the specified timeframe, considering escalation possibilities
+6. STAKEHOLDER IMPACT: Effects on allies, regional powers, and international organizations based on the specific scenario
 `
 
     // Call OpenAI API
@@ -96,7 +104,7 @@ Consider the geopolitical realities, current parameters, and provide realistic p
         }
       ],
       temperature: 0.7,
-      max_tokens: 1000,
+      max_tokens: 2000,
     })
 
     const response = completion.choices[0]?.message?.content
@@ -146,7 +154,7 @@ Consider the geopolitical realities, current parameters, and provide realistic p
           "Prepare contingency plans for various scenarios",
           "Monitor public sentiment and maintain transparency"
         ],
-        summary: "Analysis temporarily unavailable. These are fallback recommendations based on general geopolitical principles."
+        summary: "**SCENARIO CONTEXT:** This analysis represents a fallback assessment due to temporary AI service limitations. The specific military conflict scenario requires detailed intelligence analysis that considers multiple strategic factors.\n\n**STRATEGIC IMPLICATIONS:** Without access to real-time geopolitical data, this assessment provides general strategic guidance. The conflict situation demands careful evaluation of regional power dynamics and international response mechanisms.\n\n**RISK ASSESSMENT:** Military conflicts of this nature typically involve escalation risks, economic disruption, and diplomatic challenges. Success depends on multilateral coordination and strategic resource allocation.\n\n**TACTICAL CONSIDERATIONS:** Military preparedness, alliance coordination, and diplomatic engagement remain critical factors. Intelligence gathering and strategic communication are essential for favorable outcomes.\n\n**RECOMMENDATIONS:** The provided recommendations represent established geopolitical best practices. For mission-critical decisions, consult with specialized military and diplomatic advisors familiar with current regional conditions."
       }
     })
   }
