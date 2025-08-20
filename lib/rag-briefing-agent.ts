@@ -313,7 +313,7 @@ Generate a JSON response with this exact structure:
   "conclusion": "Assessment paragraph starting with 'The above legal and strategic assessments lead to the conclusion that with the passage of time, regarding the ${context.offensiveCountry}-${context.defensiveCountry} situation...' and ending with 'Therefore it seems to me a more aggressive action is indicated than any heretofore considered regarding the ${context.offensiveCountry}-${context.defensiveCountry} situation, and should be patterned along the following lines:'",
   "finalRecommendation": "Single paragraph explaining which of the 4 recommendations above is most critical for ${context.selectedCountry} and should be prioritized, with specific reasoning based on treaty obligations and strategic considerations",
   "classification": "CONFIDENTIAL",
-  "author": "Strategic Intelligence Division, Legal Affairs Section"
+  "author": "Strategic Intelligence Division, GioAdvisor"
 }`
 
     const response = await openai.chat.completions.create({
@@ -427,7 +427,7 @@ Generate a JSON response with this exact structure:
       conclusion: `The above legal and strategic assessments lead to the conclusion that ${context.selectedCountry} response options must be carefully calibrated to comply with international legal obligations while maintaining strategic effectiveness.`,
       finalRecommendation: `Recommended approach prioritizes treaty-compliant diplomatic engagement while maintaining legal justification for graduated response options under applicable international law frameworks.`,
       classification: "CONFIDENTIAL",
-      author: "Strategic Intelligence Division, Legal Affairs Section",
+      author: "Strategic Intelligence Division, GioAdvisor",
       treatyReferences,
       legalAnalysis
     }
