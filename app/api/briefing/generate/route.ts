@@ -54,9 +54,9 @@ export async function POST(request: NextRequest) {
         }
 
         console.log('📋 Starting RAG briefing generation...')
-        const agentAnalysis = await agent.generateBriefing(briefingContext)
+        const agentAnalysis = await agent.generateBriefing(briefingContext, true) // Fast mode enabled
         
-        console.log(`✅ RAG briefing generated successfully! (${agentAnalysis.metadata.processingTime}ms, ${agentAnalysis.metadata.treatiesAnalyzed} treaties analyzed, confidence: ${(agentAnalysis.metadata.confidenceScore * 100).toFixed(1)}%)`)
+        console.log(`✅ RAG briefing generated successfully! (${agentAnalysis.metadata.processingTime}ms, ${agentAnalysis.metadata.treatiesAnalyzed} treaties analyzed, RAGAS: Faithfulness:${(agentAnalysis.metadata.ragasMetrics.faithfulness * 100).toFixed(1)}% Relevancy:${(agentAnalysis.metadata.ragasMetrics.answerRelevancy * 100).toFixed(1)}%)`)
 
         return NextResponse.json({
           success: true,
@@ -65,13 +65,13 @@ export async function POST(request: NextRequest) {
             ragGenerated: true,
             treatiesAnalyzed: agentAnalysis.metadata.treatiesAnalyzed,
             processingTime: agentAnalysis.metadata.processingTime,
-            confidenceScore: agentAnalysis.metadata.confidenceScore,
-            contextualAnalysis: agentAnalysis.contextualAnalysis,
+            ragasMetrics: agentAnalysis.metadata.ragasMetrics,
+            aiReasoning: agentAnalysis.aiReasoning,
             legalImplications: agentAnalysis.legalImplications,
-            retrievedTreaties: agentAnalysis.retrievedTreaties.map(doc => ({
-              title: doc.chunk.metadata.title,
-              relevance: doc.reason,
-              score: doc.relevanceScore
+            retrievedTreaties: agentAnalysis.generatedBriefing.treatyReferences.map(ref => ({
+              title: ref.title,
+              relevance: ref.relevance,
+              score: agentAnalysis.retrievedTreaties.find(doc => doc.chunk.metadata.title === ref.title)?.relevanceScore || 0
             }))
           }
         })

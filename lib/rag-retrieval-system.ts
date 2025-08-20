@@ -104,11 +104,11 @@ export class TreatyRetrievalSystem {
   }
 
   /**
-   * Enhanced query construction for better retrieval
+   * Enhanced query construction with diplomatic/legal synonym expansion
    */
   private constructSearchQuery(query: RetrievalQuery): string {
-    // Create a comprehensive search query that captures the conflict context
-    const searchTerms = [
+    // Create base search terms
+    const baseTerms = [
       `military conflict between ${query.offensiveCountry} and ${query.defensiveCountry}`,
       `${query.selectedCountry} foreign policy`,
       `international law ${query.severityLevel} severity`,
@@ -124,14 +124,277 @@ export class TreatyRetrievalSystem {
 
     // Add region-specific terms
     const regionTerms = this.getRegionalTerms(query.offensiveCountry, query.defensiveCountry)
-    searchTerms.push(...regionTerms)
+    baseTerms.push(...regionTerms)
 
     // Add conflict type specific terms
     if (query.conflictType) {
-      searchTerms.push(...this.getConflictTypeTerms(query.conflictType))
+      baseTerms.push(...this.getConflictTypeTerms(query.conflictType))
     }
 
-    return searchTerms.join(' ')
+    // Apply enhanced query expansion with synonyms
+    const expandedTerms = this.expandQueryWithSynonyms(baseTerms, query)
+
+    // Intelligently limit expansion to avoid over-dilution
+    const optimizedTerms = this.optimizeExpandedQuery(expandedTerms, baseTerms.length)
+
+    // Debug logging for query expansion (can be disabled in production)
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`🔍 Query expansion: ${baseTerms.length} → ${expandedTerms.length} → ${optimizedTerms.length} terms`)
+    }
+
+    return optimizedTerms.join(' ')
+  }
+
+  /**
+   * Enhanced query expansion with diplomatic/legal synonyms
+   */
+  private expandQueryWithSynonyms(baseTerms: string[], query: RetrievalQuery): string[] {
+    const expandedTerms = [...baseTerms]
+    
+    // Core diplomatic/legal synonym mappings
+    const synonymMap = this.getDiplomaticSynonyms()
+    
+    // Expand each term with relevant synonyms
+    for (const term of baseTerms) {
+      const lowerTerm = term.toLowerCase()
+      
+      // Check for each synonym category
+      for (const [baseWord, synonyms] of Object.entries(synonymMap)) {
+        if (lowerTerm.includes(baseWord.toLowerCase())) {
+          // Add synonym variations
+          for (const synonym of synonyms) {
+            const expandedTerm = term.replace(new RegExp(baseWord, 'gi'), synonym)
+            expandedTerms.push(expandedTerm)
+          }
+        }
+      }
+    }
+
+    // Add country name variations
+    expandedTerms.push(...this.expandCountryNames(query))
+    
+    // Add legal document type variations
+    expandedTerms.push(...this.expandLegalDocumentTypes(query))
+    
+    // Add temporal/urgency variations
+    expandedTerms.push(...this.expandTemporalTerms(query))
+
+    // Remove duplicates and filter empty terms
+    return [...new Set(expandedTerms.filter(term => term.trim().length > 0))]
+  }
+
+  /**
+   * Core diplomatic and legal synonym dictionary
+   */
+  private getDiplomaticSynonyms(): Record<string, string[]> {
+    return {
+      // Legal document types
+      'treaty': ['agreement', 'convention', 'accord', 'pact', 'compact', 'concordat', 'protocol'],
+      'agreement': ['treaty', 'convention', 'accord', 'pact', 'understanding', 'arrangement'],
+      'convention': ['treaty', 'agreement', 'protocol', 'charter', 'covenant'],
+      
+      // Conflict terminology
+      'conflict': ['war', 'hostilities', 'aggression', 'dispute', 'confrontation', 'crisis', 'tension'],
+      'war': ['conflict', 'hostilities', 'armed conflict', 'warfare', 'military action'],
+      'dispute': ['conflict', 'disagreement', 'controversy', 'contention', 'friction'],
+      'aggression': ['attack', 'invasion', 'assault', 'offensive', 'hostility'],
+      
+      // Diplomatic relations
+      'diplomatic': ['bilateral', 'multilateral', 'international', 'foreign policy', 'external relations'],
+      'negotiation': ['dialogue', 'talks', 'discussion', 'mediation', 'arbitration'],
+      'relations': ['ties', 'connections', 'links', 'cooperation', 'partnership'],
+      
+      // Peace and security
+      'peace': ['ceasefire', 'armistice', 'truce', 'resolution', 'settlement', 'reconciliation'],
+      'security': ['defense', 'protection', 'safeguard', 'safety', 'stability'],
+      'alliance': ['coalition', 'partnership', 'bloc', 'union', 'confederation'],
+      
+      // Legal terms
+      'obligation': ['duty', 'responsibility', 'commitment', 'requirement', 'binding'],
+      'violation': ['breach', 'infringement', 'contravention', 'transgression'],
+      'sovereignty': ['autonomy', 'independence', 'self-determination', 'territorial integrity'],
+      
+      // International organizations
+      'United Nations': ['UN', 'United Nations Organization', 'UNO'],
+      'Security Council': ['UNSC', 'UN Security Council'],
+      'General Assembly': ['UNGA', 'UN General Assembly'],
+      
+      // Military terms
+      'military': ['armed forces', 'defense', 'army', 'naval', 'air force'],
+      'defense': ['military', 'protection', 'security', 'safeguard'],
+      'intervention': ['involvement', 'action', 'operation', 'deployment']
+    }
+  }
+
+  /**
+   * Expand country names with common variations
+   */
+  private expandCountryNames(query: RetrievalQuery): string[] {
+    const countryVariations: Record<string, string[]> = {
+      'United States': ['US', 'USA', 'America', 'American', 'United States of America'],
+      'United Kingdom': ['UK', 'Britain', 'British', 'Great Britain', 'England'],
+      'Russia': ['Russian Federation', 'Soviet Union', 'USSR', 'Russian'],
+      'China': ['People\'s Republic of China', 'PRC', 'Chinese'],
+      'Germany': ['Federal Republic of Germany', 'FRG', 'German'],
+      'France': ['French Republic', 'French'],
+      'Japan': ['Japanese'],
+      'India': ['Republic of India', 'Indian'],
+      'Canada': ['Canadian'],
+      'Australia': ['Australian'],
+      'Brazil': ['Brazilian'],
+      'Iran': ['Islamic Republic of Iran', 'Persia', 'Persian'],
+      'North Korea': ['DPRK', 'Democratic People\'s Republic of Korea'],
+      'South Korea': ['Republic of Korea', 'ROK'],
+      'Israel': ['Israeli'],
+      'Pakistan': ['Pakistani'],
+      'Turkey': ['Turkish', 'Türkiye']
+    }
+
+    const variations: string[] = []
+    const countries = [query.selectedCountry, query.offensiveCountry, query.defensiveCountry]
+    
+    for (const country of countries) {
+      if (countryVariations[country]) {
+        variations.push(...countryVariations[country])
+        // Add possessive forms
+        variations.push(...countryVariations[country].map(v => `${v}'s`))
+      }
+    }
+    
+    return variations
+  }
+
+  /**
+   * Expand legal document types based on scenario
+   */
+  private expandLegalDocumentTypes(query: RetrievalQuery): string[] {
+    const documentTypes = [
+      'bilateral treaty', 'multilateral treaty', 'international agreement',
+      'peace treaty', 'defense pact', 'trade agreement', 'non-aggression pact',
+      'diplomatic protocol', 'status of forces agreement', 'mutual defense treaty',
+      'arms control agreement', 'nuclear treaty', 'environmental accord',
+      'human rights convention', 'geneva convention', 'vienna convention',
+      'charter', 'statute', 'covenant', 'memorandum of understanding',
+      'joint declaration', 'communique', 'framework agreement'
+    ]
+    
+    return documentTypes
+  }
+
+  /**
+   * Expand temporal and urgency terms
+   */
+  private expandTemporalTerms(query: RetrievalQuery): string[] {
+    const urgencyTerms = []
+    
+    if (query.severityLevel) {
+      const severityMap: Record<string, string[]> = {
+        'high': ['urgent', 'critical', 'emergency', 'immediate', 'pressing'],
+        'medium': ['important', 'significant', 'moderate', 'notable'],
+        'low': ['minor', 'limited', 'contained', 'manageable']
+      }
+      
+      const level = query.severityLevel.toLowerCase()
+      if (severityMap[level]) {
+        urgencyTerms.push(...severityMap[level])
+      }
+    }
+    
+    if (query.timeFrame) {
+      const timeMap: Record<string, string[]> = {
+        'immediate': ['urgent', 'emergency', 'crisis', 'rapid response'],
+        'short-term': ['quick', 'fast', 'rapid', 'immediate'],
+        'medium-term': ['ongoing', 'sustained', 'continued'],
+        'long-term': ['strategic', 'comprehensive', 'extended', 'prolonged']
+      }
+      
+      const frame = query.timeFrame.toLowerCase()
+      for (const [key, values] of Object.entries(timeMap)) {
+        if (frame.includes(key)) {
+          urgencyTerms.push(...values)
+        }
+      }
+    }
+    
+    return urgencyTerms
+  }
+
+  /**
+   * Optimize expanded query to prevent over-dilution while maintaining coverage
+   */
+  private optimizeExpandedQuery(expandedTerms: string[], originalCount: number): string[] {
+    // Intelligent expansion ratio: limit to 3x original terms to maintain focus
+    const maxTerms = Math.max(originalCount * 3, 50)
+    
+    if (expandedTerms.length <= maxTerms) {
+      return expandedTerms
+    }
+
+    // Prioritize terms by importance
+    const prioritizedTerms: { term: string; priority: number }[] = expandedTerms.map(term => ({
+      term,
+      priority: this.calculateTermPriority(term)
+    }))
+
+    // Sort by priority and take top terms
+    return prioritizedTerms
+      .sort((a, b) => b.priority - a.priority)
+      .slice(0, maxTerms)
+      .map(item => item.term)
+  }
+
+  /**
+   * Calculate priority score for query terms
+   */
+  private calculateTermPriority(term: string): number {
+    let priority = 1.0
+    const lowerTerm = term.toLowerCase()
+
+    // High priority terms
+    const highPriorityKeywords = [
+      'treaty', 'agreement', 'convention', 'conflict', 'war', 'peace',
+      'security', 'diplomatic', 'military', 'defense', 'alliance'
+    ]
+    
+    const mediumPriorityKeywords = [
+      'bilateral', 'multilateral', 'international', 'negotiation',
+      'resolution', 'violation', 'sovereignty'
+    ]
+
+    // Boost priority for key diplomatic/legal terms
+    for (const keyword of highPriorityKeywords) {
+      if (lowerTerm.includes(keyword)) {
+        priority += 2.0
+        break
+      }
+    }
+
+    for (const keyword of mediumPriorityKeywords) {
+      if (lowerTerm.includes(keyword)) {
+        priority += 1.0
+        break
+      }
+    }
+
+    // Boost for country names (proper nouns typically more important)
+    if (/^[A-Z]/.test(term)) {
+      priority += 0.5
+    }
+
+    // Penalty for very long terms (likely over-specific)
+    if (term.length > 50) {
+      priority *= 0.7
+    }
+
+    // Boost for compound terms with multiple keywords
+    const keywordCount = highPriorityKeywords.concat(mediumPriorityKeywords)
+      .filter(keyword => lowerTerm.includes(keyword)).length
+    
+    if (keywordCount > 1) {
+      priority += keywordCount * 0.3
+    }
+
+    return priority
   }
 
   /**
@@ -318,11 +581,12 @@ export class TreatyRetrievalSystem {
   ): Promise<RetrievalResult> {
     await this.ensureInitialized()
 
-    // Get semantic results
-    const semanticResults = await this.retrieveRelevantTreaties(query, topK * 2)
+    // Get semantic results (optimized for speed when topK is small)
+    const fetchMultiplier = topK <= 6 ? 1.5 : 2
+    const semanticResults = await this.retrieveRelevantTreaties(query, Math.ceil(topK * fetchMultiplier))
     
     // Get keyword results
-    const keywordResults = this.keywordSearch(query, topK * 2)
+    const keywordResults = this.keywordSearch(query, Math.ceil(topK * fetchMultiplier))
     
     // Combine and rerank
     const combinedScores = new Map<string, RetrievedDocument>()

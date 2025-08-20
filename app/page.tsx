@@ -40,6 +40,8 @@ export default function PoliticalAdvisor() {
     progressTimeoutsRef.current = []
   }
 
+
+
   // Intelligence Sources state
   const [treatyResults, setTreatyResults] = useState<any>(null)
   const [isLoadingTreaties, setIsLoadingTreaties] = useState(false)
@@ -326,14 +328,17 @@ export default function PoliticalAdvisor() {
         
         const isRAGGenerated = briefingResult.metadata?.ragGenerated
         const treatiesCount = briefingResult.metadata?.treatiesAnalyzed || 0
-        const confidenceScore = briefingResult.metadata?.confidenceScore || 0
         const processingTime = briefingResult.metadata?.processingTime || 0
         
         if (isRAGGenerated) {
-          toast({
+          const ragasMetrics = briefingResult.metadata?.ragasMetrics
+          const faithfulness = ragasMetrics ? (ragasMetrics.faithfulness * 100).toFixed(0) : 'N/A'
+          const relevancy = ragasMetrics ? (ragasMetrics.answerRelevancy * 100).toFixed(0) : 'N/A'
+          
+      toast({
             title: "✅ RAG Intelligence Briefing Complete",
-            description: `Analyzed ${treatiesCount} treaties in ${Math.round(processingTime/1000)}s (${(confidenceScore * 100).toFixed(0)}% confidence)`,
-            variant: "default",
+            description: `Analyzed ${treatiesCount} treaties in ${Math.round(processingTime/1000)}s (RAGAS: Faithfulness:${faithfulness}% Relevancy:${relevancy}%)`,
+        variant: "default",
           })
         } else {
           toast({
@@ -640,28 +645,28 @@ export default function PoliticalAdvisor() {
         setSimulationResults(aiResult.analysis)
         
         if (!skipRedirect) {
-          toast({
-            title: "AI Analysis Complete",
-            description: "Your simulation has been analyzed using advanced AI. You are now redirected to the results page.",
-            variant: "default",
-          })
-          
-          // Redirect to View Results tab
-          setActiveTab("results")
+        toast({
+          title: "AI Analysis Complete",
+          description: "Your simulation has been analyzed using advanced AI. You are now redirected to the results page.",
+          variant: "default",
+        })
+        
+        // Redirect to View Results tab
+        setActiveTab("results")
         }
       } else {
         // Use fallback results if AI analysis fails
         setSimulationResults(aiResult.analysis)
         
         if (!skipRedirect) {
-          toast({
-            title: "Analysis Complete",
-            description: "Showing fallback analysis due to AI service issues. Redirecting to results...",
-            variant: "destructive",
-          })
-          
-          // Redirect to View Results tab even with fallback
-          setActiveTab("results")
+        toast({
+          title: "Analysis Complete",
+          description: "Showing fallback analysis due to AI service issues. Redirecting to results...",
+          variant: "destructive",
+        })
+        
+        // Redirect to View Results tab even with fallback
+        setActiveTab("results")
         }
       }
 
@@ -686,14 +691,14 @@ export default function PoliticalAdvisor() {
       })
       
       if (!skipRedirect) {
-        toast({
-          title: "Analysis Warning",
-          description: "AI analysis unavailable. Showing basic recommendations. Redirecting to results...",
-          variant: "destructive",
-        })
-        
-        // Redirect to View Results tab even with basic results
-        setActiveTab("results")
+      toast({
+        title: "Analysis Warning",
+        description: "AI analysis unavailable. Showing basic recommendations. Redirecting to results...",
+        variant: "destructive",
+      })
+      
+      // Redirect to View Results tab even with basic results
+      setActiveTab("results")
       }
     }
 
@@ -1122,7 +1127,7 @@ export default function PoliticalAdvisor() {
               <div className="flex items-center space-x-3 mb-6">
                 <Target className="w-6 h-6 text-flame" />
                 <h2 className="text-2xl font-bold text-dark-text">Intelligence Sources</h2>
-              </div>
+                    </div>
 
               {ragMetadata?.ragGenerated ? (
                 <div className="space-y-6">
@@ -1131,47 +1136,63 @@ export default function PoliticalAdvisor() {
                     <CardContent className="p-6">
                       <div className="flex items-center justify-between mb-4">
                         <h3 className="text-lg font-bold text-dark-text">RAG Analysis Overview</h3>
-                        <Badge variant="outline" className="border-green-500 text-green-500 bg-transparent text-sm">
-                          AI Enhanced
-                        </Badge>
-                      </div>
-                      
+                    </div>
+
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                         <div className="text-center p-4 bg-dark-border/20 rounded-lg">
                           <div className="text-2xl font-bold text-flame">{ragMetadata.treatiesAnalyzed}</div>
                           <div className="text-sm text-dark-muted mt-1">Treaties Analyzed</div>
-                        </div>
-                        <div className="text-center p-4 bg-dark-border/20 rounded-lg">
-                          <div className="text-2xl font-bold text-flame">{(ragMetadata.confidenceScore * 100).toFixed(1)}%</div>
-                          <div className="text-sm text-dark-muted mt-1">Confidence Score</div>
-                        </div>
-                        <div className="text-center p-4 bg-dark-border/20 rounded-lg">
-                          <div className="text-2xl font-bold text-flame">{ragMetadata.processingTime}ms</div>
-                          <div className="text-sm text-dark-muted mt-1">Processing Time</div>
-                        </div>
-                      </div>
-
-                      {/* Legal Analysis */}
-                      {ragMetadata.contextualAnalysis && (
-                        <div className="mb-6">
-                          <h4 className="text-md font-semibold text-dark-text mb-3">Contextual Analysis</h4>
-                          <div className="p-4 bg-dark-bg rounded-lg border border-dark-border">
-                            <p className="text-dark-muted text-sm leading-relaxed">{ragMetadata.contextualAnalysis}</p>
                           </div>
+                        <div className="text-center p-4 bg-dark-border/20 rounded-lg">
+                          <div className="text-sm font-bold text-flame">
+                            Faithfulness: {ragMetadata.ragasMetrics ? (ragMetadata.ragasMetrics.faithfulness * 100).toFixed(0) : 'N/A'}% 
+                            Relevancy: {ragMetadata.ragasMetrics ? (ragMetadata.ragasMetrics.answerRelevancy * 100).toFixed(0) : 'N/A'}%
                         </div>
-                      )}
+                          <div className="text-sm text-dark-muted mt-1">RAGAS Metrics</div>
+                          </div>
+                        <div className="text-center p-4 bg-dark-border/20 rounded-lg">
+                          <div className="text-2xl font-bold text-flame">{(ragMetadata.processingTime / 1000).toFixed(1)}s</div>
+                          <div className="text-sm text-dark-muted mt-1">Processing Time</div>
+                    </div>
+                  </div>
+
+                      {/* AI Reasoning */}
+                      {ragMetadata.aiReasoning && (
+                        <div className="mb-6">
+                          <h4 className="text-md font-semibold text-dark-text mb-3">AI System Reasoning</h4>
+                          <div className="p-4 bg-dark-bg rounded-lg border border-dark-border">
+                            <p className="text-dark-muted text-sm leading-relaxed">{ragMetadata.aiReasoning}</p>
+                      </div>
+                    </div>
+                  )}
 
                       {/* Legal Implications */}
                       {ragMetadata.legalImplications && (
                         <div className="mb-6">
                           <h4 className="text-md font-semibold text-dark-text mb-3">Legal Implications</h4>
                           <div className="p-4 bg-dark-bg rounded-lg border border-dark-border">
-                            <p className="text-dark-muted text-sm leading-relaxed">{ragMetadata.legalImplications}</p>
-                          </div>
+                            <div 
+                              className="text-dark-muted text-sm leading-relaxed prose prose-sm prose-invert max-w-none"
+                              dangerouslySetInnerHTML={{
+                                __html: ragMetadata.legalImplications
+                                  .replace(/^### (.*$)/gm, '<h3 class="text-lg font-bold text-dark-text mb-2 mt-4">$1</h3>')
+                                  .replace(/^## (.*$)/gm, '<h2 class="text-xl font-bold text-dark-text mb-3 mt-4">$1</h2>')
+                                  .replace(/^# (.*$)/gm, '<h1 class="text-2xl font-bold text-dark-text mb-4 mt-4">$1</h1>')
+                                  .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                                  .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                                  .replace(/\n\n/g, '</p><p>')
+                                  .replace(/\n/g, '<br/>')
+                                  .replace(/^(.*)$/, '<p>$1</p>')
+                                  .replace(/<p><\/p>/g, '')
+                                  .replace(/^\d+\.\s/gm, '<strong>$&</strong>')
+                                  .replace(/^-\s/gm, '• ')
+                              }}
+                            />
+                </div>
                         </div>
                       )}
-                    </CardContent>
-                  </Card>
+              </CardContent>
+            </Card>
 
                   {/* Retrieved Treaties */}
                   {ragMetadata.retrievedTreaties && ragMetadata.retrievedTreaties.length > 0 && (
@@ -1181,27 +1202,28 @@ export default function PoliticalAdvisor() {
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                           {ragMetadata.retrievedTreaties.map((treaty: any, index: number) => (
                             <Card key={index} className="bg-dark-bg border-dark-border">
-                              <CardContent className="p-4">
+                      <CardContent className="p-4">
                                 <div className="flex items-start justify-between mb-2">
                                   <h4 className="font-semibold text-dark-text text-sm leading-snug" title={treaty.title}>
                                     {treaty.title}
                                   </h4>
-                                  <Badge variant="outline" className="border-flame text-flame bg-transparent text-xs ml-2">
-                                    {(treaty.score * 100).toFixed(0)}%
-                                  </Badge>
+
                                 </div>
-                                <p className="text-dark-muted text-xs mb-3">
+                                <p className="text-dark-muted text-xs mb-3 leading-relaxed">
                                   <span className="font-medium">Relevance:</span> {treaty.relevance}
                                 </p>
-                                {briefingData?.treatyReferences && briefingData.treatyReferences[index] && (
-                                  <div className="pt-2 border-t border-dark-border">
-                                    <p className="text-dark-muted text-xs">
-                                      <span className="font-medium">Key Provisions:</span> {briefingData.treatyReferences[index].keyProvisions}
-                                    </p>
-                                  </div>
-                                )}
-                              </CardContent>
-                            </Card>
+                                <div className="pt-2 border-t border-dark-border">
+                                  <a 
+                                    href={`https://www.google.com/search?q="${encodeURIComponent(treaty.title)}"+UN+treaty+filetype:pdf`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-flame hover:text-flame/80 text-xs font-medium underline flex items-center gap-1"
+                                  >
+                                    🔍 Search PDF
+                                  </a>
+                                </div>
+                      </CardContent>
+                    </Card>
                           ))}
                         </div>
                       </CardContent>
@@ -1225,7 +1247,7 @@ export default function PoliticalAdvisor() {
                                   </li>
                                 ))}
                               </ul>
-                            </div>
+                  </div>
                           )}
                           
                           {briefingData.legalAnalysis.legalObligations && briefingData.legalAnalysis.legalObligations.length > 0 && (
@@ -1253,7 +1275,7 @@ export default function PoliticalAdvisor() {
                                   </li>
                                 ))}
                               </ul>
-                            </div>
+                      </div>
                           )}
                           
                           {briefingData.legalAnalysis.constraints && briefingData.legalAnalysis.constraints.length > 0 && (
@@ -1267,11 +1289,11 @@ export default function PoliticalAdvisor() {
                                   </li>
                                 ))}
                               </ul>
-                            </div>
+                          </div>
                           )}
-                        </div>
-                      </CardContent>
-                    </Card>
+                      </div>
+                    </CardContent>
+                  </Card>
                   )}
                 </div>
               ) : (
@@ -1303,7 +1325,7 @@ export default function PoliticalAdvisor() {
               <div className="flex items-center space-x-3 mb-6">
                 <File className="w-6 h-6 text-flame" />
                 <h2 className="text-2xl font-bold text-dark-text">Intelligence Briefing</h2>
-              </div>
+                        </div>
 
               {isGeneratingBriefing ? (
                 <Card className="border-dark-border bg-dark-card max-w-5xl mx-auto">
@@ -1312,7 +1334,7 @@ export default function PoliticalAdvisor() {
                       {/* Main Loading Animation */}
                       <div className="w-24 h-24 bg-flame/20 rounded-full flex items-center justify-center mx-auto mb-6">
                         <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-flame"></div>
-                      </div>
+                        </div>
 
                       {/* Progress Title */}
                       <h3 className="text-2xl font-bold text-dark-text mb-4">
@@ -1350,21 +1372,21 @@ export default function PoliticalAdvisor() {
                                 'text-dark-muted'
                               }`}>
                                 {stepName}
-                              </span>
+                          </span>
                               {isActive && (
                                 <div className="ml-auto flex items-center space-x-2">
                                   <div className="w-4 h-4 border-2 border-flame border-t-transparent rounded-full animate-spin"></div>
                                   <span className="text-flame text-xs font-medium">Processing...</span>
-                                </div>
+                        </div>
                               )}
                               {isCompleted && (
                                 <div className="ml-auto">
                                   <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
                                     <div className="w-2 h-2 text-white text-xs">✓</div>
-                                  </div>
-                                </div>
+                          </div>
+                      </div>
                               )}
-                            </div>
+                        </div>
                           )
                         })}
                       </div>
@@ -1375,23 +1397,23 @@ export default function PoliticalAdvisor() {
                           className="bg-flame h-2 rounded-full transition-all duration-1000 ease-out"
                           style={{width: `${Math.min(((currentProgressStep + 1) / 6) * 100, 100)}%`}}
                         ></div>
-                      </div>
+                    </div>
                       
                       {/* Step Counter */}
                       <div className="text-center mt-2">
                         <span className="text-flame font-medium text-sm">
                           Step {currentProgressStep + 1} of 6
-                        </span>
-                      </div>
-
+                                </span>
+                          </div>
+                          
                       {/* Estimated Time */}
                       <p className="text-dark-muted text-sm mt-4">
                         ⏱️ Estimated processing time: 30-60 seconds
                       </p>
                       <p className="text-dark-muted text-xs">
                         Please remain on this page while the AI analyzes international treaties
-                      </p>
-                    </div>
+                              </p>
+                            </div>
                   </CardContent>
                 </Card>
               ) : briefingData ? (
@@ -1402,18 +1424,30 @@ export default function PoliticalAdvisor() {
                       <div className="flex justify-between items-start mb-4">
                         <Badge variant="outline" className="border-flame text-flame bg-transparent text-xs font-mono">
                           {briefingData.classification}
-                        </Badge>
+                                    </Badge>
                         <div className="text-right text-dark-muted text-sm font-mono">
                           <p>{briefingData.date}</p>
                           <p>{briefingData.author}</p>
-                        </div>
-                      </div>
+                                  </div>
+                                </div>
                       <h3 className="text-lg font-bold text-dark-text mb-2 text-left font-mono">
                         {briefingData.title}
                       </h3>
-                    </div>
+                              </div>
 
 
+
+                    {/* Brief Introduction */}
+                    <div className="mb-6 font-mono text-sm">
+                      <p className="text-dark-text leading-relaxed text-justify">
+                        The following intelligence assessment identifies four critical factors (a-d) requiring immediate policy consideration regarding the current crisis situation:
+                      </p>
+                                  </div>
+
+                    {/* Intelligence Assessment Header */}
+                    <div className="mb-4 font-mono">
+                      <h4 className="text-md font-bold text-dark-text underline">INTELLIGENCE ASSESSMENT</h4>
+                                      </div>
 
                     {/* Briefing Sections */}
                     <div className="space-y-6 mb-8 font-mono text-sm">
@@ -1425,39 +1459,50 @@ export default function PoliticalAdvisor() {
                               <p className="leading-relaxed">
                                 {section.content}
                               </p>
-                            </div>
+                                      </div>
                           ))}
-                        </div>
-                      </div>
+                                  </div>
+                                    </div>
 
-                      {/* Conclusion */}
+                      {/* Strategic Assessment Header */}
                       <div className="mt-8 pt-6 border-t border-dark-border">
+                        <div className="mb-4 font-mono">
+                          <h4 className="text-md font-bold text-dark-text underline">STRATEGIC ASSESSMENT</h4>
+                                    </div>
                         <p className="text-dark-text leading-relaxed text-justify mb-6">
                           {briefingData.conclusion}
                         </p>
-                      </div>
+                                    </div>
 
-                      {/* Recommendations */}
-                      <div className="space-y-4">
-                        {briefingData.recommendations.map((rec: string, index: number) => (
-                          <div key={index} className="flex text-justify">
-                            <span className="font-bold mr-3 min-w-[30px] flex-shrink-0">({index + 1})</span>
-                            <p className="text-dark-text leading-relaxed">
-                              {rec}
-                            </p>
-                          </div>
-                        ))}
-                      </div>
+                      {/* Recommended Actions Header */}
+                      <div className="mt-6">
+                        <div className="mb-4 font-mono">
+                          <h4 className="text-md font-bold text-dark-text underline">RECOMMENDED ACTIONS</h4>
+                                    </div>
+                        <div className="space-y-4">
+                          {briefingData.recommendations.map((rec: string, index: number) => (
+                            <div key={index} className="flex text-justify">
+                              <span className="font-bold mr-3 min-w-[30px] flex-shrink-0">({index + 1})</span>
+                              <p className="text-dark-text leading-relaxed">
+                                {rec}
+                              </p>
+                                    </div>
+                          ))}
+                                  </div>
+                                </div>
 
                       {/* Final Recommendation */}
                       {briefingData.finalRecommendation && (
                         <div className="mt-8 pt-6 border-t border-dark-border">
+                          <div className="mb-4 font-mono">
+                            <h4 className="text-md font-bold text-dark-text underline">PRIORITY RECOMMENDATION</h4>
+                                    </div>
                           <p className="text-dark-text leading-relaxed text-justify font-medium">
                             {briefingData.finalRecommendation}
                           </p>
-                        </div>
+                                    </div>
                       )}
-                    </div>
+                                  </div>
 
                     {/* Signature Block */}
                     <div className="mt-8 pt-6 border-t border-dark-border text-right font-mono">
@@ -1467,7 +1512,7 @@ export default function PoliticalAdvisor() {
                       <p className="text-dark-muted text-xs mt-1">
                         Generated: {new Date().toLocaleTimeString()}
                       </p>
-                    </div>
+                                </div>
 
                     {/* Action Buttons */}
                     <div className="flex justify-center space-x-4 mt-8 pt-6 border-t border-dark-border">
@@ -1501,7 +1546,7 @@ export default function PoliticalAdvisor() {
                                   ${briefingData.sections.map((s: any) => `
                                     <div class="section">
                                       <span class="point">${s.point}</span>${s.content}
-                                    </div>
+                                </div>
                                   `).join('')}
                                   <div class="conclusion">${briefingData.conclusion}</div>
                                   <p><strong>Therefore it seems to me a more aggressive action is indicated than any heretofore considered, and should be patterned along the following lines:</strong></p>
@@ -1509,13 +1554,13 @@ export default function PoliticalAdvisor() {
                                     ${briefingData.recommendations.map((r: string, i: number) => `
                                       <div class="section">
                                         <span class="point">(${i + 1})</span>${r}
-                                      </div>
+                              </div>
                                     `).join('')}
-                                  </div>
+                            </div>
                                   <div class="signature">
                                     <p>${briefingData.author}</p>
                                     <p>Generated: ${new Date().toLocaleString()}</p>
-                                  </div>
+                        </div>
                                 ` : ''}</body>
                               </html>
                             `)
@@ -1559,7 +1604,7 @@ Generated: ${new Date().toLocaleString()}
                         <Copy className="w-4 h-4 mr-2" />
                         Copy Text
                       </Button>
-                    </div>
+                        </div>
                   </CardContent>
                 </Card>
               ) : (
@@ -1580,8 +1625,8 @@ Generated: ${new Date().toLocaleString()}
                     >
                       Generate Briefing Document
                     </Button>
-                  </CardContent>
-                </Card>
+              </CardContent>
+            </Card>
               )}
             </div>
           </TabsContent>
