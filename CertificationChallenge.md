@@ -20,7 +20,7 @@
 6. Evaluation - RAGAS framework - this provides a standardized metrics specifically designed for RAG systems.
 7 UI - Next.js with React and tailwind; intuitive and seamless, not much explanation needed.
 ## Where will you use an agent or agents?
-- I will use an agent for the View results section.
+- The agent will be utilized in the "View Results" section to dynamically analyze and prioritize retrieved treaties based on the user's input parameters, such as conflict type and severity levlel. It will provide tailored recommendations by synthesizing relevant infromation and highlighting key clauses that impact the US response. This ensures users receive actionable insights quickly, enhancing decision-making in complex scenarios.
 # Task 3: Dealing with the data
 ## Describe all of your data sources and external API's, describe what you'll use them for.
 - I will be using TAVILY for current events information, and OpenAI for my LLM.
@@ -34,10 +34,10 @@ Metric	Overall Score	Q1: Nuclear	Q2: Territorial	Q3: Diplomatic	Q4: Environmenta
 ![Alt Text](image.png)
 ## What conclusions can you draw about the performance and effectiveness of your pipeline with this information?
 Some conclusions I can draw from this are:
-1. High faithfulness - Responses are factually accurate
-2. Perfect Relevancy - 100% relevancy
-3. Poor context Precision - System retreives too much irrelevant information
-4. Low context recall - Missing important or relevant treaties.
+1. High faithfulness - The RAG solution consistently delivers factually accurate responses, ensuring reliability for users.
+2. Perfect Relevancy - The system achieves 100% relevancy in retrieving documents, persenting only the most pertinent treaties related to uesr queries.
+3. Poor context Precision - Despite high relevancy, the system retrieves some irrelevant information, indicating a need for better filtering capabilities.
+4. Low context recall - The evaluation shows that important treaties are occassionally missed, which can hinder comprehensive decision-making.
 # Task 6: The benefits of Advanced Retrieval
 ## Describe the retrieval techniques that you plan to try and to assess in your application. Write one sentence on why you believe each technique will be useful for your case.
 - Hybrid Search: Combining a vector embeddings with traditional keyword search will capture both semantic similarity and exact legal terminology matches that are critical in diplomatic text.
