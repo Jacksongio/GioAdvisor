@@ -2,9 +2,9 @@
 ## Write a succinct 1-sentence description of the problem.
     - In this global climate with more and more countries pursuing nuclear weapons, the government can use as many resources at its disposal to promote peace and maintain good relationships with all countries.
 ## Write 1-2 paragraphs on why this is a problem for your specific user.
-    This product is designed to be used by the government or government contractors to allow extra advice. Also I want this software to provide concise and accurate advice based on all modern treaties and trade agreements in order to maintain global peace. This software will help quickly retrieve documents that are relevent to very specific conflicts cutting time for research into conflicting treaties or agreements. For example if Iran were to strike Israel with a Nuclear weapon, this software could provide US officials with all relevant treaties/agreements that could be utilized to impose sanctions or propose global support for de-escalation.
+    Foreign-affair advisors to the US Secretary of State face critical time constraints when international crises emerge, often having only hours to provide comprehensive briefings on complex geopolitical scenarios. Currently, these advisors must manually search through thousands of bilateral treaties, multilateral agreements, UN resolutions, and trade pacts to identify which legal instruments could influence US response options. This manual process is particularly challenging because treaties often contain overlapping jurisdictions, conflicting clauses, and interconnected dependencies that require deep legal expertise to navigate - expertise that may not be immediately available during rapidly evolving situations.
 
-    My user is a foreign-affair advisor, to the US Secretary of State. This software will help them immensely in the document look-up to any relevant information based on any form of conflict.
+    The stakes for my specific user are uniquely high: providing incomplete or inaccurate treaty analysis to the Secretary of State could result in diplomatic missteps, missed opportunities for coalition building, or failure to leverage existing legal frameworks for sanctions or military support. Unlike academic researchers who have weeks to analyze conflicts, foreign-affair advisors need instant access to relevant legal precedents while ensuring they haven't overlooked critical agreements that could alter the US strategic response. The current manual approach creates dangerous gaps in decision-making speed and comprehensiveness that could compromise national security interests.
 
 # Task 2: Propose a Solution
 ## Write 1-2 paragraphs on your proposed solution. How will it look and feel to the user?
@@ -25,7 +25,7 @@
 ## Describe all of your data sources and external API's, describe what you'll use them for.
 - I will be using TAVILY for current events information, and OpenAI for my LLM.
 ## Describe the default chunking strategy that I will use.
-- 
+- I will use a semantic-aware chunking strategy with a default chunk size of 1000 tokens and 200-token overlap. For diplomatic and treaty documents, I made this decision because: Treaties often contain complex, interconnected clauses that require sufficient context to maintain meaning - 1000 tokens provides adequate context while remaining computationally efficient, The 200-token overlap ensures that important cross-references between treaty sections are preserved during retrieval, Legal documents have natural semantic boundaries (articles, sections, clauses) that this chunk size typically respects, preventing the splitting of critical legal concepts, and this size optimizes the balance between retrieval precision (avoiding too much irrelevant context) and recall (ensuring complete legal concepts are captured), which directly addresses the context precision issues identified in my RAGAS evaluation.
 # Task 4: Building a Quick End-to-End Agentic RAG Prototype
 - Done.
 # Task 5: Creating a Golden Test Data Set
