@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Globe, Users, Target, BarChart3, Play, FileText, AlertTriangle, Sword, Shield, RotateCcw, MessageCircle, Send, Check, ChevronsUpDown, Settings, Loader2, Award, Calendar, Clock, File, Copy } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -30,8 +30,17 @@ export default function PoliticalAdvisor() {
   // Briefing state
   const [briefingData, setBriefingData] = useState<any>(null)
   const [isGeneratingBriefing, setIsGeneratingBriefing] = useState(false)
-  
-  // Treaty Research state
+  const [ragMetadata, setRagMetadata] = useState<any>(null)
+  const [currentProgressStep, setCurrentProgressStep] = useState(0)
+  const progressTimeoutsRef = useRef<NodeJS.Timeout[]>([])
+
+  // Cleanup function for progress timeouts
+  const clearProgressTimeouts = () => {
+    progressTimeoutsRef.current.forEach(timeout => clearTimeout(timeout))
+    progressTimeoutsRef.current = []
+  }
+
+  // Intelligence Sources state
   const [treatyResults, setTreatyResults] = useState<any>(null)
   const [isLoadingTreaties, setIsLoadingTreaties] = useState(false)
   const [treatyStatistics, setTreatyStatistics] = useState<any>(null)
@@ -191,28 +200,82 @@ export default function PoliticalAdvisor() {
     setUnSupport([50])
     setRegionalInfluence([50])
     setPublicOpinion([50])
-    // Clear treaty results
+    // Clear treaty results and briefing data
     setTreatyResults(null)
+    setBriefingData(null)
+    setRagMetadata(null)
+    setSimulationResults(null)
+    setCurrentProgressStep(0)
+    clearProgressTimeouts()
+    
+    // Reset to setup tab when clearing
+    setActiveTab("setup")
     
     toast({
       title: "Form Cleared",
-      description: "All simulation setup, analysis parameters, and treaty search have been reset.",
+      description: "All simulation setup, analysis parameters, briefing data, and treaty search have been reset.",
       variant: "default",
     })
   }
 
+  // Handle tab changes with validation
+  const handleTabChange = (value: string) => {
+    // Prevent switching to briefing tabs if no briefing data exists
+    if ((value === "results" || value === "chat") && !briefingData) {
+      toast({
+        title: "Briefing Required",
+        description: "Please generate a briefing first to access this tab.",
+        variant: "destructive",
+      })
+      return
+    }
+    setActiveTab(value)
+  }
+
   // Generate briefing document
   const generateBriefing = async () => {
-    if (!simulationResults || !selectedCountry || !scenarioDetails) {
+    if (!selectedCountry || !scenarioDetails) {
       toast({
         title: "Cannot Generate Briefing",
-        description: "Please complete a simulation first to generate a briefing document.",
+        description: "Please fill in all required fields before generating a briefing.",
         variant: "destructive",
       })
       return
     }
     
     setIsGeneratingBriefing(true)
+    setCurrentProgressStep(0)
+    
+    // Immediately redirect to briefing page to show progress
+    setActiveTab("results")
+    
+    // Start simulation and briefing in parallel for maximum speed
+    const simulationPromise = !simulationResults ? 
+      runSimulation(true).catch(error => {
+        console.error('Failed to run simulation:', error)
+        toast({
+          title: "Analysis Warning", 
+          description: "Unable to generate fresh analysis. AI will work with basic parameters.",
+          variant: "destructive",
+        })
+        return null
+      }) : Promise.resolve(simulationResults)
+    
+    // Clear any existing timeouts
+    clearProgressTimeouts()
+    
+    // Start step progression with optimized timing for better perceived speed
+    const stepDurations = [1500, 2500, 4000, 3500, 5000] // 5 timed steps, 6th completes with API - Total: 16.5s
+    
+    // Create timeouts for each step
+    let cumulativeTime = 0
+    stepDurations.forEach((duration, index) => {
+      cumulativeTime += duration
+      const timeout = setTimeout(() => {
+        setCurrentProgressStep(index + 1)
+      }, cumulativeTime)
+      progressTimeoutsRef.current.push(timeout)
+    })
     
     try {
       const currentDate = new Date().toLocaleDateString('en-US', { 
@@ -220,7 +283,21 @@ export default function PoliticalAdvisor() {
         month: 'long', 
         day: 'numeric' 
       })
+
+      // Wait for simulation to complete (running in parallel)
+      const completedSimulation = await simulationPromise
       
+      // Update simulation results if we got new ones
+      if (completedSimulation && completedSimulation !== simulationResults) {
+        setSimulationResults(completedSimulation)
+      }
+      
+      // Pre-compute country names and start briefing call earlier for better performance
+      const selectedCountryName = countries.find(c => c.code === selectedCountry)?.name || selectedCountry
+      const offensiveCountryName = countries.find(c => c.code === offensiveCountry)?.name || offensiveCountry  
+      const defensiveCountryName = countries.find(c => c.code === defensiveCountry)?.name || defensiveCountry
+      
+      console.log('🚀 Starting briefing generation with optimized flow...')
       const briefingResponse = await fetch('/api/briefing/generate', {
         method: 'POST',
         headers: {
@@ -229,10 +306,10 @@ export default function PoliticalAdvisor() {
         body: JSON.stringify({
           date: currentDate,
           scenario: scenarioDetails,
-          simulationResults: simulationResults,
-          selectedCountry: countries.find(c => c.code === selectedCountry)?.name || selectedCountry,
-          offensiveCountry: countries.find(c => c.code === offensiveCountry)?.name || offensiveCountry,
-          defensiveCountry: countries.find(c => c.code === defensiveCountry)?.name || defensiveCountry,
+          simulationResults: completedSimulation || simulationResults,
+          selectedCountry: selectedCountryName,
+          offensiveCountry: offensiveCountryName,
+          defensiveCountry: defensiveCountryName,
           severityLevel,
           timeFrame
         }),
@@ -241,12 +318,30 @@ export default function PoliticalAdvisor() {
       const briefingResult = await briefingResponse.json()
       
       if (briefingResult.success) {
+        // Complete the final step
+        setCurrentProgressStep(5) // Last step (index 5)
+        
         setBriefingData(briefingResult.briefing)
-        toast({
-          title: "Briefing Generated",
-          description: "A formal intelligence briefing has been prepared.",
-          variant: "default",
-        })
+        setRagMetadata(briefingResult.metadata)
+        
+        const isRAGGenerated = briefingResult.metadata?.ragGenerated
+        const treatiesCount = briefingResult.metadata?.treatiesAnalyzed || 0
+        const confidenceScore = briefingResult.metadata?.confidenceScore || 0
+        const processingTime = briefingResult.metadata?.processingTime || 0
+        
+        if (isRAGGenerated) {
+          toast({
+            title: "✅ RAG Intelligence Briefing Complete",
+            description: `Analyzed ${treatiesCount} treaties in ${Math.round(processingTime/1000)}s (${(confidenceScore * 100).toFixed(0)}% confidence)`,
+            variant: "default",
+          })
+        } else {
+          toast({
+            title: "⚠️ Standard AI Briefing Generated",
+            description: "RAG system unavailable. Generated standard briefing without treaty analysis.",
+            variant: "destructive",
+          })
+        }
       } else {
         // Generate fallback briefing
         setBriefingData({
@@ -282,10 +377,11 @@ export default function PoliticalAdvisor() {
         })
         
         toast({
-          title: "Briefing Generated",
-          description: "Using fallback briefing format due to AI service issues.",
-          variant: "default",
+          title: "⚠️ Fallback Briefing Generated",
+          description: "AI generation failed. Generated emergency briefing template.",
+          variant: "destructive",
         })
+        // Don't redirect for fallback briefings
       }
     } catch (error) {
       console.error('Briefing generation error:', error)
@@ -330,13 +426,16 @@ export default function PoliticalAdvisor() {
       })
       
       toast({
-        title: "Briefing Generated",
-        description: "Emergency briefing protocol activated.",
-        variant: "default",
+        title: "💥 Critical System Error",
+        description: "Complete briefing generation failure. Contact technical support immediately.",
+        variant: "destructive",
       })
+      // Don't redirect on critical errors
     }
     
     setIsGeneratingBriefing(false)
+    setCurrentProgressStep(0)
+    clearProgressTimeouts()
   }
 
   interface Country {
@@ -446,7 +545,7 @@ export default function PoliticalAdvisor() {
     }
   }, [scenarioDetails])
 
-  const runSimulation = async () => {
+  const runSimulation = async (skipRedirect = false) => {
     setIsSimulating(true)
     
     // Ensure conflict type is detected from scenario details if not already set
@@ -496,12 +595,6 @@ export default function PoliticalAdvisor() {
 
       const result = await response.json()
       console.log('Analysis parameters saved:', result)
-      
-      toast({
-        title: "Analysis Saved",
-        description: "Analysis parameters have been saved to database.",
-        variant: "default",
-      })
 
     } catch (error) {
       console.error('Error saving analysis:', error)
@@ -545,25 +638,31 @@ export default function PoliticalAdvisor() {
       
       if (aiResult.success) {
         setSimulationResults(aiResult.analysis)
-        toast({
-          title: "AI Analysis Complete",
-          description: "Your simulation has been analyzed using advanced AI. You are now redirected to the results page.",
-          variant: "default",
-        })
         
-        // Redirect to View Results tab
-        setActiveTab("results")
+        if (!skipRedirect) {
+          toast({
+            title: "AI Analysis Complete",
+            description: "Your simulation has been analyzed using advanced AI. You are now redirected to the results page.",
+            variant: "default",
+          })
+          
+          // Redirect to View Results tab
+          setActiveTab("results")
+        }
       } else {
         // Use fallback results if AI analysis fails
         setSimulationResults(aiResult.analysis)
-        toast({
-          title: "Analysis Complete",
-          description: "Showing fallback analysis due to AI service issues. Redirecting to results...",
-          variant: "destructive",
-        })
         
-        // Redirect to View Results tab even with fallback
-        setActiveTab("results")
+        if (!skipRedirect) {
+          toast({
+            title: "Analysis Complete",
+            description: "Showing fallback analysis due to AI service issues. Redirecting to results...",
+            variant: "destructive",
+          })
+          
+          // Redirect to View Results tab even with fallback
+          setActiveTab("results")
+        }
       }
 
     } catch (error) {
@@ -586,14 +685,16 @@ export default function PoliticalAdvisor() {
         summary: "**SCENARIO CONTEXT:** This analysis represents a fallback assessment due to temporary AI service limitations. The specific military conflict scenario requires detailed intelligence analysis that considers multiple strategic factors.\n\n**STRATEGIC IMPLICATIONS:** Without access to real-time geopolitical data, this assessment provides general strategic guidance. The conflict situation demands careful evaluation of regional power dynamics and international response mechanisms.\n\n**RISK ASSESSMENT:** Military conflicts of this nature typically involve escalation risks, economic disruption, and diplomatic challenges. Success depends on multilateral coordination and strategic resource allocation.\n\n**TACTICAL CONSIDERATIONS:** Military preparedness, alliance coordination, and diplomatic engagement remain critical factors. Intelligence gathering and strategic communication are essential for favorable outcomes.\n\n**RECOMMENDATIONS:** The provided recommendations represent established geopolitical best practices. For mission-critical decisions, consult with specialized military and diplomatic advisors familiar with current regional conditions."
       })
       
-      toast({
-        title: "Analysis Warning",
-        description: "AI analysis unavailable. Showing basic recommendations. Redirecting to results...",
-        variant: "destructive",
-      })
-      
-      // Redirect to View Results tab even with basic results
-      setActiveTab("results")
+      if (!skipRedirect) {
+        toast({
+          title: "Analysis Warning",
+          description: "AI analysis unavailable. Showing basic recommendations. Redirecting to results...",
+          variant: "destructive",
+        })
+        
+        // Redirect to View Results tab even with basic results
+        setActiveTab("results")
+      }
     }
 
     setIsSimulating(false)
@@ -611,30 +712,16 @@ export default function PoliticalAdvisor() {
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-dark-text">GioAdvisor</h1>
-                <p className="text-sm text-dark-muted">Military Conflict Simulation Platform</p>
+                <p className="text-sm text-dark-muted">Military Intelligence BriefingPlatform</p>
               </div>
             </div>
             
-            <div className="hidden lg:flex items-center justify-center flex-1">
-              <div className="text-center">
-                <p className="text-lg font-semibold text-dark-text">Strategic Command Center</p>
-                <p className="text-xs text-dark-muted">Real-time military analysis & intelligence</p>
-              </div>
-            </div>
+            
             
             <div className="flex items-center justify-end space-x-4 flex-1">
-              <div className="hidden sm:flex items-center space-x-4 text-sm text-dark-muted">
-                <div className="flex items-center space-x-2">
-                  <Target className="w-4 h-4" />
-                  <span>Military Intelligence</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Shield className="w-4 h-4" />
-                  <span>Strategic Analysis</span>
-                </div>
-              </div>
+              
               <Badge variant="outline" className="border-flame text-flame bg-transparent text-sm px-3 py-1">
-                Beta v1.1
+                Beta v1.4
               </Badge>
             </div>
           </div>
@@ -642,7 +729,7 @@ export default function PoliticalAdvisor() {
       </header>
 
       <div className="container mx-auto px-6 py-8 pb-12 lg:pb-96 flex-1 overflow-y-auto">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-8">
           <TabsList className="grid w-full grid-cols-3 bg-dark-card border border-dark-border h-12">
             <TabsTrigger
               value="setup"
@@ -653,15 +740,17 @@ export default function PoliticalAdvisor() {
 
             <TabsTrigger
               value="results"
-              className="data-[state=active]:bg-flame data-[state=active]:text-white text-dark-text text-base"
+              disabled={!briefingData}
+              className="data-[state=active]:bg-flame data-[state=active]:text-white text-dark-text text-base disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              View Results
+              Intelligence Briefing
             </TabsTrigger>
             <TabsTrigger
               value="chat"
-              className="data-[state=active]:bg-flame data-[state=active]:text-white text-dark-text text-base"
+              disabled={!briefingData}
+              className="data-[state=active]:bg-flame data-[state=active]:text-white text-dark-text text-base disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Treaty Research
+              Intelligence Sources
             </TabsTrigger>
           </TabsList>
 
@@ -738,10 +827,11 @@ export default function PoliticalAdvisor() {
                   {selectedCountry && (
                     <div className="mt-4 p-4 bg-dark-border rounded-lg">
                       <h4 className="font-semibold text-dark-text mb-2 flex items-center space-x-2">
+                        <span>Your Country: </span>
                         <FlagIcon countryCode={selectedCountry} className="w-6 h-4" />
-                        <span>Country Profile</span>
+                        <span>{selectedCountry} </span>
                       </h4>
-                      <div className="space-y-2 text-sm">
+                      {/* <div className="space-y-2 text-sm">
                         <div className="flex justify-between items-center">
                           <span className="text-dark-muted">Military Strength:</span>
                           <div className="flex items-center space-x-2">
@@ -778,7 +868,7 @@ export default function PoliticalAdvisor() {
                             </span>
                           </div>
                         </div>
-                      </div>
+                      </div> */}
                     </div>
                   )}
                 </CardContent>
@@ -1007,53 +1097,304 @@ export default function PoliticalAdvisor() {
               </Button>
               
               <Button
-                onClick={runSimulation}
-                disabled={!selectedCountry || !offensiveCountry || !defensiveCountry || !scenarioDetails.trim() || isSimulating}
+                onClick={generateBriefing}
+                disabled={!selectedCountry || !offensiveCountry || !defensiveCountry || !scenarioDetails.trim() || isGeneratingBriefing}
                 className="bg-flame hover:bg-flame/90 text-white px-8 py-3 text-base"
               >
-                {isSimulating ? (
+                {isGeneratingBriefing ? (
                   <>
                     <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                    AI Analysis in Progress...
+                    Generating Briefing...
                   </>
                 ) : (
                   <>
-                    <Play className="w-5 h-5 mr-2" />
-                    Run AI Political Analysis
+                    <FileText className="w-5 h-5 mr-2" />
+                    Generate Briefing
                   </>
                 )}
               </Button>
             </div>
           </TabsContent>
 
+          {/* Intelligence Sources Tab */}
+          <TabsContent value="chat" className="flex-1 min-h-0 mt-4">
+            <div className="h-full overflow-y-auto">
+              <div className="flex items-center space-x-3 mb-6">
+                <Target className="w-6 h-6 text-flame" />
+                <h2 className="text-2xl font-bold text-dark-text">Intelligence Sources</h2>
+              </div>
+
+              {ragMetadata?.ragGenerated ? (
+                <div className="space-y-6">
+                  {/* Main Intelligence Analysis Card */}
+                  <Card className="border-dark-border bg-dark-card">
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-lg font-bold text-dark-text">RAG Analysis Overview</h3>
+                        <Badge variant="outline" className="border-green-500 text-green-500 bg-transparent text-sm">
+                          AI Enhanced
+                        </Badge>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                        <div className="text-center p-4 bg-dark-border/20 rounded-lg">
+                          <div className="text-2xl font-bold text-flame">{ragMetadata.treatiesAnalyzed}</div>
+                          <div className="text-sm text-dark-muted mt-1">Treaties Analyzed</div>
+                        </div>
+                        <div className="text-center p-4 bg-dark-border/20 rounded-lg">
+                          <div className="text-2xl font-bold text-flame">{(ragMetadata.confidenceScore * 100).toFixed(1)}%</div>
+                          <div className="text-sm text-dark-muted mt-1">Confidence Score</div>
+                        </div>
+                        <div className="text-center p-4 bg-dark-border/20 rounded-lg">
+                          <div className="text-2xl font-bold text-flame">{ragMetadata.processingTime}ms</div>
+                          <div className="text-sm text-dark-muted mt-1">Processing Time</div>
+                        </div>
+                      </div>
+
+                      {/* Legal Analysis */}
+                      {ragMetadata.contextualAnalysis && (
+                        <div className="mb-6">
+                          <h4 className="text-md font-semibold text-dark-text mb-3">Contextual Analysis</h4>
+                          <div className="p-4 bg-dark-bg rounded-lg border border-dark-border">
+                            <p className="text-dark-muted text-sm leading-relaxed">{ragMetadata.contextualAnalysis}</p>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Legal Implications */}
+                      {ragMetadata.legalImplications && (
+                        <div className="mb-6">
+                          <h4 className="text-md font-semibold text-dark-text mb-3">Legal Implications</h4>
+                          <div className="p-4 bg-dark-bg rounded-lg border border-dark-border">
+                            <p className="text-dark-muted text-sm leading-relaxed">{ragMetadata.legalImplications}</p>
+                          </div>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  {/* Retrieved Treaties */}
+                  {ragMetadata.retrievedTreaties && ragMetadata.retrievedTreaties.length > 0 && (
+                    <Card className="border-dark-border bg-dark-card">
+                      <CardContent className="p-6">
+                        <h3 className="text-lg font-bold text-dark-text mb-4">Key Treaties Referenced</h3>
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                          {ragMetadata.retrievedTreaties.map((treaty: any, index: number) => (
+                            <Card key={index} className="bg-dark-bg border-dark-border">
+                              <CardContent className="p-4">
+                                <div className="flex items-start justify-between mb-2">
+                                  <h4 className="font-semibold text-dark-text text-sm leading-snug" title={treaty.title}>
+                                    {treaty.title}
+                                  </h4>
+                                  <Badge variant="outline" className="border-flame text-flame bg-transparent text-xs ml-2">
+                                    {(treaty.score * 100).toFixed(0)}%
+                                  </Badge>
+                                </div>
+                                <p className="text-dark-muted text-xs mb-3">
+                                  <span className="font-medium">Relevance:</span> {treaty.relevance}
+                                </p>
+                                {briefingData?.treatyReferences && briefingData.treatyReferences[index] && (
+                                  <div className="pt-2 border-t border-dark-border">
+                                    <p className="text-dark-muted text-xs">
+                                      <span className="font-medium">Key Provisions:</span> {briefingData.treatyReferences[index].keyProvisions}
+                                    </p>
+                                  </div>
+                                )}
+                              </CardContent>
+                            </Card>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {/* Legal Analysis Summary */}
+                  {briefingData?.legalAnalysis && (
+                    <Card className="border-dark-border bg-dark-card">
+                      <CardContent className="p-6">
+                        <h3 className="text-lg font-bold text-dark-text mb-4">Legal Framework Analysis</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          {briefingData.legalAnalysis.applicableTreaties && briefingData.legalAnalysis.applicableTreaties.length > 0 && (
+                            <div>
+                              <h4 className="font-semibold text-dark-text mb-2">Applicable Treaties</h4>
+                              <ul className="text-dark-muted text-sm space-y-1">
+                                {briefingData.legalAnalysis.applicableTreaties.map((treaty: string, index: number) => (
+                                  <li key={index} className="flex items-start">
+                                    <span className="text-flame mr-2">•</span>
+                                    {treaty}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                          
+                          {briefingData.legalAnalysis.legalObligations && briefingData.legalAnalysis.legalObligations.length > 0 && (
+                            <div>
+                              <h4 className="font-semibold text-dark-text mb-2">Legal Obligations</h4>
+                              <ul className="text-dark-muted text-sm space-y-1">
+                                {briefingData.legalAnalysis.legalObligations.map((obligation: string, index: number) => (
+                                  <li key={index} className="flex items-start">
+                                    <span className="text-flame mr-2">•</span>
+                                    {obligation}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                          
+                          {briefingData.legalAnalysis.permissibleActions && briefingData.legalAnalysis.permissibleActions.length > 0 && (
+                            <div>
+                              <h4 className="font-semibold text-dark-text mb-2">Permissible Actions</h4>
+                              <ul className="text-dark-muted text-sm space-y-1">
+                                {briefingData.legalAnalysis.permissibleActions.map((action: string, index: number) => (
+                                  <li key={index} className="flex items-start">
+                                    <span className="text-green-500 mr-2">✓</span>
+                                    {action}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                          
+                          {briefingData.legalAnalysis.constraints && briefingData.legalAnalysis.constraints.length > 0 && (
+                            <div>
+                              <h4 className="font-semibold text-dark-text mb-2">Legal Constraints</h4>
+                              <ul className="text-dark-muted text-sm space-y-1">
+                                {briefingData.legalAnalysis.constraints.map((constraint: string, index: number) => (
+                                  <li key={index} className="flex items-start">
+                                    <span className="text-red-500 mr-2">⚠</span>
+                                    {constraint}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
+              ) : (
+                <Card className="border-dark-border bg-dark-card">
+                  <CardContent className="p-12 text-center">
+                    <div className="w-16 h-16 bg-dark-border rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Target className="w-8 h-8 text-dark-muted" />
+                    </div>
+                    <h3 className="text-xl font-semibold text-dark-text mb-2">No Intelligence Sources Available</h3>
+                    <p className="text-dark-muted mb-6">
+                      Generate a briefing to view detailed intelligence sources and treaty analysis
+                    </p>
+                    <Button
+                      variant="outline"
+                      className="border-flame text-flame hover:bg-flame hover:text-white bg-transparent"
+                      onClick={() => setActiveTab("setup")}
+                    >
+                      Return to Setup
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </TabsContent>
+
           {/* Results Tab */}
           <TabsContent value="results" className="flex-1 min-h-0 mt-4">
             <div className="h-full overflow-y-auto">
-              <div className="flex justify-between items-center mb-6">
-                <div className="flex items-center space-x-3">
-                  <File className="w-6 h-6 text-flame" />
-                  <h2 className="text-2xl font-bold text-dark-text">Intelligence Briefing</h2>
-                </div>
-                <Button
-                  onClick={generateBriefing}
-                  disabled={!simulationResults || isGeneratingBriefing}
-                  className="bg-flame hover:bg-flame/80 text-white"
-                >
-                  {isGeneratingBriefing ? (
-                    <>
-                      <Clock className="w-4 h-4 mr-2 animate-spin" />
-                      Generating...
-                    </>
-                  ) : (
-                    <>
-                      <FileText className="w-4 h-4 mr-2" />
-                      Generate Briefing
-                    </>
-                  )}
-                </Button>
+              <div className="flex items-center space-x-3 mb-6">
+                <File className="w-6 h-6 text-flame" />
+                <h2 className="text-2xl font-bold text-dark-text">Intelligence Briefing</h2>
               </div>
 
-              {briefingData ? (
+              {isGeneratingBriefing ? (
+                <Card className="border-dark-border bg-dark-card max-w-5xl mx-auto">
+                  <CardContent className="p-12 text-center">
+                    <div className="space-y-6">
+                      {/* Main Loading Animation */}
+                      <div className="w-24 h-24 bg-flame/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-flame"></div>
+                      </div>
+
+                      {/* Progress Title */}
+                      <h3 className="text-2xl font-bold text-dark-text mb-4">
+                        Generating RAG Intelligence Briefing
+                      </h3>
+
+                      {/* Progress Steps */}
+                      <div className="space-y-4 max-w-2xl mx-auto">
+                        {[
+                          "Loading treaty database (643 documents)",
+                          "Processing scenario context and parameters", 
+                          "Generating semantic embeddings",
+                          "Retrieved relevant treaties",
+                          "Analyzing legal implications",
+                          "Generating strategic options"
+                        ].map((stepName, index) => {
+                          const isCompleted = currentProgressStep > index
+                          const isActive = currentProgressStep === index
+                          const isPending = currentProgressStep < index
+                          
+                          return (
+                            <div key={index} className={`flex items-center space-x-3 p-3 rounded-lg transition-all duration-500 ${
+                              isActive ? 'bg-flame/20 border border-flame/30' : 
+                              isCompleted ? 'bg-green-500/20 border border-green-500/30' :
+                              'bg-dark-bg border border-dark-border'
+                            }`}>
+                              <div className={`w-3 h-3 rounded-full transition-all duration-500 ${
+                                isActive ? 'animate-pulse bg-flame' :
+                                isCompleted ? 'bg-green-500' :
+                                'bg-dark-muted'
+                              }`}></div>
+                              <span className={`font-medium transition-all duration-500 ${
+                                isActive ? 'text-flame' :
+                                isCompleted ? 'text-green-400' :
+                                'text-dark-muted'
+                              }`}>
+                                {stepName}
+                              </span>
+                              {isActive && (
+                                <div className="ml-auto flex items-center space-x-2">
+                                  <div className="w-4 h-4 border-2 border-flame border-t-transparent rounded-full animate-spin"></div>
+                                  <span className="text-flame text-xs font-medium">Processing...</span>
+                                </div>
+                              )}
+                              {isCompleted && (
+                                <div className="ml-auto">
+                                  <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+                                    <div className="w-2 h-2 text-white text-xs">✓</div>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          )
+                        })}
+                      </div>
+
+                      {/* Progress Bar */}
+                      <div className="w-full bg-dark-border rounded-full h-2 mt-8">
+                        <div 
+                          className="bg-flame h-2 rounded-full transition-all duration-1000 ease-out"
+                          style={{width: `${Math.min(((currentProgressStep + 1) / 6) * 100, 100)}%`}}
+                        ></div>
+                      </div>
+                      
+                      {/* Step Counter */}
+                      <div className="text-center mt-2">
+                        <span className="text-flame font-medium text-sm">
+                          Step {currentProgressStep + 1} of 6
+                        </span>
+                      </div>
+
+                      {/* Estimated Time */}
+                      <p className="text-dark-muted text-sm mt-4">
+                        ⏱️ Estimated processing time: 30-60 seconds
+                      </p>
+                      <p className="text-dark-muted text-xs">
+                        Please remain on this page while the AI analyzes international treaties
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : briefingData ? (
                 <Card className="border-dark-border bg-dark-card max-w-5xl mx-auto">
                   <CardContent className="p-8">
                     {/* Briefing Header */}
@@ -1071,6 +1412,8 @@ export default function PoliticalAdvisor() {
                         {briefingData.title}
                       </h3>
                     </div>
+
+
 
                     {/* Briefing Sections */}
                     <div className="space-y-6 mb-8 font-mono text-sm">
@@ -1092,10 +1435,6 @@ export default function PoliticalAdvisor() {
                         <p className="text-dark-text leading-relaxed text-justify mb-6">
                           {briefingData.conclusion}
                         </p>
-                        
-                        <p className="font-bold text-dark-text mb-4">
-                          Therefore it seems to me a more aggressive action is indicated than any heretofore considered, and should be patterned along the following lines:
-                        </p>
                       </div>
 
                       {/* Recommendations */}
@@ -1109,6 +1448,15 @@ export default function PoliticalAdvisor() {
                           </div>
                         ))}
                       </div>
+
+                      {/* Final Recommendation */}
+                      {briefingData.finalRecommendation && (
+                        <div className="mt-8 pt-6 border-t border-dark-border">
+                          <p className="text-dark-text leading-relaxed text-justify font-medium">
+                            {briefingData.finalRecommendation}
+                          </p>
+                        </div>
+                      )}
                     </div>
 
                     {/* Signature Block */}
