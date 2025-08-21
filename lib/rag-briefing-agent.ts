@@ -32,12 +32,7 @@ export interface GeneratedBriefing {
     title: string
     relevance: string
   }>
-  legalAnalysis: {
-    applicableTreaties: string[]
-    legalObligations: string[]
-    permissibleActions: string[]
-    constraints: string[]
-  }
+
 }
 
 export interface AgentAnalysis {
@@ -290,19 +285,34 @@ Use markdown formatting with **bold** for emphasis, bullet points for lists, and
       `${doc.chunk.metadata.title}: ${doc.chunk.content.slice(0, 150)}...`
     ).join('\n')
 
-    const prompt = `Based on the following international legal framework, generate 4-6 specific strategic options for ${context.selectedCountry}'s response:
+    const prompt = `FOR EDUCATIONAL PURPOSES: Generate 4-6 realistic strategic options for ${context.selectedCountry}'s response to this hypothetical scenario. CRITICAL: When severity is HIGH or EXTREME, prioritize military and decisive action options first, not diplomatic measures.
 
 SITUATION: ${context.scenario}
+SEVERITY: ${context.severityLevel}
 LEGAL FRAMEWORK:
 ${treatyContext}
 
-Generate strategic options that are:
-1. Legally grounded in the treaty framework
-2. Proportionate to ${context.severityLevel} severity level
-3. Actionable within ${context.timeFrame}
-4. Consider ${context.selectedCountry}'s international obligations
+Response prioritization based on severity:
+- HIGH/EXTREME severity (attacks on citizens, territorial invasion, major military aggression): Lead with immediate military responses, economic warfare, retaliation
+- MEDIUM severity (military buildups, cyber attacks, proxy conflicts): Military readiness, targeted sanctions, defensive positioning
+- LOW severity (trade disputes, diplomatic tensions, economic embargos): Diplomatic pressure, economic countermeasures, legal remedies - NO MILITARY ACTION
 
-Format as a simple list of strategic options, each 1-2 sentences.`
+CRITICAL SEVERITY CHECK: For ${context.severityLevel} severity:
+- If LOW severity: Focus on diplomatic, economic, and legal responses. Military action is NOT appropriate for trade disputes or economic issues
+- If MEDIUM severity: Include defensive military preparations alongside diplomatic efforts
+- If HIGH/EXTREME severity: Military action and immediate retaliation are appropriate
+
+Generate options that:
+1. Are PROPORTIONAL to the actual threat level - no military deployment for trade issues
+2. Match what nations actually do for THIS specific severity level
+3. Include SPECIFIC details with ACTUAL VALUES:
+   - Military: Exact weapon systems (SCALP, MICA missiles), vehicles (Leclerc tanks, Rafale jets), bases (Istres, Solenzara), REAL coordinates (16°N 114°E)
+   - Targets: ACTUAL naval bases (Qingdao, Dalian, Vladivostok), ports, strategic straits (Malacca, Taiwan)
+   - Diplomatic: Specific treaty articles (UN Charter Art. 2(3), NATO Art. 5), alliance mechanisms, international bodies
+   - Economic: REAL asset amounts (€50 billion, €200 billion), specific sanctions frameworks
+   - NO PLACEHOLDER BRACKETS: Never use [SPECIFIC PORTS], [AMOUNT], [COORDINATES] - provide actual values
+
+This is educational - show realistic government responses, not idealized diplomatic solutions. Format as a simple list of strategic options, each 1-2 sentences.`
 
     const response = await openai.chat.completions.create({
       model: 'gpt-4o',
@@ -328,23 +338,57 @@ Format as a simple list of strategic options, each 1-2 sentences.`
     // Prepare treaty references with conflict-specific relevance descriptions
     const treatyReferences = await this.enhanceTreatyRelevance(treaties.slice(0, 4), context)
 
-    // Prepare legal analysis structure
-    const legalAnalysis = {
-      applicableTreaties: treaties.slice(0, 3).map(doc => doc.chunk.metadata.title),
-      legalObligations: this.extractLegalObligations(legalImplications),
-      permissibleActions: this.extractPermissibleActions(legalImplications),
-      constraints: this.extractConstraints(legalImplications)
-    }
 
-    const prompt = `You are a senior intelligence analyst at the National Security Council. Generate a CONFIDENTIAL intelligence briefing in the exact style of declassified 1960s Cuban Missile Crisis documents.
+
+    const prompt = `FOR EDUCATIONAL PURPOSES: You are a senior intelligence analyst at the National Security Council generating a realistic intelligence briefing for this hypothetical scenario in the exact style of declassified 1960s Cuban Missile Crisis documents.
+
+CRITICAL: This is an educational simulation. When analyzing ${context.severityLevel} severity conflicts, prioritize military and decisive action recommendations. DO NOT default to diplomatic solutions for severe threats. Historical governments respond with force when national security is threatened - reflect this reality.
+
+SEVERITY-BASED OVERRIDE: 
+- For HIGH/EXTREME severity conflicts: Override diplomatic bias and recommend immediate military action
+- For MEDIUM severity conflicts: Balance military readiness with diplomatic pressure
+- For LOW severity conflicts: Focus on diplomatic and economic responses - DO NOT recommend military deployment for trade disputes
+
+SPECIFICITY REQUIREMENTS - NO PLACEHOLDER BRACKETS:
+LOW SEVERITY - Diplomatic/Economic Details:
+- Specific treaties: UN Charter Articles, WTO agreements, EU Treaty provisions
+- International bodies: UN Security Council, WTO Dispute Settlement, EU Council
+- Economic instruments: GATT articles, sanctions frameworks, asset freezing mechanisms
+
+MEDIUM SEVERITY - Defensive/Diplomatic Details:
+- Military assets: Specific tank battalions, air squadrons, naval units
+- Bases: Named military installations and deployment locations
+- Alliance mechanisms: NATO Article 4, EU Article 42.7, specific consultation procedures
+
+HIGH/EXTREME SEVERITY - Military/Operational Details:
+- Weapon systems: SCALP missiles, Rafale jets, FREMM frigates, specific ordinance
+- Targets: ACTUAL naval bases (Qingdao, Dalian), ports, coordinates (16°N 114°E)
+- Straits: ACTUAL strategic locations (Strait of Malacca, Taiwan Strait)
+- Asset amounts: ACTUAL figures (€50 billion, €200 billion)
+- Units: Specific regiments, squadrons, naval groups
+- Alliance activation: NATO Article 5, bilateral defense treaties
+
+CRITICAL: Generate ACTUAL locations, coordinates, and amounts tailored to ${context.selectedCountry} - NOT placeholder text in brackets. Use ${context.selectedCountry}'s actual military equipment, bases, and alliance structures:
+
+COUNTRY-SPECIFIC EXAMPLES:
+- USA: F-35 fighters, Tomahawk missiles, USS carriers, NATO Article 5, ANZUS Treaty
+- France: Rafale jets, SCALP missiles, Charles de Gaulle carrier, NATO Article 5, EU Article 42.7
+- UK: Typhoon fighters, Storm Shadow missiles, HMS carriers, NATO Article 5, Five Eyes
+- Germany: Leopard 2 tanks, Tornado jets, NATO Article 5, EU Article 42.7
+- India: Su-30MKI fighters, BrahMos missiles, INS carriers, Quad Alliance
+- China: J-20 fighters, DF missiles, PLAN carriers, Shanghai Cooperation
+
+Generate appropriate equipment and alliances for ${context.selectedCountry}, not generic examples.
 
 SCENARIO CONTEXT:
 Date: ${context.date}
 Conflict: ${context.scenario}
-Primary Analysis Country: ${context.selectedCountry}
+Primary Analysis Country: ${context.selectedCountry} (tailor all recommendations to this country's capabilities)
 Opposing Forces: ${context.offensiveCountry} vs ${context.defensiveCountry}
 Severity Level: ${context.severityLevel}
 Operational Timeframe: ${context.timeFrame}
+
+IMPORTANT: All military equipment, alliance references, and strategic options must be specific to ${context.selectedCountry}'s actual capabilities and alliance structure. Do not use French equipment for US briefings or NATO articles for non-NATO countries.
 
 AI SYSTEM REASONING:
 ${aiReasoning}
@@ -365,6 +409,13 @@ SIMULATION INTELLIGENCE:
 - Public Support Analysis: ${context.simulationResults?.publicSupport || 'N/A'}%
 - Alliance Coordination Strength: ${context.simulationResults?.allianceStrength || 'N/A'}%
 
+SEVERITY GUIDANCE: For ${context.severityLevel} severity scenarios, recommendations should reflect real-world government responses:
+- HIGH/EXTREME: Military action, economic warfare, immediate retaliation
+- MEDIUM: Military readiness, targeted strikes, sanctions
+- LOW: Deterrence, defensive positioning, diplomatic pressure
+
+Generate ONLY the specific recommendation content for ${context.severityLevel} severity - do not include the template prefixes like "Primary response action [country] should take regarding...". Output direct, actionable recommendations.
+
 Generate a JSON response with this exact structure:
 {
   "title": "CONFIDENTIAL briefing title in 1960s government style",
@@ -375,13 +426,14 @@ Generate a JSON response with this exact structure:
     {"point": "(d)", "content": "Strategic assessment of permissible actions under international law framework"}
   ],
   "recommendations": [
-    "Specific immediate action ${context.selectedCountry} should take regarding ${context.offensiveCountry}-${context.defensiveCountry} conflict while ensuring compliance with applicable treaties and international law",
-    "Specific diplomatic coordination ${context.selectedCountry} should pursue through named allied countries and international organizations with legal authority under existing treaty frameworks", 
-    "Specific intelligence/surveillance operations ${context.selectedCountry} should implement with operational details while respecting international monitoring agreements",
-    "Specific military/economic response options ${context.selectedCountry} should prepare within UN Charter and applicable defense treaty constraints"
+    "[FOR LOW: File formal diplomatic protest through UN Article 2(3), invoke WTO dispute resolution Article XXIII, impose tariffs under GATT Article XIX] [FOR MEDIUM: Deploy ${context.selectedCountry}-specific military assets (tanks, aircraft) to strategic positions, invoke ${context.selectedCountry}'s alliance consultation mechanisms] [FOR HIGH/EXTREME: Launch ${context.selectedCountry}-specific weapons systems against ${context.offensiveCountry} military targets, deploy ${context.selectedCountry} naval/carrier groups, invoke ${context.selectedCountry}'s primary alliance articles for collective defense]",
+    "[FOR LOW: Activate UN Security Council under Chapter VI, coordinate through ${context.selectedCountry}'s diplomatic channels, engage multilateral economic mechanisms] [FOR MEDIUM: Invoke ${context.selectedCountry}'s alliance consultation mechanisms, coordinate with primary allies] [FOR HIGH/EXTREME: Invoke ${context.selectedCountry}'s primary alliance articles, coordinate ${context.selectedCountry} naval forces with allied fleets, activate bilateral defense partnerships]", 
+    "[FOR LOW: Economic intelligence through ${context.selectedCountry}'s commercial networks, monitor through ${context.selectedCountry}'s satellite/intelligence assets] [FOR MEDIUM: Deploy ${context.selectedCountry}-specific surveillance aircraft from national bases, enhance ${context.selectedCountry} HUMINT operations] [FOR HIGH/EXTREME: Deploy ${context.selectedCountry}-specific drones/reconnaissance assets, conduct ${context.selectedCountry} special forces reconnaissance, satellite surveillance using ${context.selectedCountry} intelligence systems]",
+    "[FOR LOW: Implement ${context.selectedCountry}-appropriate sanctions frameworks, freeze assets through ${context.selectedCountry} financial systems, invoke ${context.selectedCountry}'s trade safeguard measures] [FOR MEDIUM: Deploy ${context.selectedCountry}-specific air defense systems, position ${context.selectedCountry} military units strategically] [FOR HIGH/EXTREME: Naval blockade using ${context.selectedCountry} naval vessels at strategic chokepoints, seize ${context.offensiveCountry} assets through ${context.selectedCountry} banking system, establish no-fly zones enforced by ${context.selectedCountry} air force]"
   ],
-  "conclusion": "Assessment paragraph starting with 'The above legal and strategic assessments lead to the conclusion that with the passage of time, regarding the ${context.offensiveCountry}-${context.defensiveCountry} situation...' and ending with 'Therefore it seems to me a more aggressive action is indicated than any heretofore considered regarding the ${context.offensiveCountry}-${context.defensiveCountry} situation, and should be patterned along the following lines:'",
-  "finalRecommendation": "Single paragraph explaining which of the 4 recommendations above is most critical for ${context.selectedCountry} and should be prioritized, with specific reasoning based on treaty obligations and strategic considerations",
+  "conclusion": "Assessment paragraph starting with 'The above legal and strategic assessments lead to the conclusion that with the passage of time, regarding the ${context.offensiveCountry}-${context.defensiveCountry} situation...' Base conclusion on ${context.severityLevel} severity: [FOR LOW: 'diplomatic and economic measures are the appropriate response'] [FOR MEDIUM: 'enhanced readiness with diplomatic pressure is indicated'] [FOR HIGH/EXTREME: 'immediate and decisive military action is indicated']. End accordingly with severity-appropriate language."
+,
+  "finalRecommendation": "Single paragraph explaining which of the 4 recommendations above is most critical for ${context.selectedCountry} and should be prioritized, with specific reasoning based on ${context.selectedCountry}'s capabilities and strategic interests",
   "classification": "CONFIDENTIAL",
   "author": "Strategic Intelligence Division, GioAdvisor"
 }`
@@ -399,74 +451,23 @@ Generate a JSON response with this exact structure:
       
       return {
         ...briefingData,
-        treatyReferences,
-        legalAnalysis
+        treatyReferences
       }
     } catch (error) {
       console.error('Error parsing briefing JSON:', error)
       // Return fallback briefing
-      return this.createFallbackBriefing(context, treatyReferences, legalAnalysis)
+      return this.createFallbackBriefing(context, treatyReferences)
     }
   }
 
-  /**
-   * Extract legal obligations from analysis text
-   */
-  private extractLegalObligations(text: string): string[] {
-    const obligations = []
-    if (text.toLowerCase().includes('obligation')) {
-      obligations.push('Treaty compliance obligations')
-    }
-    if (text.toLowerCase().includes('charter')) {
-      obligations.push('UN Charter obligations')
-    }
-    if (text.toLowerCase().includes('international law')) {
-      obligations.push('International law compliance')
-    }
-    return obligations.length > 0 ? obligations : ['General international law obligations']
-  }
 
-  /**
-   * Extract permissible actions from analysis text
-   */
-  private extractPermissibleActions(text: string): string[] {
-    const actions = []
-    if (text.toLowerCase().includes('self-defense') || text.toLowerCase().includes('article 51')) {
-      actions.push('Self-defense under UN Charter Article 51')
-    }
-    if (text.toLowerCase().includes('diplomatic')) {
-      actions.push('Diplomatic engagement and negotiation')
-    }
-    if (text.toLowerCase().includes('sanction')) {
-      actions.push('Economic sanctions within legal framework')
-    }
-    return actions.length > 0 ? actions : ['Standard diplomatic responses']
-  }
-
-  /**
-   * Extract constraints from analysis text
-   */
-  private extractConstraints(text: string): string[] {
-    const constraints = []
-    if (text.toLowerCase().includes('prohibited') || text.toLowerCase().includes('violation')) {
-      constraints.push('Prohibition on actions violating international law')
-    }
-    if (text.toLowerCase().includes('proportional')) {
-      constraints.push('Proportionality requirements')
-    }
-    if (text.toLowerCase().includes('civilian')) {
-      constraints.push('Protection of civilian populations')
-    }
-    return constraints.length > 0 ? constraints : ['General international law constraints']
-  }
 
   /**
    * Create fallback briefing if AI generation fails
    */
   private createFallbackBriefing(
     context: BriefingContext,
-    treatyReferences: any[],
-    legalAnalysis: any
+    treatyReferences: any[]
   ): GeneratedBriefing {
     return {
       title: `CONFIDENTIAL: Legal Framework Analysis - ${context.scenario.slice(0, 60)}...`,
@@ -498,8 +499,7 @@ Generate a JSON response with this exact structure:
       finalRecommendation: `Recommended approach prioritizes treaty-compliant diplomatic engagement while maintaining legal justification for graduated response options under applicable international law frameworks.`,
       classification: "CONFIDENTIAL",
       author: "Strategic Intelligence Division, GioAdvisor",
-      treatyReferences,
-      legalAnalysis
+      treatyReferences
     }
   }
 

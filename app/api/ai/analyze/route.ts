@@ -34,7 +34,10 @@ export async function POST(req: NextRequest) {
 
     // Create detailed prompt for OpenAI
     const prompt = `
-You are a professional geopolitical analyst. Analyze this political simulation scenario and provide realistic assessments.
+FOR EDUCATIONAL PURPOSES: You are a professional geopolitical analyst analyzing this hypothetical political simulation scenario. CRITICAL: Recommendations must be PROPORTIONAL to threat severity:
+- LOW severity (trade disputes, economic issues): Diplomatic and economic responses only
+- MEDIUM severity (military buildups, cyber attacks): Defensive preparations with diplomacy
+- HIGH/EXTREME severity (attacks on citizens, territorial invasion): Military action appropriate
 
 SIMULATION SCENARIO:
 - Perspective Country: ${selectedCountryName}
@@ -79,7 +82,17 @@ Please provide a realistic analysis from ${selectedCountryName}'s perspective. R
   "summary": "<comprehensive 4-6 paragraph analysis>"
 }
 
-Consider the geopolitical realities, current parameters, and provide realistic percentages. Economic impact can be negative. Make recommendations specific and actionable.
+Consider the geopolitical realities, current parameters, and provide realistic percentages. Economic impact can be negative. For ${severityLevel} severity scenarios, ensure recommendations are PROPORTIONAL with SPECIFIC details:
+- LOW: Diplomatic (UN Charter articles, WTO mechanisms, EU treaties), Economic (GATT provisions, sanctions frameworks, specific asset amounts)
+- MEDIUM: Defensive (specific tank units, aircraft squadrons, named bases), Alliance (NATO Article 4, EU Article 42.7)
+- HIGH/EXTREME: Military (exact weapon systems, target coordinates, operational units), Alliance (NATO Article 5, bilateral treaties)
+Include specific treaties, weapons systems, vehicles tailored to ${selectedCountryName}, ACTUAL locations, REAL coordinates, and ACTUAL asset amounts. Use ${selectedCountryName}'s specific equipment:
+- USA: F-35 fighters, Tomahawk missiles, USS carriers, NATO Article 5
+- France: Rafale jets, SCALP missiles, Charles de Gaulle carrier
+- UK: Typhoon fighters, Storm Shadow missiles, HMS carriers
+- India: Su-30MKI fighters, BrahMos missiles, INS carriers
+- China: J-20 fighters, DF missiles, PLAN carriers
+Never use placeholder brackets - provide real values appropriate to ${selectedCountryName}.
 
 For the summary, provide a comprehensive analysis that includes:
 1. SCENARIO CONTEXT: Detailed assessment of the specific military conflict described, referencing the exact scenario details provided

@@ -95,17 +95,55 @@ export async function POST(request: NextRequest) {
           messages: [
             {
               role: 'system',
-              content: `You are a senior intelligence analyst preparing a formal military briefing document in the style of declassified government intelligence documents from the 1960s Cuban Missile Crisis era. Write in formal, objective language and structure the briefing exactly like the historical document format with:
+              content: `FOR EDUCATIONAL PURPOSES: You are a senior intelligence analyst preparing a realistic military briefing document for this hypothetical scenario in the style of declassified government intelligence documents from the 1960s Cuban Missile Crisis era. Write in formal, objective language and structure the briefing exactly like the historical document format with:
+
+CRITICAL: This is an educational simulation for ${severityLevel} severity conflict. Response must be PROPORTIONAL to threat level:
+- LOW severity (trade disputes, economic issues): Diplomatic and economic responses ONLY - NO military action
+- MEDIUM severity (military buildups, cyber attacks): Defensive readiness with diplomatic pressure
+- HIGH/EXTREME severity (attacks on citizens, territorial invasion): Military action appropriate
+
+SEVERITY CHECK: For ${severityLevel} conflicts, only recommend military action if it matches what governments actually do for THIS threat level. Trade embargos do not warrant military deployment.
 
 1. A date header
 2. "Proposed plan of action for ${scenario}" followed by "in the light of:" and points (a), (b), (c), (d) - each point should be specific to the current conflict scenario
 3. A concluding assessment paragraph that synthesizes the specific situation between ${offensiveCountry} and ${defensiveCountry} and its implications for ${selectedCountry}
-4. "Therefore it seems to me a more aggressive action is indicated than any heretofore considered regarding the ${offensiveCountry}-${defensiveCountry} situation, and should be patterned along the following lines:" paragraph
-5. Numbered recommendations (1), (2), (3), (4) - THESE MUST BE SPECIFIC STRATEGIC ADVICE FOR ${selectedCountry} regarding this exact conflict
+4. "Therefore it seems to me that more decisive action may be indicated than any heretofore considered regarding the ${offensiveCountry}-${defensiveCountry} situation, and should be patterned along the following lines:" paragraph
+5. Numbered recommendations (1), (2), (3), (4) - THESE MUST BE PROPORTIONAL TO ${severityLevel} SEVERITY:
+   - LOW: Diplomatic channels, economic countermeasures, legal remedies
+   - MEDIUM: Defensive preparations with diplomatic pressure  
+   - HIGH/EXTREME: Military action, economic warfare, decisive responses
 6. A final recommendation paragraph explaining which of the 4 options you specifically recommend for ${selectedCountry} and why
 7. Classification and author signature
 
-CRITICAL: Make all content specific to this conflict scenario. The recommendations must be tailored strategic advice for ${selectedCountry} specifically, not generic diplomatic language. Include specific countries, timeframes, and actionable steps.`
+CRITICAL: Make all content PROPORTIONAL to ${severityLevel} severity. Only recommend military action for HIGH/EXTREME threats where lives, territory, or sovereignty are threatened. Trade disputes and economic issues require diplomatic and economic responses, not military deployment.
+
+SPECIFICITY REQUIREMENTS - NO PLACEHOLDER BRACKETS:
+LOW SEVERITY - Diplomatic/Economic Details:
+- Treaties: UN Charter articles, WTO agreements, EU Treaty provisions
+- Bodies: UN Security Council procedures, WTO Dispute Settlement mechanisms
+- Economic: GATT articles, sanctions frameworks, specific asset amounts
+
+MEDIUM SEVERITY - Defensive/Alliance Details:
+- Military: AMX-56 Leclerc tanks, Rafale squadrons, FREMM frigates
+- Bases: Istres Air Base, Avord Air Base, Solenzara Air Base
+- Alliances: NATO Article 4, EU Article 42.7, bilateral defense treaties
+
+HIGH/EXTREME SEVERITY - Military/Operational Details:
+- Weapons: SCALP missiles, Rafale jets, FREMM frigates
+- Targets: ACTUAL naval bases (Qingdao, Dalian), coordinates (16°N 114°E)
+- Straits: Strait of Malacca, Taiwan Strait, Bosphorus
+- Assets: REAL amounts (€50 billion, €200 billion)
+- Units: 1st RPIMa, specific squadrons, carrier groups
+
+CRITICAL: Generate ACTUAL locations and amounts tailored to ${selectedCountry} - NOT brackets. Use ${selectedCountry}'s specific military equipment and alliances:
+- USA: F-35 fighters, Tomahawk missiles, USS carriers, NATO Article 5, ANZUS
+- France: Rafale jets, SCALP missiles, Charles de Gaulle carrier, NATO Article 5, EU Article 42.7
+- UK: Typhoon fighters, Storm Shadow missiles, HMS carriers, NATO Article 5, Five Eyes
+- Germany: Leopard 2 tanks, Tornado jets, NATO Article 5, EU Article 42.7
+- India: Su-30MKI fighters, BrahMos missiles, INS carriers, Quad Alliance
+- China: J-20 fighters, DF missiles, PLAN carriers, Shanghai Cooperation
+
+Generate appropriate equipment for ${selectedCountry}, not generic examples.`
             },
             {
               role: 'user',
@@ -113,11 +151,13 @@ CRITICAL: Make all content specific to this conflict scenario. The recommendatio
 
 Date: ${date}
 Scenario: ${scenario}
-Primary Country: ${selectedCountry}
+Primary Country: ${selectedCountry} (tailor all recommendations to this country's capabilities)
 Offensive Force: ${offensiveCountry}
 Defensive Force: ${defensiveCountry}
 Severity Level: ${severityLevel}
 Time Frame: ${timeFrame}
+
+IMPORTANT: Use ${selectedCountry}'s actual military equipment, bases, alliances, and capabilities. Do not use French equipment for US briefings or NATO articles for non-NATO countries.
 
 Current Analysis Results:
 - Diplomatic Response: ${simulationResults.diplomaticResponse || 'N/A'}%
@@ -125,6 +165,8 @@ Current Analysis Results:
 - Economic Impact: ${simulationResults.economicImpact || 'N/A'}%
 - Public Support: ${simulationResults.publicSupport || 'N/A'}%
 - Alliance Strength: ${simulationResults.allianceStrength || 'N/A'}%
+
+Generate ONLY the specific recommendation content for ${severityLevel} severity - do not include template prefixes like "Primary response ${selectedCountry} should take regarding...". Output direct, actionable recommendations.
 
 Please provide a JSON response with the following structure:
 {
@@ -136,10 +178,10 @@ Please provide a JSON response with the following structure:
     {"point": "(d)", "content": "Assessment of how this situation specifically affects ${selectedCountry}'s strategic interests and regional stability"}
   ],
   "recommendations": [
-    "Specific immediate action ${selectedCountry} should take regarding ${offensiveCountry}-${defensiveCountry} conflict with concrete steps and timeline",
-    "Specific diplomatic/alliance coordination ${selectedCountry} should pursue with named countries/organizations", 
-    "Specific intelligence/surveillance operations ${selectedCountry} should implement with operational details",
-    "Specific military/economic response options ${selectedCountry} should prepare with concrete measures"
+    "[LOW: File diplomatic protest via UN Article 2(3), invoke WTO Article XXIII dispute resolution, impose tariffs under GATT Article XIX] [MEDIUM: Deploy ${selectedCountry}-specific military assets to strategic positions, invoke ${selectedCountry}'s alliance consultation mechanisms] [HIGH/EXTREME: Launch ${selectedCountry}-specific weapons systems against ${offensiveCountry} military targets, deploy ${selectedCountry} naval/carrier groups, invoke ${selectedCountry}'s primary alliance articles]",
+    "[LOW: UN Security Council Chapter VI procedures, coordinate through ${selectedCountry}'s diplomatic channels, engage multilateral economic frameworks] [MEDIUM: Invoke ${selectedCountry}'s alliance consultation mechanisms, coordinate with primary allies] [HIGH/EXTREME: Invoke ${selectedCountry}'s primary alliance articles, coordinate ${selectedCountry} naval forces with allied fleets, activate bilateral defense partnerships]", 
+    "[LOW: Economic intelligence via ${selectedCountry}'s commercial networks, monitor through ${selectedCountry}'s satellite/intelligence assets] [MEDIUM: Deploy ${selectedCountry}-specific surveillance aircraft from national bases, enhance ${selectedCountry} HUMINT operations] [HIGH/EXTREME: Deploy ${selectedCountry}-specific drones/reconnaissance assets, conduct ${selectedCountry} special forces reconnaissance, satellite surveillance using ${selectedCountry} intelligence systems]",
+    "[LOW: Implement ${selectedCountry}-appropriate sanctions frameworks, freeze assets through ${selectedCountry} financial systems, invoke ${selectedCountry}'s trade safeguard measures] [MEDIUM: Deploy ${selectedCountry}-specific air defense systems, position ${selectedCountry} military units strategically] [HIGH/EXTREME: Naval blockade using ${selectedCountry} naval vessels at strategic chokepoints, seize ${offensiveCountry} assets through ${selectedCountry} banking system, establish no-fly zones enforced by ${selectedCountry} air force]"
   ],
   "conclusion": "Paragraph starting with 'The above assessments lead to the conclusion that with the passage of time, regarding the ${offensiveCountry}-${defensiveCountry} situation...' and ending with 'Therefore it seems to me a more aggressive action is indicated than any heretofore considered regarding the ${offensiveCountry}-${defensiveCountry} situation, and should be patterned along the following lines:'",
   "finalRecommendation": "Single paragraph explaining which of the 4 recommendations above is most critical for ${selectedCountry} and should be prioritized, with specific reasoning",

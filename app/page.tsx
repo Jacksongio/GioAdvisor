@@ -717,7 +717,7 @@ export default function PoliticalAdvisor() {
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-dark-text">GioAdvisor</h1>
-                <p className="text-sm text-dark-muted">Military Intelligence BriefingPlatform</p>
+                <p className="text-sm text-dark-muted">Military Intelligence Briefing Platform</p>
               </div>
             </div>
             
@@ -880,7 +880,7 @@ export default function PoliticalAdvisor() {
               </Card>
 
               {/* Military Conflict Scenario */}
-              <Card className="border-dark-border bg-dark-card min-h-[600px] flex flex-col">
+              <Card className="border-dark-border bg-dark-card min-h-[400px] flex flex-col">
                 <CardHeader className="bg-gradient-to-r from-flame/20 to-flame/10 py-4 tight-v">
                   <CardTitle className="flex items-center space-x-3 text-dark-text text-lg">
                     <AlertTriangle className="w-5 h-5 text-flame" />
@@ -1230,71 +1230,7 @@ export default function PoliticalAdvisor() {
                     </Card>
                   )}
 
-                  {/* Legal Analysis Summary */}
-                  {briefingData?.legalAnalysis && (
-                    <Card className="border-dark-border bg-dark-card">
-                      <CardContent className="p-6">
-                        <h3 className="text-lg font-bold text-dark-text mb-4">Legal Framework Analysis</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          {briefingData.legalAnalysis.applicableTreaties && briefingData.legalAnalysis.applicableTreaties.length > 0 && (
-                            <div>
-                              <h4 className="font-semibold text-dark-text mb-2">Applicable Treaties</h4>
-                              <ul className="text-dark-muted text-sm space-y-1">
-                                {briefingData.legalAnalysis.applicableTreaties.map((treaty: string, index: number) => (
-                                  <li key={index} className="flex items-start">
-                                    <span className="text-flame mr-2">•</span>
-                                    {treaty}
-                                  </li>
-                                ))}
-                              </ul>
-                  </div>
-                          )}
-                          
-                          {briefingData.legalAnalysis.legalObligations && briefingData.legalAnalysis.legalObligations.length > 0 && (
-                            <div>
-                              <h4 className="font-semibold text-dark-text mb-2">Legal Obligations</h4>
-                              <ul className="text-dark-muted text-sm space-y-1">
-                                {briefingData.legalAnalysis.legalObligations.map((obligation: string, index: number) => (
-                                  <li key={index} className="flex items-start">
-                                    <span className="text-flame mr-2">•</span>
-                                    {obligation}
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
-                          
-                          {briefingData.legalAnalysis.permissibleActions && briefingData.legalAnalysis.permissibleActions.length > 0 && (
-                            <div>
-                              <h4 className="font-semibold text-dark-text mb-2">Permissible Actions</h4>
-                              <ul className="text-dark-muted text-sm space-y-1">
-                                {briefingData.legalAnalysis.permissibleActions.map((action: string, index: number) => (
-                                  <li key={index} className="flex items-start">
-                                    <span className="text-green-500 mr-2">✓</span>
-                                    {action}
-                                  </li>
-                                ))}
-                              </ul>
-                      </div>
-                          )}
-                          
-                          {briefingData.legalAnalysis.constraints && briefingData.legalAnalysis.constraints.length > 0 && (
-                            <div>
-                              <h4 className="font-semibold text-dark-text mb-2">Legal Constraints</h4>
-                              <ul className="text-dark-muted text-sm space-y-1">
-                                {briefingData.legalAnalysis.constraints.map((constraint: string, index: number) => (
-                                  <li key={index} className="flex items-start">
-                                    <span className="text-red-500 mr-2">⚠</span>
-                                    {constraint}
-                                  </li>
-                                ))}
-                              </ul>
-                          </div>
-                          )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                  )}
+
                 </div>
               ) : (
                 <Card className="border-dark-border bg-dark-card">
