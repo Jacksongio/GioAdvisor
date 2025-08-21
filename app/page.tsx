@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Globe, Users, Target, BarChart3, Play, FileText, AlertTriangle, Sword, Shield, RotateCcw, MessageCircle, Send, Check, ChevronsUpDown, Settings, Loader2, Award } from "lucide-react"
+import { useState, useEffect, useRef } from "react"
+import { Globe, Users, Target, BarChart3, Play, FileText, AlertTriangle, Sword, Shield, RotateCcw, MessageCircle, Send, Check, ChevronsUpDown, Settings, Loader2, Award, Calendar, Clock, File, Copy } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -27,7 +27,22 @@ export default function PoliticalAdvisor() {
   const [isSimulating, setIsSimulating] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   
-  // Treaty Research state
+  // Briefing state
+  const [briefingData, setBriefingData] = useState<any>(null)
+  const [isGeneratingBriefing, setIsGeneratingBriefing] = useState(false)
+  const [ragMetadata, setRagMetadata] = useState<any>(null)
+  const [currentProgressStep, setCurrentProgressStep] = useState(0)
+  const progressTimeoutsRef = useRef<NodeJS.Timeout[]>([])
+
+  // Cleanup function for progress timeouts
+  const clearProgressTimeouts = () => {
+    progressTimeoutsRef.current.forEach(timeout => clearTimeout(timeout))
+    progressTimeoutsRef.current = []
+  }
+
+
+
+  // Intelligence Sources state
   const [treatyResults, setTreatyResults] = useState<any>(null)
   const [isLoadingTreaties, setIsLoadingTreaties] = useState(false)
   const [treatyStatistics, setTreatyStatistics] = useState<any>(null)
@@ -187,14 +202,245 @@ export default function PoliticalAdvisor() {
     setUnSupport([50])
     setRegionalInfluence([50])
     setPublicOpinion([50])
-    // Clear treaty results
+    // Clear treaty results and briefing data
     setTreatyResults(null)
+    setBriefingData(null)
+    setRagMetadata(null)
+    setSimulationResults(null)
+    setCurrentProgressStep(0)
+    clearProgressTimeouts()
+    
+    // Reset to setup tab when clearing
+    setActiveTab("setup")
     
     toast({
       title: "Form Cleared",
-      description: "All simulation setup, analysis parameters, and treaty search have been reset.",
+      description: "All simulation setup, analysis parameters, briefing data, and treaty search have been reset.",
       variant: "default",
     })
+  }
+
+  // Handle tab changes with validation
+  const handleTabChange = (value: string) => {
+    // Prevent switching to briefing tabs if no briefing data exists
+    if ((value === "results" || value === "chat") && !briefingData) {
+      toast({
+        title: "Briefing Required",
+        description: "Please generate a briefing first to access this tab.",
+        variant: "destructive",
+      })
+      return
+    }
+    setActiveTab(value)
+  }
+
+  // Generate briefing document
+  const generateBriefing = async () => {
+    if (!selectedCountry || !scenarioDetails) {
+      toast({
+        title: "Cannot Generate Briefing",
+        description: "Please fill in all required fields before generating a briefing.",
+        variant: "destructive",
+      })
+      return
+    }
+    
+    setIsGeneratingBriefing(true)
+    setCurrentProgressStep(0)
+    
+    // Immediately redirect to briefing page to show progress
+    setActiveTab("results")
+    
+    // Start simulation and briefing in parallel for maximum speed
+    const simulationPromise = !simulationResults ? 
+      runSimulation(true).catch(error => {
+        console.error('Failed to run simulation:', error)
+        toast({
+          title: "Analysis Warning", 
+          description: "Unable to generate fresh analysis. AI will work with basic parameters.",
+          variant: "destructive",
+        })
+        return null
+      }) : Promise.resolve(simulationResults)
+    
+    // Clear any existing timeouts
+    clearProgressTimeouts()
+    
+    // Start step progression with optimized timing for better perceived speed
+    const stepDurations = [1500, 2500, 4000, 3500, 5000] // 5 timed steps, 6th completes with API - Total: 16.5s
+    
+    // Create timeouts for each step
+    let cumulativeTime = 0
+    stepDurations.forEach((duration, index) => {
+      cumulativeTime += duration
+      const timeout = setTimeout(() => {
+        setCurrentProgressStep(index + 1)
+      }, cumulativeTime)
+      progressTimeoutsRef.current.push(timeout)
+    })
+    
+    try {
+      const currentDate = new Date().toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      })
+
+      // Wait for simulation to complete (running in parallel)
+      const completedSimulation = await simulationPromise
+      
+      // Update simulation results if we got new ones
+      if (completedSimulation && completedSimulation !== simulationResults) {
+        setSimulationResults(completedSimulation)
+      }
+      
+      // Pre-compute country names and start briefing call earlier for better performance
+      const selectedCountryName = countries.find(c => c.code === selectedCountry)?.name || selectedCountry
+      const offensiveCountryName = countries.find(c => c.code === offensiveCountry)?.name || offensiveCountry  
+      const defensiveCountryName = countries.find(c => c.code === defensiveCountry)?.name || defensiveCountry
+      
+      console.log('🚀 Starting briefing generation with optimized flow...')
+      const briefingResponse = await fetch('/api/briefing/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          date: currentDate,
+          scenario: scenarioDetails,
+          simulationResults: completedSimulation || simulationResults,
+          selectedCountry: selectedCountryName,
+          offensiveCountry: offensiveCountryName,
+          defensiveCountry: defensiveCountryName,
+          severityLevel,
+          timeFrame
+        }),
+      })
+      
+      const briefingResult = await briefingResponse.json()
+      
+      if (briefingResult.success) {
+        // Complete the final step
+        setCurrentProgressStep(5) // Last step (index 5)
+        
+        setBriefingData(briefingResult.briefing)
+        setRagMetadata(briefingResult.metadata)
+        
+        const isRAGGenerated = briefingResult.metadata?.ragGenerated
+        const treatiesCount = briefingResult.metadata?.treatiesAnalyzed || 0
+        const processingTime = briefingResult.metadata?.processingTime || 0
+        
+        if (isRAGGenerated) {
+          const ragasMetrics = briefingResult.metadata?.ragasMetrics
+          const faithfulness = ragasMetrics ? (ragasMetrics.faithfulness * 100).toFixed(0) : 'N/A'
+          const relevancy = ragasMetrics ? (ragasMetrics.answerRelevancy * 100).toFixed(0) : 'N/A'
+          
+      toast({
+            title: "✅ RAG Intelligence Briefing Complete",
+            description: `Analyzed ${treatiesCount} treaties in ${Math.round(processingTime/1000)}s (RAGAS: Faithfulness:${faithfulness}% Relevancy:${relevancy}%)`,
+        variant: "default",
+          })
+        } else {
+          toast({
+            title: "⚠️ Standard AI Briefing Generated",
+            description: "RAG system unavailable. Generated standard briefing without treaty analysis.",
+            variant: "destructive",
+          })
+        }
+      } else {
+        // Generate fallback briefing
+        setBriefingData({
+          date: currentDate,
+          title: `Proposed Plan of Action - ${scenarioDetails.slice(0, 50)}${scenarioDetails.length > 50 ? '...' : ''}`,
+          sections: [
+            {
+              point: "(a)",
+              content: `Intelligence assessments indicate heightened military tensions involving ${countries.find(c => c.code === offensiveCountry)?.name || offensiveCountry} and ${countries.find(c => c.code === defensiveCountry)?.name || defensiveCountry}, with ${countries.find(c => c.code === selectedCountry)?.name || selectedCountry} strategic interests directly impacted by potential escalation scenarios.`
+            },
+            {
+              point: "(b)", 
+              content: `Analysis of regional force deployments and communication intercepts suggest significant military preparations during the current ${timeFrame} timeframe, with severity assessed at ${severityLevel} level.`
+            },
+            {
+              point: "(c)",
+              content: `Current diplomatic initiatives have achieved limited success, with international response coordination showing ${simulationResults.diplomaticResponse || 65}% effectiveness in de-escalation efforts.`
+            },
+            {
+              point: "(d)",
+              content: `Economic and alliance factors indicate that standard containment strategies may prove insufficient given the current threat level and regional stability considerations.`
+            }
+          ],
+          recommendations: [
+            "Immediate deployment of enhanced intelligence collection assets to monitor military movements and communication channels in the affected region.",
+            "Coordination with allied nations to establish unified response protocols and information sharing agreements through established intelligence partnerships.",
+            "Implementation of graduated economic and diplomatic pressure measures through appropriate international organizations and bilateral channels.",
+            "Preparation of contingency response plans for multiple escalation scenarios while maintaining strategic deterrent capabilities and force readiness."
+          ],
+          conclusion: `The above assessments lead to the conclusion that without immediate strategic action, the situation may evolve into a more complex and dangerous conflict. Therefore, implementation of the above recommendations is advised to address both immediate tactical concerns and long-term strategic stability objectives.`,
+          classification: "CONFIDENTIAL",
+          author: "Strategic Assessment Division"
+        })
+        
+        toast({
+          title: "⚠️ Fallback Briefing Generated",
+          description: "AI generation failed. Generated emergency briefing template.",
+          variant: "destructive",
+        })
+        // Don't redirect for fallback briefings
+      }
+    } catch (error) {
+      console.error('Briefing generation error:', error)
+      
+      // Always provide a fallback briefing
+      const currentDate = new Date().toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      })
+      
+      setBriefingData({
+        date: currentDate,
+        title: `Intelligence Assessment - ${scenarioDetails.slice(0, 50)}${scenarioDetails.length > 50 ? '...' : ''}`,
+        sections: [
+          {
+            point: "(a)",
+            content: `Current threat assessment indicates elevated risk factors in the specified regional conflict zone affecting ${countries.find(c => c.code === selectedCountry)?.name || selectedCountry} strategic interests.`
+          },
+          {
+            point: "(b)",
+            content: `Intelligence reports suggest significant military and political developments requiring immediate attention from national security apparatus.`
+          },
+          {
+            point: "(c)",
+            content: `Analysis indicates that standard diplomatic protocols may be insufficient to address the scope of the current crisis without enhanced strategic coordination.`
+          },
+          {
+            point: "(d)",
+            content: `Strategic recommendations require implementation of enhanced security measures and coalition building initiatives to maintain regional stability.`
+          }
+        ],
+        recommendations: [
+          "Deploy enhanced intelligence assets to monitor regional developments and threat indicators with immediate effect.",
+          "Coordinate with allied nations to establish unified response protocols and information sharing agreements.",
+          "Implement economic and diplomatic pressure through appropriate international channels and multilateral organizations.",
+          "Prepare contingency plans for escalation scenarios while maintaining deterrent capabilities and diplomatic engagement."
+        ],
+        conclusion: `Based on the current intelligence assessment, immediate action is recommended to address the evolving security situation and prevent further destabilization of the regional balance of power.`,
+        classification: "CONFIDENTIAL", 
+        author: "Intelligence Analysis Team"
+      })
+      
+      toast({
+        title: "💥 Critical System Error",
+        description: "Complete briefing generation failure. Contact technical support immediately.",
+        variant: "destructive",
+      })
+      // Don't redirect on critical errors
+    }
+    
+    setIsGeneratingBriefing(false)
+    setCurrentProgressStep(0)
+    clearProgressTimeouts()
   }
 
   interface Country {
@@ -304,7 +550,7 @@ export default function PoliticalAdvisor() {
     }
   }, [scenarioDetails])
 
-  const runSimulation = async () => {
+  const runSimulation = async (skipRedirect = false) => {
     setIsSimulating(true)
     
     // Ensure conflict type is detected from scenario details if not already set
@@ -354,12 +600,6 @@ export default function PoliticalAdvisor() {
 
       const result = await response.json()
       console.log('Analysis parameters saved:', result)
-      
-      toast({
-        title: "Analysis Saved",
-        description: "Analysis parameters have been saved to database.",
-        variant: "default",
-      })
 
     } catch (error) {
       console.error('Error saving analysis:', error)
@@ -403,6 +643,8 @@ export default function PoliticalAdvisor() {
       
       if (aiResult.success) {
         setSimulationResults(aiResult.analysis)
+        
+        if (!skipRedirect) {
         toast({
           title: "AI Analysis Complete",
           description: "Your simulation has been analyzed using advanced AI. You are now redirected to the results page.",
@@ -411,9 +653,12 @@ export default function PoliticalAdvisor() {
         
         // Redirect to View Results tab
         setActiveTab("results")
+        }
       } else {
         // Use fallback results if AI analysis fails
         setSimulationResults(aiResult.analysis)
+        
+        if (!skipRedirect) {
         toast({
           title: "Analysis Complete",
           description: "Showing fallback analysis due to AI service issues. Redirecting to results...",
@@ -422,6 +667,7 @@ export default function PoliticalAdvisor() {
         
         // Redirect to View Results tab even with fallback
         setActiveTab("results")
+        }
       }
 
     } catch (error) {
@@ -444,6 +690,7 @@ export default function PoliticalAdvisor() {
         summary: "**SCENARIO CONTEXT:** This analysis represents a fallback assessment due to temporary AI service limitations. The specific military conflict scenario requires detailed intelligence analysis that considers multiple strategic factors.\n\n**STRATEGIC IMPLICATIONS:** Without access to real-time geopolitical data, this assessment provides general strategic guidance. The conflict situation demands careful evaluation of regional power dynamics and international response mechanisms.\n\n**RISK ASSESSMENT:** Military conflicts of this nature typically involve escalation risks, economic disruption, and diplomatic challenges. Success depends on multilateral coordination and strategic resource allocation.\n\n**TACTICAL CONSIDERATIONS:** Military preparedness, alliance coordination, and diplomatic engagement remain critical factors. Intelligence gathering and strategic communication are essential for favorable outcomes.\n\n**RECOMMENDATIONS:** The provided recommendations represent established geopolitical best practices. For mission-critical decisions, consult with specialized military and diplomatic advisors familiar with current regional conditions."
       })
       
+      if (!skipRedirect) {
       toast({
         title: "Analysis Warning",
         description: "AI analysis unavailable. Showing basic recommendations. Redirecting to results...",
@@ -452,6 +699,7 @@ export default function PoliticalAdvisor() {
       
       // Redirect to View Results tab even with basic results
       setActiveTab("results")
+      }
     }
 
     setIsSimulating(false)
@@ -469,30 +717,16 @@ export default function PoliticalAdvisor() {
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-dark-text">GioAdvisor</h1>
-                <p className="text-sm text-dark-muted">Military Conflict Simulation Platform</p>
+                <p className="text-sm text-dark-muted">Military Intelligence BriefingPlatform</p>
               </div>
             </div>
             
-            <div className="hidden lg:flex items-center justify-center flex-1">
-              <div className="text-center">
-                <p className="text-lg font-semibold text-dark-text">Strategic Command Center</p>
-                <p className="text-xs text-dark-muted">Real-time military analysis & intelligence</p>
-              </div>
-            </div>
+            
             
             <div className="flex items-center justify-end space-x-4 flex-1">
-              <div className="hidden sm:flex items-center space-x-4 text-sm text-dark-muted">
-                <div className="flex items-center space-x-2">
-                  <Target className="w-4 h-4" />
-                  <span>Military Intelligence</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Shield className="w-4 h-4" />
-                  <span>Strategic Analysis</span>
-                </div>
-              </div>
+              
               <Badge variant="outline" className="border-flame text-flame bg-transparent text-sm px-3 py-1">
-                Beta v1.1
+                Beta v1.4
               </Badge>
             </div>
           </div>
@@ -500,7 +734,7 @@ export default function PoliticalAdvisor() {
       </header>
 
       <div className="container mx-auto px-6 py-8 pb-12 lg:pb-96 flex-1 overflow-y-auto">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-8">
           <TabsList className="grid w-full grid-cols-3 bg-dark-card border border-dark-border h-12">
             <TabsTrigger
               value="setup"
@@ -511,15 +745,17 @@ export default function PoliticalAdvisor() {
 
             <TabsTrigger
               value="results"
-              className="data-[state=active]:bg-flame data-[state=active]:text-white text-dark-text text-base"
+              disabled={!briefingData}
+              className="data-[state=active]:bg-flame data-[state=active]:text-white text-dark-text text-base disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              View Results
+              Intelligence Briefing
             </TabsTrigger>
             <TabsTrigger
               value="chat"
-              className="data-[state=active]:bg-flame data-[state=active]:text-white text-dark-text text-base"
+              disabled={!briefingData}
+              className="data-[state=active]:bg-flame data-[state=active]:text-white text-dark-text text-base disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Treaty Research
+              Intelligence Sources
             </TabsTrigger>
           </TabsList>
 
@@ -596,10 +832,11 @@ export default function PoliticalAdvisor() {
                   {selectedCountry && (
                     <div className="mt-4 p-4 bg-dark-border rounded-lg">
                       <h4 className="font-semibold text-dark-text mb-2 flex items-center space-x-2">
+                        <span>Your Country: </span>
                         <FlagIcon countryCode={selectedCountry} className="w-6 h-4" />
-                        <span>Country Profile</span>
+                        <span>{selectedCountry} </span>
                       </h4>
-                      <div className="space-y-2 text-sm">
+                      {/* <div className="space-y-2 text-sm">
                         <div className="flex justify-between items-center">
                           <span className="text-dark-muted">Military Strength:</span>
                           <div className="flex items-center space-x-2">
@@ -636,7 +873,7 @@ export default function PoliticalAdvisor() {
                             </span>
                           </div>
                         </div>
-                      </div>
+                      </div> */}
                     </div>
                   )}
                 </CardContent>
@@ -865,277 +1102,216 @@ export default function PoliticalAdvisor() {
               </Button>
               
               <Button
-                onClick={runSimulation}
-                disabled={!selectedCountry || !offensiveCountry || !defensiveCountry || !scenarioDetails.trim() || isSimulating}
+                onClick={generateBriefing}
+                disabled={!selectedCountry || !offensiveCountry || !defensiveCountry || !scenarioDetails.trim() || isGeneratingBriefing}
                 className="bg-flame hover:bg-flame/90 text-white px-8 py-3 text-base"
               >
-                {isSimulating ? (
+                {isGeneratingBriefing ? (
                   <>
                     <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                    AI Analysis in Progress...
+                    Generating Briefing...
                   </>
                 ) : (
                   <>
-                    <Play className="w-5 h-5 mr-2" />
-                    Run AI Political Analysis
+                    <FileText className="w-5 h-5 mr-2" />
+                    Generate Briefing
                   </>
                 )}
               </Button>
             </div>
           </TabsContent>
 
-          {/* Results Tab */}
-          <TabsContent value="results" className="flex-1 min-h-0 mt-4">
+          {/* Intelligence Sources Tab */}
+          <TabsContent value="chat" className="flex-1 min-h-0 mt-4">
             <div className="h-full overflow-y-auto">
-              {simulationResults ? (
-                <div className="grid gap-4 pb-4">
-                  {/* AI Summary */}
-                  {simulationResults.summary && (
+              <div className="flex items-center space-x-3 mb-6">
+                <Target className="w-6 h-6 text-flame" />
+                <h2 className="text-2xl font-bold text-dark-text">Intelligence Sources</h2>
+                    </div>
+
+              {ragMetadata?.ragGenerated ? (
+                <div className="space-y-6">
+                  {/* Main Intelligence Analysis Card */}
+                  <Card className="border-dark-border bg-dark-card">
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-lg font-bold text-dark-text">RAG Analysis Overview</h3>
+                    </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                        <div className="text-center p-4 bg-dark-border/20 rounded-lg">
+                          <div className="text-2xl font-bold text-flame">{ragMetadata.treatiesAnalyzed}</div>
+                          <div className="text-sm text-dark-muted mt-1">Treaties Analyzed</div>
+                          </div>
+                        <div className="text-center p-4 bg-dark-border/20 rounded-lg">
+                          <div className="text-sm font-bold text-flame">
+                            Faithfulness: {ragMetadata.ragasMetrics ? (ragMetadata.ragasMetrics.faithfulness * 100).toFixed(0) : 'N/A'}% 
+                            Relevancy: {ragMetadata.ragasMetrics ? (ragMetadata.ragasMetrics.answerRelevancy * 100).toFixed(0) : 'N/A'}%
+                        </div>
+                          <div className="text-sm text-dark-muted mt-1">RAGAS Metrics</div>
+                          </div>
+                        <div className="text-center p-4 bg-dark-border/20 rounded-lg">
+                          <div className="text-2xl font-bold text-flame">{(ragMetadata.processingTime / 1000).toFixed(1)}s</div>
+                          <div className="text-sm text-dark-muted mt-1">Processing Time</div>
+                    </div>
+                  </div>
+
+                      {/* AI Reasoning */}
+                      {ragMetadata.aiReasoning && (
+                        <div className="mb-6">
+                          <h4 className="text-md font-semibold text-dark-text mb-3">AI System Reasoning</h4>
+                          <div className="p-4 bg-dark-bg rounded-lg border border-dark-border">
+                            <p className="text-dark-muted text-sm leading-relaxed">{ragMetadata.aiReasoning}</p>
+                      </div>
+                    </div>
+                  )}
+
+                      {/* Legal Implications */}
+                      {ragMetadata.legalImplications && (
+                        <div className="mb-6">
+                          <h4 className="text-md font-semibold text-dark-text mb-3">Legal Implications</h4>
+                          <div className="p-4 bg-dark-bg rounded-lg border border-dark-border">
+                            <div 
+                              className="text-dark-muted text-sm leading-relaxed prose prose-sm prose-invert max-w-none"
+                              dangerouslySetInnerHTML={{
+                                __html: ragMetadata.legalImplications
+                                  .replace(/^### (.*$)/gm, '<h3 class="text-lg font-bold text-dark-text mb-2 mt-4">$1</h3>')
+                                  .replace(/^## (.*$)/gm, '<h2 class="text-xl font-bold text-dark-text mb-3 mt-4">$1</h2>')
+                                  .replace(/^# (.*$)/gm, '<h1 class="text-2xl font-bold text-dark-text mb-4 mt-4">$1</h1>')
+                                  .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                                  .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                                  .replace(/\n\n/g, '</p><p>')
+                                  .replace(/\n/g, '<br/>')
+                                  .replace(/^(.*)$/, '<p>$1</p>')
+                                  .replace(/<p><\/p>/g, '')
+                                  .replace(/^\d+\.\s/gm, '<strong>$&</strong>')
+                                  .replace(/^-\s/gm, '• ')
+                              }}
+                            />
+                </div>
+                        </div>
+                      )}
+              </CardContent>
+            </Card>
+
+                  {/* Retrieved Treaties */}
+                  {ragMetadata.retrievedTreaties && ragMetadata.retrievedTreaties.length > 0 && (
                     <Card className="border-dark-border bg-dark-card">
-                      <CardHeader className="bg-gradient-to-r from-flame/20 to-flame/10 py-3">
-                        <CardTitle className="flex items-center space-x-2 text-dark-text text-base">
-                          <Target className="w-4 h-4 text-flame" />
-                          <span>AI Analysis Summary</span>
-                        </CardTitle>
-                      </CardHeader>
                       <CardContent className="p-6">
-                        <div className="text-dark-text leading-relaxed text-sm space-y-4">
-                          {simulationResults.summary.split('\n\n').map((paragraph: string, index: number) => (
-                            <div key={index} className="space-y-2">
-                              {paragraph.includes('**') ? (
-                                <div dangerouslySetInnerHTML={{
-                                  __html: paragraph
-                                    .replace(/\*\*(.*?)\*\*/g, '<strong class="text-flame font-semibold">$1</strong>')
-                                    .replace(/\n/g, '<br />')
-                                }} />
-                              ) : (
-                                <p className="text-dark-muted">{paragraph}</p>
-                              )}
-                            </div>
+                        <h3 className="text-lg font-bold text-dark-text mb-4">Key Treaties Referenced</h3>
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                          {ragMetadata.retrievedTreaties.map((treaty: any, index: number) => (
+                            <Card key={index} className="bg-dark-bg border-dark-border">
+                      <CardContent className="p-4">
+                                <div className="flex items-start justify-between mb-2">
+                                  <h4 className="font-semibold text-dark-text text-sm leading-snug" title={treaty.title}>
+                                    {treaty.title}
+                                  </h4>
+
+                                </div>
+                                <p className="text-dark-muted text-xs mb-3 leading-relaxed">
+                                  <span className="font-medium">Relevance:</span> {treaty.relevance}
+                                </p>
+                                <div className="pt-2 border-t border-dark-border">
+                                  <a 
+                                    href={`https://www.google.com/search?q="${encodeURIComponent(treaty.title)}"+UN+treaty+filetype:pdf`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-flame hover:text-flame/80 text-xs font-medium underline flex items-center gap-1"
+                                  >
+                                    🔍 Search PDF
+                                  </a>
+                                </div>
+                      </CardContent>
+                    </Card>
                           ))}
                         </div>
                       </CardContent>
                     </Card>
                   )}
 
-                  {/* Key Metrics */}
-                  <div className="grid grid-cols-5 gap-3">
+                  {/* Legal Analysis Summary */}
+                  {briefingData?.legalAnalysis && (
                     <Card className="border-dark-border bg-dark-card">
-                      <CardContent className="p-4 text-center">
-                        <div className="text-2xl font-bold text-flame mb-1">{simulationResults.diplomaticResponse}%</div>
-                        <div className="text-xs text-dark-muted">Diplomatic Success</div>
-                        <Progress value={simulationResults.diplomaticResponse} className="mt-2" />
-                      </CardContent>
-                    </Card>
-
-                    <Card className="border-dark-border bg-dark-card">
-                      <CardContent className="p-4 text-center">
-                        <div className="text-2xl font-bold text-flame mb-1">{simulationResults.militaryReadiness}%</div>
-                        <div className="text-xs text-dark-muted">Military Readiness</div>
-                        <Progress value={simulationResults.militaryReadiness} className="mt-2" />
-                      </CardContent>
-                    </Card>
-
-                    <Card className="border-dark-border bg-dark-card">
-                      <CardContent className="p-4 text-center">
-                        <div className="text-2xl font-bold text-flame mb-1">{simulationResults.economicImpact}%</div>
-                        <div className="text-xs text-dark-muted">Economic Impact</div>
-                        <Progress value={Math.abs(simulationResults.economicImpact)} className="mt-2" />
-                      </CardContent>
-                    </Card>
-
-                    <Card className="border-dark-border bg-dark-card">
-                      <CardContent className="p-4 text-center">
-                        <div className="text-2xl font-bold text-flame mb-1">{simulationResults.publicSupport}%</div>
-                        <div className="text-xs text-dark-muted">Public Support</div>
-                        <Progress value={simulationResults.publicSupport} className="mt-2" />
-                      </CardContent>
-                    </Card>
-
-                    <Card className="border-dark-border bg-dark-card">
-                      <CardContent className="p-4 text-center">
-                        <div className="text-2xl font-bold text-flame mb-1">{simulationResults.allianceStrength}%</div>
-                        <div className="text-xs text-dark-muted">Alliance Strength</div>
-                        <Progress value={simulationResults.allianceStrength} className="mt-2" />
-                      </CardContent>
-                    </Card>
+                      <CardContent className="p-6">
+                        <h3 className="text-lg font-bold text-dark-text mb-4">Legal Framework Analysis</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          {briefingData.legalAnalysis.applicableTreaties && briefingData.legalAnalysis.applicableTreaties.length > 0 && (
+                            <div>
+                              <h4 className="font-semibold text-dark-text mb-2">Applicable Treaties</h4>
+                              <ul className="text-dark-muted text-sm space-y-1">
+                                {briefingData.legalAnalysis.applicableTreaties.map((treaty: string, index: number) => (
+                                  <li key={index} className="flex items-start">
+                                    <span className="text-flame mr-2">•</span>
+                                    {treaty}
+                                  </li>
+                                ))}
+                              </ul>
                   </div>
-
-                  {/* Recommendations */}
-                  <Card className="border-dark-border bg-dark-card">
-                    <CardHeader className="bg-gradient-to-r from-flame/20 to-flame/10 py-3">
-                      <CardTitle className="flex items-center space-x-2 text-dark-text text-base">
-                        <FileText className="w-4 h-4 text-flame" />
-                        <span>Strategic Recommendations</span>
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-4">
-                      <div className="space-y-3">
-                        {simulationResults.recommendations.map((rec: string, index: number) => (
-                          <div key={index} className="flex items-start space-x-3 p-3 bg-dark-border rounded-lg">
-                            <div className="w-5 h-5 bg-flame rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                              {index + 1}
+                          )}
+                          
+                          {briefingData.legalAnalysis.legalObligations && briefingData.legalAnalysis.legalObligations.length > 0 && (
+                            <div>
+                              <h4 className="font-semibold text-dark-text mb-2">Legal Obligations</h4>
+                              <ul className="text-dark-muted text-sm space-y-1">
+                                {briefingData.legalAnalysis.legalObligations.map((obligation: string, index: number) => (
+                                  <li key={index} className="flex items-start">
+                                    <span className="text-flame mr-2">•</span>
+                                    {obligation}
+                                  </li>
+                                ))}
+                              </ul>
                             </div>
-                            <p className="text-dark-text text-sm">{rec}</p>
+                          )}
+                          
+                          {briefingData.legalAnalysis.permissibleActions && briefingData.legalAnalysis.permissibleActions.length > 0 && (
+                            <div>
+                              <h4 className="font-semibold text-dark-text mb-2">Permissible Actions</h4>
+                              <ul className="text-dark-muted text-sm space-y-1">
+                                {briefingData.legalAnalysis.permissibleActions.map((action: string, index: number) => (
+                                  <li key={index} className="flex items-start">
+                                    <span className="text-green-500 mr-2">✓</span>
+                                    {action}
+                                  </li>
+                                ))}
+                              </ul>
+                      </div>
+                          )}
+                          
+                          {briefingData.legalAnalysis.constraints && briefingData.legalAnalysis.constraints.length > 0 && (
+                            <div>
+                              <h4 className="font-semibold text-dark-text mb-2">Legal Constraints</h4>
+                              <ul className="text-dark-muted text-sm space-y-1">
+                                {briefingData.legalAnalysis.constraints.map((constraint: string, index: number) => (
+                                  <li key={index} className="flex items-start">
+                                    <span className="text-red-500 mr-2">⚠</span>
+                                    {constraint}
+                                  </li>
+                                ))}
+                              </ul>
                           </div>
-                        ))}
+                          )}
                       </div>
                     </CardContent>
                   </Card>
-
-                  {/* Strategic Response Matrix */}
-                  <Card className="border-dark-border bg-dark-card">
-                    <CardHeader className="py-3">
-                      <CardTitle className="flex items-center space-x-2 text-dark-text text-base">
-                        <Target className="w-4 h-4 text-flame" />
-                        <span>Strategic Response Options</span>
-                      </CardTitle>
-                      <CardDescription className="text-dark-muted text-sm">
-                        Military response strategies ranked by effectiveness and risk
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="p-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {/* Diplomatic Response */}
-                        <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
-                          <div className="flex items-center justify-between mb-3">
-                            <div className="flex items-center space-x-2">
-                              <Users className="w-4 h-4 text-blue-400" />
-                              <span className="font-medium text-dark-text">Diplomatic Resolution</span>
-                            </div>
-                            <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">
-                              Recommended
-                            </Badge>
-                          </div>
-                          <p className="text-sm text-dark-muted mb-3">
-                            Negotiate through international channels, UN mediation, and multilateral talks.
-                          </p>
-                          <div className="grid grid-cols-2 gap-2 text-xs">
-                            <div className="bg-green-500/10 rounded p-2">
-                              <span className="text-green-400 font-medium">Pros:</span>
-                              <div className="text-dark-muted">• Low casualties</div>
-                              <div className="text-dark-muted">• Preserves alliances</div>
-                            </div>
-                            <div className="bg-red-500/10 rounded p-2">
-                              <span className="text-red-400 font-medium">Risks:</span>
-                              <div className="text-dark-muted">• Time-sensitive</div>
-                              <div className="text-dark-muted">• May show weakness</div>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Military Response */}
-                        <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4">
-                          <div className="flex items-center justify-between mb-3">
-                            <div className="flex items-center space-x-2">
-                              <Sword className="w-4 h-4 text-red-400" />
-                              <span className="font-medium text-dark-text">Military Action</span>
-                            </div>
-                            <Badge className="bg-red-500/20 text-red-400 border-red-500/30">
-                              High Risk
-                            </Badge>
-                          </div>
-                          <p className="text-sm text-dark-muted mb-3">
-                            Direct military intervention with allied support and strategic coordination.
-                          </p>
-                          <div className="grid grid-cols-2 gap-2 text-xs">
-                            <div className="bg-green-500/10 rounded p-2">
-                              <span className="text-green-400 font-medium">Pros:</span>
-                              <div className="text-dark-muted">• Decisive action</div>
-                              <div className="text-dark-muted">• Strong deterrent</div>
-                            </div>
-                            <div className="bg-red-500/10 rounded p-2">
-                              <span className="text-red-400 font-medium">Risks:</span>
-                              <div className="text-dark-muted">• High casualties</div>
-                              <div className="text-dark-muted">• Escalation risk</div>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Economic Response */}
-                        <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4">
-                          <div className="flex items-center justify-between mb-3">
-                            <div className="flex items-center space-x-2">
-                              <Globe className="w-4 h-4 text-yellow-400" />
-                              <span className="font-medium text-dark-text">Economic Pressure</span>
-                            </div>
-                            <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30">
-                              Moderate Risk
-                            </Badge>
-                          </div>
-                          <p className="text-sm text-dark-muted mb-3">
-                            Coordinated sanctions, trade restrictions, and financial pressure campaigns.
-                          </p>
-                          <div className="grid grid-cols-2 gap-2 text-xs">
-                            <div className="bg-green-500/10 rounded p-2">
-                              <span className="text-green-400 font-medium">Pros:</span>
-                              <div className="text-dark-muted">• Non-violent</div>
-                              <div className="text-dark-muted">• Broad support</div>
-                            </div>
-                            <div className="bg-red-500/10 rounded p-2">
-                              <span className="text-red-400 font-medium">Risks:</span>
-                              <div className="text-dark-muted">• Slow effects</div>
-                              <div className="text-dark-muted">• Economic blowback</div>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Alliance Response */}
-                        <div className="bg-purple-500/10 border border-purple-500/20 rounded-lg p-4">
-                          <div className="flex items-center justify-between mb-3">
-                            <div className="flex items-center space-x-2">
-                              <Shield className="w-4 h-4 text-purple-400" />
-                              <span className="font-medium text-dark-text">Coalition Building</span>
-                            </div>
-                            <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/30">
-                              Low Risk
-                            </Badge>
-                          </div>
-                          <p className="text-sm text-dark-muted mb-3">
-                            Mobilize international coalitions and strengthen defensive partnerships.
-                          </p>
-                          <div className="grid grid-cols-2 gap-2 text-xs">
-                            <div className="bg-green-500/10 rounded p-2">
-                              <span className="text-green-400 font-medium">Pros:</span>
-                              <div className="text-dark-muted">• Shared burden</div>
-                              <div className="text-dark-muted">• Legitimacy</div>
-                            </div>
-                            <div className="bg-red-500/10 rounded p-2">
-                              <span className="text-red-400 font-medium">Risks:</span>
-                              <div className="text-dark-muted">• Complex coordination</div>
-                              <div className="text-dark-muted">• Divided interests</div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Recommended Strategy */}
-                      <div className="mt-6 bg-gradient-to-r from-flame/20 to-flame/10 border border-flame/30 rounded-lg p-4">
-                        <div className="flex items-center space-x-2 mb-3">
-                          <Award className="w-5 h-5 text-flame" />
-                          <span className="font-semibold text-dark-text">AI Recommended Strategy</span>
-                        </div>
-                        <p className="text-sm text-dark-text leading-relaxed">
-                          🎯 <strong>Hybrid Strategy Recommended:</strong> Begin with diplomatic engagement while simultaneously building coalition support. Maintain economic pressure as leverage and keep military options in reserve. This multi-layered approach maximizes flexibility while minimizing escalation risks.
-                        </p>
-                      </div>
-                    </CardContent>
-                  </Card>
+                  )}
                 </div>
               ) : (
-                <Card className="border-dark-border bg-dark-card h-full flex items-center justify-center">
-                  <CardContent className="p-8 text-center">
-                    <div className="w-12 h-12 bg-dark-border rounded-full flex items-center justify-center mx-auto mb-4">
-                      <BarChart3 className="w-6 h-6 text-dark-muted" />
+                <Card className="border-dark-border bg-dark-card">
+                  <CardContent className="p-12 text-center">
+                    <div className="w-16 h-16 bg-dark-border rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Target className="w-8 h-8 text-dark-muted" />
                     </div>
-                    <h3 className="text-lg font-semibold text-dark-text mb-2">No Results Yet</h3>
-                    <p className="text-dark-muted mb-4 text-sm">Run a simulation to see detailed analysis and recommendations</p>
+                    <h3 className="text-xl font-semibold text-dark-text mb-2">No Intelligence Sources Available</h3>
+                    <p className="text-dark-muted mb-6">
+                      Generate a briefing to view detailed intelligence sources and treaty analysis
+                    </p>
                     <Button
                       variant="outline"
                       className="border-flame text-flame hover:bg-flame hover:text-white bg-transparent"
                       onClick={() => setActiveTab("setup")}
                     >
-                      Go to Setup
+                      Return to Setup
                     </Button>
                   </CardContent>
                 </Card>
@@ -1143,370 +1319,316 @@ export default function PoliticalAdvisor() {
             </div>
           </TabsContent>
 
-          {/* Treaty Research Tab */}
-          <TabsContent value="chat" className="flex-1 min-h-0 mt-4">
-            <Card className="border-dark-border bg-dark-card min-h-[50vh] lg:min-h-[600px] flex flex-col">
-              <CardHeader className="bg-gradient-to-r from-flame/20 to-flame/10 py-4 tight-v flex-shrink-0">
-                <CardTitle className="flex items-center space-x-3 text-dark-text text-lg">
-                  <FileText className="w-5 h-5 text-flame" />
-                  <span>Treaty Research & Analysis</span>
-                </CardTitle>
-                <CardDescription className="text-dark-muted text-base">
-                  Automatically displays treaties relevant to your scenario with utilization guidance
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="p-6 flex-1 min-h-0 flex flex-col">
-                {/* Treaty Database Statistics */}
-                {treatyStatistics && (
-                  <Card className="bg-dark-border mb-4 flex-shrink-0">
-                    <CardContent className="p-4">
-                      <h4 className="font-semibold text-dark-text mb-3 text-base">Treaty Database Overview</h4>
-                      <div className="grid md:grid-cols-3 gap-4 text-base">
-                        <div>
-                          <span className="text-dark-muted">Total Treaties: </span>
-                          <span className="text-flame font-medium">{treatyStatistics.totalTreaties}</span>
+          {/* Results Tab */}
+          <TabsContent value="results" className="flex-1 min-h-0 mt-4">
+            <div className="h-full overflow-y-auto">
+              <div className="flex items-center space-x-3 mb-6">
+                <File className="w-6 h-6 text-flame" />
+                <h2 className="text-2xl font-bold text-dark-text">Intelligence Briefing</h2>
                         </div>
-                        <div>
-                          <span className="text-dark-muted">Ancient Treaties: </span>
-                          <span className="text-dark-text font-medium">{treatyStatistics.ancientTreaties}</span>
-                        </div>
-                        <div>
-                          <span className="text-dark-muted">Modern Treaties: </span>
-                          <span className="text-dark-text font-medium">{treatyStatistics.modernTreaties}</span>
-                        </div>
-                      </div>
-                      {treatyStatistics.byType && (
-                        <div className="mt-3 pt-3 border-t border-dark-border">
-                          <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
-                            {Object.entries(treatyStatistics.byType).map(([type, count]) => (
-                              <div key={type}>
-                                <span className="text-dark-muted capitalize">{type}: </span>
-                                <span className="text-dark-text">{count as number}</span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                )}
 
-                {/* Current Scenario Context */}
-                {selectedCountry && conflictScenario && (
-                  <Card className="bg-dark-border mb-4 flex-shrink-0">
-                    <CardContent className="p-4">
-                      <h4 className="font-semibold text-dark-text mb-3 text-base">Current Scenario Context</h4>
-                      <div className="grid md:grid-cols-2 gap-4 text-base">
-                        <div>
-                          <span className="text-dark-muted">Your Country: </span>
-                          <span className="text-flame font-medium flex items-center gap-2">
-                            <FlagIcon countryCode={selectedCountry} className="w-6 h-4" />
-                            {countries.find(c => c.code === selectedCountry)?.name || selectedCountry}
+              {isGeneratingBriefing ? (
+                <Card className="border-dark-border bg-dark-card max-w-5xl mx-auto">
+                  <CardContent className="p-12 text-center">
+                    <div className="space-y-6">
+                      {/* Main Loading Animation */}
+                      <div className="w-24 h-24 bg-flame/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-flame"></div>
+                        </div>
+
+                      {/* Progress Title */}
+                      <h3 className="text-2xl font-bold text-dark-text mb-4">
+                        Generating RAG Intelligence Briefing
+                      </h3>
+
+                      {/* Progress Steps */}
+                      <div className="space-y-4 max-w-2xl mx-auto">
+                        {[
+                          "Loading treaty database (643 documents)",
+                          "Processing scenario context and parameters", 
+                          "Generating semantic embeddings",
+                          "Retrieved relevant treaties",
+                          "Analyzing legal implications",
+                          "Generating strategic options"
+                        ].map((stepName, index) => {
+                          const isCompleted = currentProgressStep > index
+                          const isActive = currentProgressStep === index
+                          const isPending = currentProgressStep < index
+                          
+                          return (
+                            <div key={index} className={`flex items-center space-x-3 p-3 rounded-lg transition-all duration-500 ${
+                              isActive ? 'bg-flame/20 border border-flame/30' : 
+                              isCompleted ? 'bg-green-500/20 border border-green-500/30' :
+                              'bg-dark-bg border border-dark-border'
+                            }`}>
+                              <div className={`w-3 h-3 rounded-full transition-all duration-500 ${
+                                isActive ? 'animate-pulse bg-flame' :
+                                isCompleted ? 'bg-green-500' :
+                                'bg-dark-muted'
+                              }`}></div>
+                              <span className={`font-medium transition-all duration-500 ${
+                                isActive ? 'text-flame' :
+                                isCompleted ? 'text-green-400' :
+                                'text-dark-muted'
+                              }`}>
+                                {stepName}
                           </span>
+                              {isActive && (
+                                <div className="ml-auto flex items-center space-x-2">
+                                  <div className="w-4 h-4 border-2 border-flame border-t-transparent rounded-full animate-spin"></div>
+                                  <span className="text-flame text-xs font-medium">Processing...</span>
                         </div>
-                        <div>
-                          <span className="text-dark-muted">Scenario: </span>
-                          <span className="text-dark-text font-medium">{conflictScenario}</span>
-                        </div>
-                        {offensiveCountry && (
-                          <div>
-                            <span className="text-dark-muted">Parties: </span>
-                            <span className="text-dark-text font-medium flex items-center gap-2">
-                              <FlagIcon countryCode={offensiveCountry} className="w-6 h-4" />
-                              {countries.find(c => c.code === offensiveCountry)?.name || offensiveCountry}
-                              {defensiveCountry && (
-                                <>
-                                  <span className="text-dark-muted">vs</span>
-                                  <FlagIcon countryCode={defensiveCountry} className="w-6 h-4" />
-                                  {countries.find(c => c.code === defensiveCountry)?.name || defensiveCountry}
-                                </>
                               )}
-                            </span>
+                              {isCompleted && (
+                                <div className="ml-auto">
+                                  <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+                                    <div className="w-2 h-2 text-white text-xs">✓</div>
                           </div>
-                        )}
                       </div>
-                    </CardContent>
-                  </Card>
-                )}
-
-                {/* Search Results or Empty State */}
-                <div className="flex-1 bg-dark-bg rounded-lg p-4 mb-4 overflow-y-auto min-h-0">
-                  {!treatyResults && !isLoadingTreaties && (!conflictScenario || !offensiveCountry || !defensiveCountry) ? (
-                    <div className="h-full flex items-center justify-center text-center text-dark-muted">
-                      <div>
-                        <Settings className="w-10 h-10 mx-auto mb-4 opacity-50" />
-                        <p className="mb-3 font-medium text-base">Automatic Treaty Analysis</p>
-                        <p className="text-base mb-4">Treaties will automatically appear when you complete your scenario setup.</p>
-                        <p className="text-sm text-dark-muted mb-3">Go to the <span className="text-flame font-medium">Setup</span> tab and configure:</p>
-                        <div className="space-y-1 text-sm text-dark-muted">
-                          <div>• Conflict type and details</div>
-                          <div>• Aggressor and victim countries</div>
-                          <div>• Timeline and severity</div>
+                              )}
                         </div>
+                          )
+                        })}
                       </div>
+
+                      {/* Progress Bar */}
+                      <div className="w-full bg-dark-border rounded-full h-2 mt-8">
+                        <div 
+                          className="bg-flame h-2 rounded-full transition-all duration-1000 ease-out"
+                          style={{width: `${Math.min(((currentProgressStep + 1) / 6) * 100, 100)}%`}}
+                        ></div>
                     </div>
-                  ) : isLoadingTreaties ? (
-                    <div className="h-full flex items-center justify-center text-center text-dark-muted">
-                      <div>
-                        <Loader2 className="w-8 h-8 mx-auto mb-3 text-flame animate-spin" />
-                        <p className="text-base">Analyzing scenario and loading relevant treaties...</p>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      {/* Search Results Header */}
-                      {treatyResults?.treaties && treatyResults.treaties.length > 0 && (
-                        <div className="space-y-3">
-                          <div className="flex items-center justify-between">
-                            <h5 className="font-semibold text-dark-text">
-                              {treatyResults.metadata?.autoGenerated ? 
-                                `${treatyResults.treaties?.length || 0} Treaties Directly Related to Your Scenario` : 
-                                `Found ${treatyResults.treaties?.length || 0} Relevant Treaties`
-                              }
-                              {treatyResults.metadata?.mutualTreaties > 0 && (
-                                <span className="text-green-600 ml-2">
-                                  ({treatyResults.metadata.mutualTreaties} mutual)
+                      
+                      {/* Step Counter */}
+                      <div className="text-center mt-2">
+                        <span className="text-flame font-medium text-sm">
+                          Step {currentProgressStep + 1} of 6
                                 </span>
-                              )}
-                              {treatyResults.treaties?.filter((t: any) => t.participation?.signingStatus === 'aggressor_only').length > 0 && (
-                                <span className="text-red-600 ml-2">
-                                  ({treatyResults.treaties?.filter((t: any) => t.participation?.signingStatus === 'aggressor_only').length || 0} aggressor only)
-                                </span>
-                              )}
-                              {treatyResults.treaties?.filter((t: any) => t.participation?.signingStatus === 'victim_only').length > 0 && (
-                                <span className="text-blue-600 ml-2">
-                                  ({treatyResults.treaties?.filter((t: any) => t.participation?.signingStatus === 'victim_only').length || 0} victim only)
-                                </span>
-                              )}
-                            </h5>
-                            <div className="flex items-center space-x-2">
-                              {treatyResults.metadata?.autoGenerated ? (
-                                <Badge className="bg-blue-500 text-white text-sm">
-                                  Auto-Generated
-                                </Badge>
-                              ) : (
-                                <Badge variant="outline" className="border-flame text-flame bg-transparent text-sm">
-                                  {treatyResults.metadata?.searchQuery}
-                                </Badge>
-                              )}
-                              {treatyResults.metadata?.scenarioContext && (
-                                <Badge variant="outline" className="border-green-500 text-green-500 bg-transparent text-sm">
-                                  Scenario Optimized
-                                </Badge>
-                              )}
-                            </div>
                           </div>
                           
-                          {treatyResults.metadata?.autoGenerated && (
-                            <div className="bg-blue-950 border border-blue-200 rounded-lg p-3">
-                              <p className="text-sm text-white-800">
-                                <span className="font-semibold">Intelligent Analysis:</span> These treaties were automatically identified based on your current scenario: 
-                                <span className="font-medium">{conflictScenario}</span> involving <span className="font-medium">{countries.find(c => c.code === selectedCountry)?.name}</span>
-                                {offensiveCountry && <span>, <span className="font-medium">{countries.find(c => c.code === offensiveCountry)?.name}</span></span>}
-                                {defensiveCountry && <span>, and <span className="font-medium">{countries.find(c => c.code === defensiveCountry)?.name}</span></span>}.
-                                {treatyResults.metadata?.mutualTreaties > 0 && (
-                                  <span className="block mt-1">
-                                    <span className="font-semibold text-green-700">Priority:</span> Treaties where both parties are signatories are shown first, 
-                                    as they carry the strongest legal obligations and enforcement mechanisms.
-                                  </span>
-                                )}
-                                {treatyResults.treaties?.some((t: any) => t.participation?.signingStatus?.includes('_only')) && (
-                                  <span className="block mt-1">
-                                    <span className="font-semibold text-orange-700">Strategic Opportunities:</span> Treaties signed by only one party create leverage points - 
-                                    use aggressor obligations for accountability or victim protections for international support.
-                                  </span>
-                                )}
+                      {/* Estimated Time */}
+                      <p className="text-dark-muted text-sm mt-4">
+                        ⏱️ Estimated processing time: 30-60 seconds
+                      </p>
+                      <p className="text-dark-muted text-xs">
+                        Please remain on this page while the AI analyzes international treaties
                               </p>
                             </div>
-                          )}
-                        </div>
-                      )}
-
-                      {/* Treaty Results */}
-                      {treatyResults?.treaties && treatyResults.treaties.length > 0 ? (
-                        <div className="grid gap-4">
-                          {treatyResults.treaties?.map((treaty: any, index: number) => (
-                            <div key={index} className={`bg-dark-card border p-4 rounded-lg hover:border-flame/50 transition-colors ${
-                              treaty.participation?.bothPartiesSigned ? 'border-green-500/50 bg-green-500/5' : 
-                              treaty.participation?.signingStatus === 'aggressor_only' ? 'border-red-500/50 bg-red-500/5' :
-                              treaty.participation?.signingStatus === 'victim_only' ? 'border-blue-500/50 bg-blue-500/5' :
-                              'border-dark-border'
-                            }`}>
-                              <div className="flex items-start justify-between mb-3">
-                                <div className="flex-1">
-                                  <div className="flex items-center space-x-2 mb-2">
-                                    <Badge variant="outline" className="border-flame text-flame bg-transparent text-xs">
-                                      {treaty.type}
+                  </CardContent>
+                </Card>
+              ) : briefingData ? (
+                <Card className="border-dark-border bg-dark-card max-w-5xl mx-auto">
+                  <CardContent className="p-8">
+                    {/* Briefing Header */}
+                    <div className="text-center mb-8 border-b border-dark-border pb-6">
+                      <div className="flex justify-between items-start mb-4">
+                        <Badge variant="outline" className="border-flame text-flame bg-transparent text-xs font-mono">
+                          {briefingData.classification}
                                     </Badge>
-                                    {treaty.year && (
-                                      <span className="text-xs text-dark-muted bg-dark-bg px-2 py-1 rounded">
-                                        {treaty.year}
-                                      </span>
-                                    )}
-                                    {treaty.participation?.bothPartiesSigned && (
-                                      <Badge className="bg-green-500 text-white text-xs">
-                                        Both Parties Signed
-                                      </Badge>
-                                    )}
-                                    {treaty.participation?.signingStatus === 'aggressor_only' && (
-                                      <Badge className="bg-red-500 text-white text-xs">
-                                        Aggressor Only
-                                      </Badge>
-                                    )}
-                                    {treaty.participation?.signingStatus === 'victim_only' && (
-                                      <Badge className="bg-blue-500 text-white text-xs">
-                                        Victim Only
-                                      </Badge>
-                                    )}
-                                    {treaty.relevanceScore > 0.7 && !treaty.participation?.bothPartiesSigned && !treaty.participation?.signingStatus?.includes('_only') && (
-                                      <Badge className="bg-purple-500 text-white text-xs">
-                                        High Relevance
-                                      </Badge>
-                                    )}
+                        <div className="text-right text-dark-muted text-sm font-mono">
+                          <p>{briefingData.date}</p>
+                          <p>{briefingData.author}</p>
                                   </div>
-                                  <p className="text-base text-dark-text leading-relaxed">{treaty.content}</p>
                                 </div>
+                      <h3 className="text-lg font-bold text-dark-text mb-2 text-left font-mono">
+                        {briefingData.title}
+                      </h3>
                               </div>
 
-                              {/* Country Signing Status */}
-                              {treaty.participation && (offensiveCountry || defensiveCountry) && (
-                                <div className={`mt-3 p-3 border rounded-lg ${
-                                  treaty.participation.bothPartiesSigned ? 'bg-green-950' :
-                                  treaty.participation.signingStatus === 'aggressor_only' ? 'bg-green-950' :
-                                  treaty.participation.signingStatus === 'victim_only' ? 'bg-green-950' :
-                                  'bg-green-950'
-                                }`}>
-                                  <div className="flex items-center justify-between mb-2">
-                                    <h6 className="font-semibold text-dark-text text-sm">Signing Status:</h6>
-                                    {treaty.participation.signingStatus === 'aggressor_only' && (
-                                      <Badge className="bg-red-100 text-red-800 text-xs">
-                                        Strategic Leverage
-                                      </Badge>
-                                    )}
-                                    {treaty.participation.signingStatus === 'victim_only' && (
-                                      <Badge className="bg-blue-100 text-blue-800 text-xs">
-                                        Protection Rights
-                                      </Badge>
-                                    )}
-                                    {treaty.participation.bothPartiesSigned && (
-                                      <Badge className="bg-green-100 text-green-800 text-xs">
-                                        Mutual Obligations
-                                      </Badge>
-                                    )}
-                                  </div>
-                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
-                                    {offensiveCountry && (
-                                      <div className="flex items-center space-x-2">
-                                        <span className="font-medium text-red-600">
-                                          {countries.find(c => c.code === offensiveCountry)?.name || offensiveCountry} (Aggressor):
-                                        </span>
-                                        <span className={treaty.participation.offensiveCountrySigned ? 'text-green-600 font-medium' : 'text-red-600'}>
-                                          {treaty.participation.offensiveCountrySigned ? '✓ Signed' : '✗ Not Signed'}
-                                        </span>
-                                      </div>
-                                    )}
-                                    {defensiveCountry && (
-                                      <div className="flex items-center space-x-2">
-                                        <span className="font-medium text-blue-600">
-                                          {countries.find(c => c.code === defensiveCountry)?.name || defensiveCountry} (Victim):
-                                        </span>
-                                        <span className={treaty.participation.defensiveCountrySigned ? 'text-green-600 font-medium' : 'text-red-600'}>
-                                          {treaty.participation.defensiveCountrySigned ? '✓ Signed' : '✗ Not Signed'}
-                                        </span>
-                                      </div>
-                                    )}
-                                  </div>
-                                  {treaty.participation.totalParties > 0 && (
-                                    <div className="mt-2 text-xs text-gray-600">
-                                      Total parties to this treaty: {treaty.participation.totalParties}
-                                    </div>
-                                  )}
-                                  
-                                  {/* Strategic Implications */}
-                                  {treaty.participation.signingStatus === 'aggressor_only' && (
-                                    <div className="mt-2 p-2 bg-red-100 border border-red-200 rounded text-xs">
-                                      <span className="font-semibold text-red-800">Strategic Implication:</span>
-                                      <span className="text-red-700"> The aggressor has treaty obligations that can be leveraged for accountability and pressure.</span>
-                                    </div>
-                                  )}
-                                  {treaty.participation.signingStatus === 'victim_only' && (
-                                    <div className="mt-2 p-2 bg-blue-100 border border-blue-200 rounded text-xs">
-                                      <span className="font-semibold text-blue-800">Strategic Implication:</span>
-                                      <span className="text-blue-700"> The victim has treaty protections and rights that can be invoked for international support.</span>
-                                    </div>
-                                  )}
-                                </div>
-                              )}
 
-                              {/* Violation Consequences */}
-                              {treatyResults.violationConsequences && treatyResults.violationConsequences[treaty.id] && (
-                                <div className="mt-4 p-3 bg-red-950  rounded-lg">
-                                  <div className="flex items-start space-x-2">
-                                    <div className="w-5 h-5 bg-red-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                                      <span className="text-white text-xs font-bold">⚠</span>
-                                    </div>
-                                    <div>
-                                      <h6 className="font-semibold text-white text-sm mb-1">Consequences of Violation:</h6>
-                                      <p className="text-sm text-white leading-relaxed">{treatyResults.violationConsequences[treaty.id]}</p>
-                                    </div>
+
+                    {/* Brief Introduction */}
+                    <div className="mb-6 font-mono text-sm">
+                      <p className="text-dark-text leading-relaxed text-justify">
+                        The following intelligence assessment identifies four critical factors (a-d) requiring immediate policy consideration regarding the current crisis situation:
+                      </p>
                                   </div>
-                                </div>
-                              )}
-                              
-                              {/* Utilization Guidance */}
-                              {treatyResults.utilizationGuidance && treatyResults.utilizationGuidance[treaty.id] && (
-                                <div className="mt-4 p-3 bg-flame/10 border border-flame/20 rounded-lg">
-                                  <div className="flex items-start space-x-2">
-                                    <div className="w-5 h-5 bg-flame rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                                      <span className="text-white text-xs font-bold">💡</span>
-                                    </div>
-                                    <div>
-                                      <h6 className="font-semibold text-dark-text text-sm mb-1">How to Utilize in This Scenario:</h6>
-                                      <p className="text-sm text-dark-text leading-relaxed">{treatyResults.utilizationGuidance[treaty.id]}</p>
-                                    </div>
-                                  </div>
-                                </div>
-                              )}
-                              
-                              {treaty.parties && treaty.parties.length > 0 && (
-                                <div className="text-sm text-dark-muted mt-3 pt-3 border-t border-dark-border">
-                                  <span className="font-medium">All Parties:</span> {Array.isArray(treaty.parties) ? treaty.parties.join(', ') : treaty.parties}
-                                </div>
-                              )}
-                              <div className="text-xs text-dark-muted mt-2">
-                                <span className="font-medium">Section:</span> {treaty.section}
-                              </div>
-                            </div>
+
+                    {/* Intelligence Assessment Header */}
+                    <div className="mb-4 font-mono">
+                      <h4 className="text-md font-bold text-dark-text underline">INTELLIGENCE ASSESSMENT</h4>
+                                      </div>
+
+                    {/* Briefing Sections */}
+                    <div className="space-y-6 mb-8 font-mono text-sm">
+                      <div className="text-dark-text leading-relaxed">
+                        <div className="space-y-4 ml-6">
+                          {briefingData.sections.map((section: any, index: number) => (
+                            <div key={index} className="flex text-justify">
+                              <span className="font-bold mr-3 min-w-[30px] flex-shrink-0">{section.point}</span>
+                              <p className="leading-relaxed">
+                                {section.content}
+                              </p>
+                                      </div>
                           ))}
-                        </div>
-                      ) : (
-                        <div className="text-center py-8">
-                          <FileText className="w-8 h-8 mx-auto mb-3 text-dark-muted opacity-50" />
-                          <p className="text-dark-muted">No treaties found matching your search. Try different keywords.</p>
-                        </div>
-                      )}
+                                  </div>
+                                    </div>
 
-                      {!treatyResults && treatyResults !== null && (
-                        <div className="text-center py-8">
-                          <FileText className="w-8 h-8 mx-auto mb-3 text-dark-muted opacity-50" />
-                          <p className="text-dark-muted">No relevant treaties found for this scenario configuration.</p>
-                        </div>
+                      {/* Strategic Assessment Header */}
+                      <div className="mt-8 pt-6 border-t border-dark-border">
+                        <div className="mb-4 font-mono">
+                          <h4 className="text-md font-bold text-dark-text underline">STRATEGIC ASSESSMENT</h4>
+                                    </div>
+                        <p className="text-dark-text leading-relaxed text-justify mb-6">
+                          {briefingData.conclusion}
+                        </p>
+                                    </div>
+
+                      {/* Recommended Actions Header */}
+                      <div className="mt-6">
+                        <div className="mb-4 font-mono">
+                          <h4 className="text-md font-bold text-dark-text underline">RECOMMENDED ACTIONS</h4>
+                                    </div>
+                        <div className="space-y-4">
+                          {briefingData.recommendations.map((rec: string, index: number) => (
+                            <div key={index} className="flex text-justify">
+                              <span className="font-bold mr-3 min-w-[30px] flex-shrink-0">({index + 1})</span>
+                              <p className="text-dark-text leading-relaxed">
+                                {rec}
+                              </p>
+                                    </div>
+                          ))}
+                                  </div>
+                                </div>
+
+                      {/* Final Recommendation */}
+                      {briefingData.finalRecommendation && (
+                        <div className="mt-8 pt-6 border-t border-dark-border">
+                          <div className="mb-4 font-mono">
+                            <h4 className="text-md font-bold text-dark-text underline">PRIORITY RECOMMENDATION</h4>
+                                    </div>
+                          <p className="text-dark-text leading-relaxed text-justify font-medium">
+                            {briefingData.finalRecommendation}
+                          </p>
+                                    </div>
                       )}
+                                  </div>
+
+                    {/* Signature Block */}
+                    <div className="mt-8 pt-6 border-t border-dark-border text-right font-mono">
+                      <p className="text-dark-muted text-sm">
+                        {briefingData.author}
+                      </p>
+                      <p className="text-dark-muted text-xs mt-1">
+                        Generated: {new Date().toLocaleTimeString()}
+                      </p>
+                                </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex justify-center space-x-4 mt-8 pt-6 border-t border-dark-border">
+                      <Button
+                        variant="outline"
+                        className="border-flame text-flame hover:bg-flame hover:text-white bg-transparent"
+                        onClick={() => {
+                          const printWindow = window.open('', '_blank')
+                          if (printWindow) {
+                            printWindow.document.write(`
+                              <html>
+                                <head>
+                                  <title>Intelligence Briefing</title>
+                                  <style>
+                                    body { font-family: 'Courier New', monospace; margin: 2cm; line-height: 1.8; font-size: 12px; }
+                                    .classification { float: left; font-weight: bold; font-size: 10px; }
+                                    .date { float: right; font-size: 10px; }
+                                    .title { font-weight: bold; margin: 2em 0 1em 0; font-size: 14px; }
+                                    .section { margin: 1em 0; text-align: justify; }
+                                    .point { font-weight: bold; display: inline-block; width: 30px; vertical-align: top; }
+                                    .conclusion { margin: 2em 0; text-align: justify; }
+                                    .recommendations { margin: 1em 0; }
+                                    .signature { text-align: right; margin-top: 3em; font-size: 10px; }
+                                  </style>
+                                </head>
+                                <body>${briefingData ? `
+                                  <div class="classification">${briefingData.classification}</div>
+                                  <div class="date">${briefingData.date}<br/>${briefingData.author}</div>
+                                  <div style="clear: both;"></div>
+                                  <div class="title">${briefingData.title}</div>
+                                  ${briefingData.sections.map((s: any) => `
+                                    <div class="section">
+                                      <span class="point">${s.point}</span>${s.content}
+                                </div>
+                                  `).join('')}
+                                  <div class="conclusion">${briefingData.conclusion}</div>
+                                  <p><strong>Therefore it seems to me a more aggressive action is indicated than any heretofore considered, and should be patterned along the following lines:</strong></p>
+                                  <div class="recommendations">
+                                    ${briefingData.recommendations.map((r: string, i: number) => `
+                                      <div class="section">
+                                        <span class="point">(${i + 1})</span>${r}
+                              </div>
+                                    `).join('')}
+                            </div>
+                                  <div class="signature">
+                                    <p>${briefingData.author}</p>
+                                    <p>Generated: ${new Date().toLocaleString()}</p>
+                        </div>
+                                ` : ''}</body>
+                              </html>
+                            `)
+                            printWindow.document.close()
+                            printWindow.print()
+                          }
+                        }}
+                      >
+                        <FileText className="w-4 h-4 mr-2" />
+                        Print Briefing
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="border-flame text-flame hover:bg-flame hover:text-white bg-transparent"
+                        onClick={() => {
+                          const briefingText = `
+${briefingData.classification}
+${briefingData.date}
+
+${briefingData.title}
+
+${briefingData.sections.map((s: any) => `${s.point} ${s.content}`).join('\n\n')}
+
+${briefingData.conclusion}
+
+Therefore it seems to me a more aggressive action is indicated than any heretofore considered, and should be patterned along the following lines:
+
+${briefingData.recommendations.map((r: string, i: number) => `(${i + 1}) ${r}`).join('\n\n')}
+
+${briefingData.author}
+Generated: ${new Date().toLocaleString()}
+                          `
+                          navigator.clipboard.writeText(briefingText.trim())
+                          toast({
+                            title: "Briefing Copied",
+                            description: "The briefing text has been copied to your clipboard.",
+                            variant: "default",
+                          })
+                        }}
+                      >
+                        <Copy className="w-4 h-4 mr-2" />
+                        Copy Text
+                      </Button>
+                        </div>
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card className="border-dark-border bg-dark-card">
+                  <CardContent className="p-12 text-center">
+                    <div className="w-16 h-16 bg-dark-border rounded-full flex items-center justify-center mx-auto mb-4">
+                      <File className="w-8 h-8 text-dark-muted" />
                     </div>
-                  )}
-                </div>
-
-                {/* Automatic Intelligence Notice */}
-                {treatyResults?.treaties && treatyResults.treaties.length > 0 && (
-                  <div className="flex-shrink-0 bg-blue-50 border border-blue-200 rounded-lg p-3">
-                    <p className="text-sm text-blue-800 text-center">
-                      <span className="font-semibold">🤖 Automatic Intelligence:</span> These treaties were intelligently selected based on your scenario.
-                      Mutual treaties (both parties signed) appear first for maximum legal leverage.
+                    <h3 className="text-xl font-semibold text-dark-text mb-2">No Briefing Generated</h3>
+                    <p className="text-dark-muted mb-6">
+                      Complete a simulation and generate an intelligence briefing for formal documentation
                     </p>
-                  </div>
-                )}
+                    <Button
+                      variant="outline"
+                      className="border-flame text-flame hover:bg-flame hover:text-white bg-transparent"
+                      onClick={generateBriefing}
+                      disabled={!simulationResults}
+                    >
+                      Generate Briefing Document
+                    </Button>
               </CardContent>
             </Card>
+              )}
+            </div>
           </TabsContent>
         </Tabs>
       </div>

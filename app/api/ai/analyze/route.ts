@@ -92,7 +92,7 @@ For the summary, provide a comprehensive analysis that includes:
 
     // Call OpenAI API
     const completion = await openai.chat.completions.create({
-      model: "gpt-4",
+      model: "gpt-4o",
       messages: [
         {
           role: "system",
@@ -105,6 +105,7 @@ For the summary, provide a comprehensive analysis that includes:
       ],
       temperature: 0.7,
       max_tokens: 2000,
+      response_format: { type: "json_object" }
     })
 
     const response = completion.choices[0]?.message?.content
@@ -112,12 +113,24 @@ For the summary, provide a comprehensive analysis that includes:
       throw new Error("No response from OpenAI")
     }
 
-    // Parse the JSON response
+    // Clean and parse the JSON response
     let analysisResult
     try {
-      analysisResult = JSON.parse(response)
+      // Clean the response - extract JSON from the response
+      let cleanedResponse = response.trim()
+      
+      // Find the first { and last } to extract just the JSON
+      const firstBrace = cleanedResponse.indexOf('{')
+      const lastBrace = cleanedResponse.lastIndexOf('}')
+      
+      if (firstBrace !== -1 && lastBrace !== -1 && firstBrace < lastBrace) {
+        cleanedResponse = cleanedResponse.substring(firstBrace, lastBrace + 1)
+      }
+      
+      analysisResult = JSON.parse(cleanedResponse)
     } catch (parseError) {
       console.error("Failed to parse OpenAI response:", response)
+      console.error("Parse error details:", parseError)
       throw new Error("Invalid JSON response from OpenAI")
     }
 

@@ -1,5 +1,5 @@
 import type React from "react"
-import type { Metadata } from "next"
+import type { Metadata, Viewport } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
 import { Toaster } from "@/components/ui/toaster"
@@ -13,8 +13,13 @@ export const metadata: Metadata = {
     shortcut: '/favicon.ico'
   },
   keywords: ["military simulation", "conflict analysis", "warfare strategy", "military planning", "geopolitics", "defense strategy"],
-    generator: 'v0.dev',
-  viewport: 'width=device-width, initial-scale=1, maximum-scale=1'
+  generator: 'v0.dev',
+}
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
 }
 
 export default function RootLayout({

@@ -110,7 +110,7 @@ export class RAGASEvaluator {
     }
   }
 
-  private async calculateFaithfulness(answer: string, context: string[]): Promise<number> {
+  async calculateFaithfulness(answer: string, context: string[]): Promise<number> {
     // Check if the answer is grounded in the retrieved context
     const prompt = `Rate the faithfulness of this answer based on the provided context. Faithfulness measures whether the answer is grounded in and supported by the given context.
 
@@ -143,7 +143,7 @@ Respond with only a number between 0.0 and 1.0.`
     }
   }
 
-  private async calculateAnswerRelevancy(question: string, answer: string): Promise<number> {
+  async calculateAnswerRelevancy(question: string, answer: string): Promise<number> {
     // Check if the answer is relevant to the question
     const prompt = `Rate the relevancy of this answer to the given question. Answer relevancy measures how well the answer addresses the specific question asked.
 
@@ -176,7 +176,7 @@ Respond with only a number between 0.0 and 1.0.`
     }
   }
 
-  private calculateContextPrecision(retrieved: string[], expected: string[]): number {
+  calculateContextPrecision(retrieved: string[], expected: string[]): number {
     if (retrieved.length === 0) return 0
     
     let relevantCount = 0
@@ -192,7 +192,7 @@ Respond with only a number between 0.0 and 1.0.`
     return relevantCount / retrieved.length
   }
 
-  private calculateContextRecall(retrieved: string[], expected: string[]): number {
+  calculateContextRecall(retrieved: string[], expected: string[]): number {
     if (expected.length === 0) return 1
     
     let foundCount = 0
