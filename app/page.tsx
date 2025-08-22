@@ -8,13 +8,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Progress } from "@/components/ui/progress"
 import { Slider } from "@/components/ui/slider"
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { useToast } from "@/hooks/use-toast"
 import { FlagIcon } from "@/components/ui/flag-icon"
+import { useIsMobile } from "@/components/ui/use-mobile"
 
 export default function PoliticalAdvisor() {
   const [selectedCountry, setSelectedCountry] = useState("")
@@ -27,6 +30,7 @@ export default function PoliticalAdvisor() {
   const [simulationResults, setSimulationResults] = useState<any>(null)
   const [isSimulating, setIsSimulating] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const isMobile = useIsMobile()
   
   // Briefing state
   const [briefingData, setBriefingData] = useState<any>(null)
@@ -56,6 +60,19 @@ export default function PoliticalAdvisor() {
   const [offensiveCountryOpen, setOffensiveCountryOpen] = useState(false)
   const [defensiveCountryOpen, setDefensiveCountryOpen] = useState(false)
   
+  // Mobile search states
+  const [selectedCountrySearch, setSelectedCountrySearch] = useState("")
+  const [offensiveCountrySearch, setOffensiveCountrySearch] = useState("")
+  const [defensiveCountrySearch, setDefensiveCountrySearch] = useState("")
+
+  // Filter countries based on search
+  const filterCountries = (searchTerm: string, excludeCountries: string[] = []) => {
+    return countries.filter(country => 
+      !excludeCountries.includes(country.code) &&
+      country.name.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+  }
+  
   // Economic factors sliders
   const [tradeDependencies, setTradeDependencies] = useState([50])
   const [sanctionsImpact, setSanctionsImpact] = useState([50])
@@ -72,6 +89,202 @@ export default function PoliticalAdvisor() {
   const [publicOpinion, setPublicOpinion] = useState([50])
   
   const { toast } = useToast()
+
+  // Example questions that auto-fill all fields
+  const exampleQuestions = [
+    {
+      title: "Russia-Ukraine Escalation",
+      description: "Analysis of potential Russian naval expansion",
+      selectedCountry: "UA",
+      offensiveCountry: "RU",
+      defensiveCountry: "UA",
+      conflictScenario: "Naval Expansion",
+      scenarioDetails: "Russia attempts to expand naval control in the Black Sea region, potentially blocking Ukrainian grain exports and challenging NATO naval presence.",
+      severityLevel: "high",
+      timeFrame: "long",
+      tradeDependencies: 75,
+      sanctionsImpact: 85,
+      marketStability: 30,
+      defenseCapabilities: 65,
+      allianceSupport: 90,
+      strategicResources: 55
+    },
+    {
+      title: "China-Taiwan Strait Crisis",
+      description: "Potential Taiwan Strait military confrontation",
+      selectedCountry: "TW",
+      offensiveCountry: "CN",
+      defensiveCountry: "TW",
+      conflictScenario: "Territorial Dispute",
+      scenarioDetails: "Chinese military conducts large-scale exercises around Taiwan, escalating tensions and prompting international naval responses in the Taiwan Strait.",
+      severityLevel: "extreme",
+      timeFrame: "medium",
+      tradeDependencies: 90,
+      sanctionsImpact: 95,
+      marketStability: 20,
+      defenseCapabilities: 70,
+      allianceSupport: 85,
+      strategicResources: 80
+    },
+    {
+      title: "Israel-Iran Proxy Conflict",
+      description: "Regional escalation through proxy forces",
+      selectedCountry: "IL",
+      offensiveCountry: "IR",
+      defensiveCountry: "IL",
+      conflictScenario: "Proxy Warfare",
+      scenarioDetails: "Iran-backed militias launch coordinated attacks across multiple fronts while Iran threatens direct military intervention if Israel responds.",
+      severityLevel: "high",
+      timeFrame: "medium",
+      tradeDependencies: 60,
+      sanctionsImpact: 70,
+      marketStability: 40,
+      defenseCapabilities: 85,
+      allianceSupport: 80,
+      strategicResources: 65
+    },
+    {
+      title: "India-Pakistan Border Conflict",
+      description: "Kashmir region military escalation",
+      selectedCountry: "IN",
+      offensiveCountry: "PK",
+      defensiveCountry: "IN",
+      conflictScenario: "Border Conflict",
+      scenarioDetails: "Pakistan-backed militants cross the Line of Control, prompting Indian military response and raising nuclear escalation concerns.",
+      severityLevel: "extreme",
+      timeFrame: "immediate",
+      tradeDependencies: 45,
+      sanctionsImpact: 50,
+      marketStability: 35,
+      defenseCapabilities: 80,
+      allianceSupport: 60,
+      strategicResources: 70
+    },
+    {
+      title: "North Korea Nuclear Escalation",
+      description: "DPRK missile program advancement",
+      selectedCountry: "KR",
+      offensiveCountry: "KP",
+      defensiveCountry: "KR",
+      conflictScenario: "Nuclear Threat",
+      scenarioDetails: "North Korea conducts ICBM tests and threatens preemptive nuclear strikes against South Korea and US military bases in the region.",
+      severityLevel: "extreme",
+      timeFrame: "immediate",
+      tradeDependencies: 35,
+      sanctionsImpact: 60,
+      marketStability: 25,
+      defenseCapabilities: 75,
+      allianceSupport: 95,
+      strategicResources: 50
+    },
+    {
+      title: "Turkey-Greece Aegean Dispute",
+      description: "Maritime boundaries and energy exploration",
+      selectedCountry: "GR",
+      offensiveCountry: "TR",
+      defensiveCountry: "GR",
+      conflictScenario: "Resource Conflict",
+      scenarioDetails: "Turkey sends drilling ships into disputed Aegean waters claimed by Greece, escalating maritime tensions within NATO alliance.",
+      severityLevel: "medium",
+      timeFrame: "long",
+      tradeDependencies: 55,
+      sanctionsImpact: 40,
+      marketStability: 60,
+      defenseCapabilities: 65,
+      allianceSupport: 70,
+      strategicResources: 75
+    },
+    {
+      title: "Azerbaijan-Armenia Renewed Conflict",
+      description: "Nagorno-Karabakh territorial dispute",
+      selectedCountry: "AM",
+      offensiveCountry: "AZ",
+      defensiveCountry: "AM",
+      conflictScenario: "Territorial Dispute",
+      scenarioDetails: "Azerbaijan launches military operations to secure remaining disputed territories, potentially drawing in regional powers Russia and Turkey.",
+      severityLevel: "high",
+      timeFrame: "medium",
+      tradeDependencies: 30,
+      sanctionsImpact: 35,
+      marketStability: 45,
+      defenseCapabilities: 50,
+      allianceSupport: 65,
+      strategicResources: 40
+    },
+    {
+      title: "Japan-China Maritime Tensions",
+      description: "Senkaku/Diaoyu Islands dispute escalation",
+      selectedCountry: "JP",
+      offensiveCountry: "CN",
+      defensiveCountry: "JP",
+      conflictScenario: "Maritime Dispute",
+      scenarioDetails: "Chinese coast guard and naval vessels increase presence around disputed islands, prompting Japanese military response and US alliance activation.",
+      severityLevel: "medium",
+      timeFrame: "long",
+      tradeDependencies: 85,
+      sanctionsImpact: 75,
+      marketStability: 50,
+      defenseCapabilities: 80,
+      allianceSupport: 90,
+      strategicResources: 60
+    },
+    {
+      title: "Ethiopia-Egypt Nile Dam Crisis",
+      description: "Water rights and infrastructure dispute",
+      selectedCountry: "EG",
+      offensiveCountry: "ET",
+      defensiveCountry: "EG",
+      conflictScenario: "Resource Conflict",
+      scenarioDetails: "Ethiopia begins filling the Grand Renaissance Dam without agreement, threatening Egypt's water security and prompting military posturing.",
+      severityLevel: "medium",
+      timeFrame: "long",
+      tradeDependencies: 40,
+      sanctionsImpact: 30,
+      marketStability: 55,
+      defenseCapabilities: 60,
+      allianceSupport: 45,
+      strategicResources: 85
+    },
+    {
+      title: "Venezuela-Guyana Border Dispute",
+      description: "Essequibo territory and oil resources",
+      selectedCountry: "GY",
+      offensiveCountry: "VE",
+      defensiveCountry: "GY",
+      conflictScenario: "Resource Conflict",
+      scenarioDetails: "Venezuela mobilizes forces near Essequibo region following major oil discoveries, challenging Guyana's territorial claims and threatening energy investments.",
+      severityLevel: "medium",
+      timeFrame: "long",
+      tradeDependencies: 25,
+      sanctionsImpact: 45,
+      marketStability: 65,
+      defenseCapabilities: 35,
+      allianceSupport: 55,
+      strategicResources: 90
+    }
+  ]
+
+  // Function to apply example question
+  const applyExampleQuestion = (example: typeof exampleQuestions[0]) => {
+    setSelectedCountry(example.selectedCountry)
+    setOffensiveCountry(example.offensiveCountry)
+    setDefensiveCountry(example.defensiveCountry)
+    setConflictScenario(example.conflictScenario)
+    setScenarioDetails(example.scenarioDetails)
+    setSeverityLevel(example.severityLevel)
+    setTimeFrame(example.timeFrame)
+    setTradeDependencies([example.tradeDependencies])
+    setSanctionsImpact([example.sanctionsImpact])
+    setMarketStability([example.marketStability])
+    setDefenseCapabilities([example.defenseCapabilities])
+    setAllianceSupport([example.allianceSupport])
+    setStrategicResources([example.strategicResources])
+    
+    toast({
+      title: "Example Applied!",
+      description: `"${example.title}" scenario has been loaded into all fields.`,
+    })
+  }
 
   // Automatically load relevant treaties based on scenario
   const loadRelevantTreaties = async () => {
@@ -710,10 +923,10 @@ export default function PoliticalAdvisor() {
     <div className="bg-dark-bg text-dark-text h-dvh flex flex-col">
       {/* Header */}
       <header className="border-b border-dark-border bg-dark-card/80 backdrop-blur-sm">
-        <div className="container mx-auto px-6 py-4">
+        <div className="container mx-auto px-3 sm:px-6 py-3 sm:py-4">
           <div className="flex items-center justify-center w-full">
-            <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 rounded-lg flex items-center justify-center overflow-hidden">
+            <div className="flex items-center space-x-3 sm:space-x-4">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center overflow-hidden">
                 <Image 
                   src="/gioadvisor.png" 
                   alt="GioAdvisor Logo" 
@@ -723,8 +936,8 @@ export default function PoliticalAdvisor() {
                 />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-dark-text">GioAdvisor</h1>
-                <p className="text-sm text-dark-muted">Military Intelligence Briefing Platform</p>
+                <h1 className="text-xl sm:text-2xl font-bold text-dark-text">GioAdvisor</h1>
+                <p className="text-xs sm:text-sm text-dark-muted">Military Intelligence Briefing Platform</p>
               </div>
             </div>
             
@@ -740,37 +953,51 @@ export default function PoliticalAdvisor() {
         </div>
       </header>
 
-      <div className="container mx-auto px-6 py-8 pb-12 lg:pb-96 flex-1 overflow-y-auto">
+      <div className="container mx-auto px-3 sm:px-6 py-4 sm:py-8 pb-8 sm:pb-12 lg:pb-96 flex-1 overflow-y-auto">
         <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-8">
-          <TabsList className="grid w-full grid-cols-3 bg-dark-card border border-dark-border h-12">
+          <TabsList className="grid w-full grid-cols-3 bg-dark-card border border-dark-border h-10 sm:h-12">
             <TabsTrigger
               value="setup"
-              className="data-[state=active]:bg-flame data-[state=active]:text-white text-dark-text text-base"
+              className="data-[state=active]:bg-flame data-[state=active]:text-white text-dark-text text-xs sm:text-base px-1 sm:px-3"
             >
-              Setup Simulation
+              <div className="flex items-center justify-center gap-1 sm:gap-2">
+                <Settings className="w-3 h-3 sm:w-4 sm:h-4" />
+                <span className="hidden xxs:inline xs:hidden">Setup</span>
+                <span className="hidden xs:inline sm:hidden">Setup</span>
+                <span className="hidden sm:inline">Setup Simulation</span>
+              </div>
             </TabsTrigger>
 
             <TabsTrigger
               value="results"
               disabled={!briefingData}
-              className="data-[state=active]:bg-flame data-[state=active]:text-white text-dark-text text-base disabled:opacity-50 disabled:cursor-not-allowed"
+              className="data-[state=active]:bg-flame data-[state=active]:text-white text-dark-text text-xs sm:text-base disabled:opacity-50 disabled:cursor-not-allowed px-1 sm:px-3"
             >
-              Intelligence Briefing
+              <div className="flex items-center justify-center gap-1 sm:gap-2">
+                <FileText className="w-3 h-3 sm:w-4 sm:h-4" />
+                <span className="hidden xs:inline sm:hidden">Briefing</span>
+                <span className="hidden sm:inline">Intelligence Briefing</span>
+              </div>
             </TabsTrigger>
             <TabsTrigger
               value="chat"
               disabled={!briefingData}
-              className="data-[state=active]:bg-flame data-[state=active]:text-white text-dark-text text-base disabled:opacity-50 disabled:cursor-not-allowed"
+              className="data-[state=active]:bg-flame data-[state=active]:text-white text-dark-text text-xs sm:text-base disabled:opacity-50 disabled:cursor-not-allowed px-1 sm:px-3"
             >
-              Intelligence Sources
+              <div className="flex items-center justify-center gap-1 sm:gap-2">
+                <Target className="w-3 h-3 sm:w-4 sm:h-4" />
+                <span className="hidden xs:inline sm:hidden">Sources</span>
+                <span className="hidden sm:inline">Intelligence Sources</span>
+              </div>
             </TabsTrigger>
           </TabsList>
 
                     {/* Setup Tab */}
           <TabsContent value="setup" className="space-y-8">
-            <div className="grid md:grid-cols-2 gap-6">
-              {/* Country Selection */}
-              <Card className="border-dark-border bg-dark-card h-fit">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Country Selection with Examples */}
+              <div className="space-y-6">
+                <Card className="border-dark-border bg-dark-card">
                 <CardHeader className="bg-gradient-to-r from-flame/20 to-flame/10 py-4 tight-v">
                   <CardTitle className="flex items-center space-x-3 text-dark-text text-lg">
                     <Users className="w-5 h-5 text-flame" />
@@ -781,64 +1008,108 @@ export default function PoliticalAdvisor() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="p-6">
-                  <Popover open={selectedCountryOpen} onOpenChange={setSelectedCountryOpen}>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        role="combobox"
-                        aria-expanded={selectedCountryOpen}
-                        className="w-full justify-between bg-dark-bg border-dark-border text-dark-text hover:bg-dark-border hover:text-dark-text"
-                      >
-                        {selectedCountry ? (
-                          <div className="flex items-center space-x-2">
-                            <FlagIcon countryCode={selectedCountry} className="w-6 h-4" />
-                            <span>{countries.find((c) => c.code === selectedCountry)?.name}</span>
-                          </div>
-                        ) : (
-                          "Choose a country..."
-                        )}
-                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-[400px] p-0 bg-dark-card border-dark-border">
-                      <Command className="bg-dark-card">
-                        <CommandInput placeholder="Search countries..." className="text-dark-text" />
-                        <CommandList>
-                          <CommandEmpty>No country found.</CommandEmpty>
-                          <CommandGroup>
-                            {countries.map((country) => (
-                              <CommandItem
-                                key={country.code}
-                                value={`${country.name} ${country.code}`}
-                                onSelect={() => {
-                                  // If selecting a country that's currently the offensive country, clear it
-                                  if (country.code === offensiveCountry) {
-                                    setOffensiveCountry("")
-                                  }
-                                  setSelectedCountry(country.code)
-                                  setSelectedCountryOpen(false)
-                                }}
-                                className="text-dark-text hover:bg-dark-border"
-                              >
-                                <div className="flex items-center space-x-3 w-full">
-                                  <FlagIcon countryCode={country.code} className="w-6 h-4" />
-                                  <span className="flex-1">{country.name}</span>
-                                  <Badge variant="secondary" className="bg-dark-border text-dark-text">
-                                    Power: {country.power}
-                                  </Badge>
-                                  <Check
-                                    className={`ml-2 h-4 w-4 ${
-                                      selectedCountry === country.code ? "opacity-100" : "opacity-0"
-                                    }`}
-                                  />
-                                </div>
-                              </CommandItem>
-                            ))}
-                          </CommandGroup>
-                        </CommandList>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
+                  {isMobile ? (
+                    // Mobile: Native select with search
+                    <div className="space-y-3">
+                      <Input
+                        placeholder="Search countries..."
+                        value={selectedCountrySearch}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSelectedCountrySearch(e.target.value)}
+                        className="bg-dark-bg border-dark-border text-dark-text h-12 text-base"
+                      />
+                      <div className="relative">
+                        <select
+                          value={selectedCountry}
+                          onChange={(e) => {
+                            const value = e.target.value
+                            // If selecting a country that's currently the offensive country, clear it
+                            if (value === offensiveCountry) {
+                              setOffensiveCountry("")
+                            }
+                            setSelectedCountry(value)
+                            setSelectedCountrySearch("") // Clear search after selection
+                          }}
+                          className="w-full h-12 px-3 bg-dark-bg border border-dark-border text-dark-text rounded-md text-base appearance-none focus:outline-none focus:ring-2 focus:ring-flame focus:border-transparent"
+                        >
+                          <option value="" disabled>Choose a country...</option>
+                          {filterCountries(selectedCountrySearch, []).map((country) => (
+                            <option key={country.code} value={country.code}>
+                              {country.name} (Power: {country.power})
+                            </option>
+                          ))}
+                        </select>
+                        <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                          <ChevronsUpDown className="h-4 w-4 text-dark-muted" />
+                        </div>
+                      </div>
+                      {selectedCountry && (
+                        <div className="flex items-center space-x-2 text-sm text-dark-text bg-dark-border p-2 rounded">
+                          <FlagIcon countryCode={selectedCountry} className="w-5 h-3" />
+                          <span>Selected: {countries.find((c) => c.code === selectedCountry)?.name}</span>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    // Desktop: Custom searchable dropdown
+                    <Popover open={selectedCountryOpen} onOpenChange={setSelectedCountryOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          aria-expanded={selectedCountryOpen}
+                          className="w-full justify-between bg-dark-bg border-dark-border text-dark-text hover:bg-dark-border hover:text-dark-text h-10 text-base px-4"
+                        >
+                          {selectedCountry ? (
+                            <div className="flex items-center space-x-2">
+                              <FlagIcon countryCode={selectedCountry} className="w-6 h-4" />
+                              <span>{countries.find((c) => c.code === selectedCountry)?.name}</span>
+                            </div>
+                          ) : (
+                            "Choose a country..."
+                          )}
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[400px] p-0 bg-dark-card border-dark-border">
+                        <Command className="bg-dark-card">
+                          <CommandInput placeholder="Search countries..." className="text-dark-text" />
+                          <CommandList>
+                            <CommandEmpty>No country found.</CommandEmpty>
+                            <CommandGroup>
+                              {countries.map((country) => (
+                                <CommandItem
+                                  key={country.code}
+                                  value={`${country.name} ${country.code}`}
+                                  onSelect={() => {
+                                    // If selecting a country that's currently the offensive country, clear it
+                                    if (country.code === offensiveCountry) {
+                                      setOffensiveCountry("")
+                                    }
+                                    setSelectedCountry(country.code)
+                                    setSelectedCountryOpen(false)
+                                  }}
+                                  className="text-dark-text hover:bg-dark-border"
+                                >
+                                  <div className="flex items-center space-x-3 w-full">
+                                    <FlagIcon countryCode={country.code} className="w-6 h-4" />
+                                    <span className="flex-1">{country.name}</span>
+                                    <Badge variant="secondary" className="bg-dark-border text-dark-text">
+                                      Power: {country.power}
+                                    </Badge>
+                                    <Check
+                                      className={`ml-2 h-4 w-4 ${
+                                        selectedCountry === country.code ? "opacity-100" : "opacity-0"
+                                      }`}
+                                    />
+                                  </div>
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                  )}
 
                   {selectedCountry && (
                     <div className="mt-4 p-4 bg-dark-border rounded-lg">
@@ -887,8 +1158,75 @@ export default function PoliticalAdvisor() {
                       </div> */}
                     </div>
                   )}
+
+                  {/* Example Questions Carousel */}
+                  <div className="mt-6">
+                    <div className="mb-4">
+                      <h4 className="flex items-center space-x-2 text-dark-text text-base font-semibold mb-2">
+                        <FileText className="w-4 h-4 text-blue-400" />
+                        <span>Example Scenarios</span>
+                      </h4>
+                      <p className="text-dark-muted text-sm">
+                        Click any example to automatically fill all simulation fields
+                      </p>
+                    </div>
+                    <Carousel className="w-full">
+                      <CarouselContent className="-ml-2 md:-ml-4">
+                        {exampleQuestions.map((example, index) => (
+                          <CarouselItem key={index} className="pl-2 md:pl-4 basis-full sm:basis-1/2 lg:basis-1/3">
+                            <Card 
+                              className="h-full bg-dark-bg border-dark-border hover:border-blue-400/50 transition-colors cursor-pointer"
+                              onClick={() => applyExampleQuestion(example)}
+                            >
+                              <CardContent className="p-4 h-full flex flex-col">
+                                <div className="flex items-start justify-between mb-2">
+                                  <Badge 
+                                    variant="secondary" 
+                                    className={`text-xs ${
+                                      example.severityLevel === 'extreme' ? 'bg-red-500/20 text-red-400' :
+                                      example.severityLevel === 'high' ? 'bg-orange-500/20 text-orange-400' :
+                                      'bg-yellow-500/20 text-yellow-400'
+                                    }`}
+                                  >
+                                    {example.severityLevel === 'extreme' ? 'Critical' : 
+                                     example.severityLevel === 'high' ? 'High' : 
+                                     example.severityLevel === 'medium' ? 'Medium' : 'Low'}
+                                  </Badge>
+                                  <div className="flex items-center space-x-1">
+                                    <FlagIcon countryCode={example.selectedCountry} className="w-4 h-3" />
+                                    <span className="text-xs text-dark-muted">vs</span>
+                                    <FlagIcon countryCode={example.offensiveCountry} className="w-4 h-3" />
+                                  </div>
+                                </div>
+                                
+                                <h3 className="font-semibold text-dark-text text-sm mb-1 line-clamp-2">
+                                  {example.title}
+                                </h3>
+                                
+                                <p className="text-xs text-dark-muted mb-3 line-clamp-2 flex-1">
+                                  {example.description}
+                                </p>
+                                
+                                                              <div className="flex items-center justify-between text-xs">
+                                <span className="text-blue-400 font-medium">{example.conflictScenario}</span>
+                                <span className="text-dark-muted">
+                                  {example.timeFrame === 'immediate' ? '24h' :
+                                   example.timeFrame === 'short' ? '1 week' :
+                                   example.timeFrame === 'medium' ? '1 month' : '6+ months'}
+                                </span>
+                              </div>
+                              </CardContent>
+                            </Card>
+                          </CarouselItem>
+                        ))}
+                      </CarouselContent>
+                      <CarouselPrevious className="text-dark-text border-dark-border hover:bg-dark-border" />
+                      <CarouselNext className="text-dark-text border-dark-border hover:bg-dark-border" />
+                    </Carousel>
+                  </div>
                 </CardContent>
-              </Card>
+                </Card>
+              </div>
 
               {/* Military Conflict Scenario */}
               <Card className="border-dark-border bg-dark-card min-h-[400px] flex flex-col">
@@ -911,62 +1249,104 @@ export default function PoliticalAdvisor() {
                         <Sword className="w-5 h-5 mr-2 text-flame" />
                         Attacking Military Force
                       </label>
-                      <Popover open={offensiveCountryOpen} onOpenChange={setOffensiveCountryOpen}>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            role="combobox"
-                            aria-expanded={offensiveCountryOpen}
-                            className="w-full justify-between bg-dark-bg border-dark-border text-dark-text hover:bg-dark-border hover:text-dark-text"
-                          >
-                            {offensiveCountry ? (
-                              <div className="flex items-center space-x-2">
-                                <FlagIcon countryCode={offensiveCountry} className="w-6 h-4" />
-                                <span>{countries.find((c) => c.code === offensiveCountry)?.name}</span>
-                              </div>
-                            ) : (
-                              "Select aggressor..."
-                            )}
-                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-[350px] p-0 bg-dark-card border-dark-border">
-                          <Command className="bg-dark-card">
-                            <CommandInput placeholder="Search countries..." className="text-dark-text" />
-                            <CommandList>
-                              <CommandEmpty>No country found.</CommandEmpty>
-                              <CommandGroup>
-                                {countries.map((country) => (
-                                  <CommandItem
-                                    key={country.code}
-                                    value={`${country.name} ${country.code}`}
-                                    disabled={country.code === defensiveCountry || country.code === selectedCountry}
-                                    onSelect={() => {
-                                      if (country.code !== defensiveCountry && country.code !== selectedCountry) {
-                                        setOffensiveCountry(country.code)
-                                        setOffensiveCountryOpen(false)
-                                      }
-                                    }}
-                                    className={`text-dark-text hover:bg-dark-border ${
-                                      (country.code === defensiveCountry || country.code === selectedCountry) ? "opacity-50 cursor-not-allowed" : ""
-                                    }`}
-                                  >
-                                    <div className="flex items-center space-x-2 w-full">
-                                      <FlagIcon countryCode={country.code} className="w-6 h-4" />
-                                      <span className="flex-1">{country.name}</span>
-                                      <Check
-                                        className={`ml-2 h-4 w-4 ${
-                                          offensiveCountry === country.code ? "opacity-100" : "opacity-0"
-                                        }`}
-                                      />
-                                    </div>
-                                  </CommandItem>
-                                ))}
-                              </CommandGroup>
-                            </CommandList>
-                          </Command>
-                        </PopoverContent>
-                      </Popover>
+                      {isMobile ? (
+                        // Mobile: Native select with search
+                        <div className="space-y-3">
+                          <Input
+                            placeholder="Search countries..."
+                            value={offensiveCountrySearch}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setOffensiveCountrySearch(e.target.value)}
+                            className="bg-dark-bg border-dark-border text-dark-text h-12 text-base"
+                          />
+                          <div className="relative">
+                            <select
+                              value={offensiveCountry}
+                              onChange={(e) => {
+                                const value = e.target.value
+                                if (value !== defensiveCountry && value !== selectedCountry) {
+                                  setOffensiveCountry(value)
+                                  setOffensiveCountrySearch("") // Clear search after selection
+                                }
+                              }}
+                              className="w-full h-12 px-3 bg-dark-bg border border-dark-border text-dark-text rounded-md text-base appearance-none focus:outline-none focus:ring-2 focus:ring-flame focus:border-transparent"
+                            >
+                              <option value="" disabled>Select aggressor...</option>
+                              {filterCountries(offensiveCountrySearch, [defensiveCountry, selectedCountry]).map((country) => (
+                                <option key={country.code} value={country.code}>
+                                  {country.name}
+                                </option>
+                              ))}
+                            </select>
+                            <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                              <ChevronsUpDown className="h-4 w-4 text-dark-muted" />
+                            </div>
+                          </div>
+                          {offensiveCountry && (
+                            <div className="flex items-center space-x-2 text-sm text-dark-text bg-dark-border p-2 rounded">
+                              <FlagIcon countryCode={offensiveCountry} className="w-5 h-3" />
+                              <span>Aggressor: {countries.find((c) => c.code === offensiveCountry)?.name}</span>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        // Desktop: Custom searchable dropdown
+                        <Popover open={offensiveCountryOpen} onOpenChange={setOffensiveCountryOpen}>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              role="combobox"
+                              aria-expanded={offensiveCountryOpen}
+                              className="w-full justify-between bg-dark-bg border-dark-border text-dark-text hover:bg-dark-border hover:text-dark-text h-10 text-base px-4"
+                            >
+                              {offensiveCountry ? (
+                                <div className="flex items-center space-x-2">
+                                  <FlagIcon countryCode={offensiveCountry} className="w-6 h-4" />
+                                  <span>{countries.find((c) => c.code === offensiveCountry)?.name}</span>
+                                </div>
+                              ) : (
+                                "Select aggressor..."
+                              )}
+                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-[350px] p-0 bg-dark-card border-dark-border">
+                            <Command className="bg-dark-card">
+                              <CommandInput placeholder="Search countries..." className="text-dark-text" />
+                              <CommandList>
+                                <CommandEmpty>No country found.</CommandEmpty>
+                                <CommandGroup>
+                                  {countries.map((country) => (
+                                    <CommandItem
+                                      key={country.code}
+                                      value={`${country.name} ${country.code}`}
+                                      disabled={country.code === defensiveCountry || country.code === selectedCountry}
+                                      onSelect={() => {
+                                        if (country.code !== defensiveCountry && country.code !== selectedCountry) {
+                                          setOffensiveCountry(country.code)
+                                          setOffensiveCountryOpen(false)
+                                        }
+                                      }}
+                                      className={`text-dark-text hover:bg-dark-border ${
+                                        (country.code === defensiveCountry || country.code === selectedCountry) ? "opacity-50 cursor-not-allowed" : ""
+                                      }`}
+                                    >
+                                      <div className="flex items-center space-x-2 w-full">
+                                        <FlagIcon countryCode={country.code} className="w-6 h-4" />
+                                        <span className="flex-1">{country.name}</span>
+                                        <Check
+                                          className={`ml-2 h-4 w-4 ${
+                                            offensiveCountry === country.code ? "opacity-100" : "opacity-0"
+                                          }`}
+                                        />
+                                      </div>
+                                    </CommandItem>
+                                  ))}
+                                </CommandGroup>
+                              </CommandList>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
+                      )}
                     </div>
 
                     <div>
@@ -974,69 +1354,111 @@ export default function PoliticalAdvisor() {
                         <Shield className="w-5 h-5 mr-2 text-flame" />
                         Defending Military Force
                       </label>
-                      <Popover open={defensiveCountryOpen} onOpenChange={setDefensiveCountryOpen}>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            role="combobox"
-                            aria-expanded={defensiveCountryOpen}
-                            className="w-full justify-between bg-dark-bg border-dark-border text-dark-text hover:bg-dark-border hover:text-dark-text"
-                          >
-                            {defensiveCountry ? (
-                              <div className="flex items-center space-x-2">
-                                <FlagIcon countryCode={defensiveCountry} className="w-6 h-4" />
-                                <span>{countries.find((c) => c.code === defensiveCountry)?.name}</span>
-                              </div>
-                            ) : (
-                              "Select defender..."
-                            )}
-                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-[350px] p-0 bg-dark-card border-dark-border">
-                          <Command className="bg-dark-card">
-                            <CommandInput placeholder="Search countries..." className="text-dark-text" />
-                            <CommandList>
-                              <CommandEmpty>No country found.</CommandEmpty>
-                              <CommandGroup>
-                                {countries.map((country) => (
-                                  <CommandItem
-                                    key={country.code}
-                                    value={`${country.name} ${country.code}`}
-                                    disabled={country.code === offensiveCountry}
-                                    onSelect={() => {
-                                      if (country.code !== offensiveCountry) {
-                                        setDefensiveCountry(country.code)
-                                        setDefensiveCountryOpen(false)
-                                      }
-                                    }}
-                                    className={`text-dark-text hover:bg-dark-border ${
-                                      country.code === offensiveCountry ? "opacity-50 cursor-not-allowed" : ""
-                                    }`}
-                                  >
-                                    <div className="flex items-center space-x-2 w-full">
-                                      <FlagIcon countryCode={country.code} className="w-6 h-4" />
-                                      <span className="flex-1">{country.name}</span>
-                                      <Check
-                                        className={`ml-2 h-4 w-4 ${
-                                          defensiveCountry === country.code ? "opacity-100" : "opacity-0"
-                                        }`}
-                                      />
-                                    </div>
-                                  </CommandItem>
-                                ))}
-                              </CommandGroup>
-                            </CommandList>
-                          </Command>
-                        </PopoverContent>
-                      </Popover>
+                      {isMobile ? (
+                        // Mobile: Native select with search
+                        <div className="space-y-3">
+                          <Input
+                            placeholder="Search countries..."
+                            value={defensiveCountrySearch}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDefensiveCountrySearch(e.target.value)}
+                            className="bg-dark-bg border-dark-border text-dark-text h-12 text-base"
+                          />
+                          <div className="relative">
+                            <select
+                              value={defensiveCountry}
+                              onChange={(e) => {
+                                const value = e.target.value
+                                if (value !== offensiveCountry) {
+                                  setDefensiveCountry(value)
+                                  setDefensiveCountrySearch("") // Clear search after selection
+                                }
+                              }}
+                              className="w-full h-12 px-3 bg-dark-bg border border-dark-border text-dark-text rounded-md text-base appearance-none focus:outline-none focus:ring-2 focus:ring-flame focus:border-transparent"
+                            >
+                              <option value="" disabled>Select defender...</option>
+                              {filterCountries(defensiveCountrySearch, [offensiveCountry]).map((country) => (
+                                <option key={country.code} value={country.code}>
+                                  {country.name}
+                                </option>
+                              ))}
+                            </select>
+                            <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                              <ChevronsUpDown className="h-4 w-4 text-dark-muted" />
+                            </div>
+                          </div>
+                          {defensiveCountry && (
+                            <div className="flex items-center space-x-2 text-sm text-dark-text bg-dark-border p-2 rounded">
+                              <FlagIcon countryCode={defensiveCountry} className="w-5 h-3" />
+                              <span>Defender: {countries.find((c) => c.code === defensiveCountry)?.name}</span>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        // Desktop: Custom searchable dropdown
+                        <Popover open={defensiveCountryOpen} onOpenChange={setDefensiveCountryOpen}>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              role="combobox"
+                              aria-expanded={defensiveCountryOpen}
+                              className="w-full justify-between bg-dark-bg border-dark-border text-dark-text hover:bg-dark-border hover:text-dark-text h-10 text-base px-4"
+                            >
+                              {defensiveCountry ? (
+                                <div className="flex items-center space-x-2">
+                                  <FlagIcon countryCode={defensiveCountry} className="w-6 h-4" />
+                                  <span>{countries.find((c) => c.code === defensiveCountry)?.name}</span>
+                                </div>
+                              ) : (
+                                "Select defender..."
+                              )}
+                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-[350px] p-0 bg-dark-card border-dark-border">
+                            <Command className="bg-dark-card">
+                              <CommandInput placeholder="Search countries..." className="text-dark-text" />
+                              <CommandList>
+                                <CommandEmpty>No country found.</CommandEmpty>
+                                <CommandGroup>
+                                  {countries.map((country) => (
+                                    <CommandItem
+                                      key={country.code}
+                                      value={`${country.name} ${country.code}`}
+                                      disabled={country.code === offensiveCountry}
+                                      onSelect={() => {
+                                        if (country.code !== offensiveCountry) {
+                                          setDefensiveCountry(country.code)
+                                          setDefensiveCountryOpen(false)
+                                        }
+                                      }}
+                                      className={`text-dark-text hover:bg-dark-border ${
+                                        country.code === offensiveCountry ? "opacity-50 cursor-not-allowed" : ""
+                                      }`}
+                                    >
+                                      <div className="flex items-center space-x-2 w-full">
+                                        <FlagIcon countryCode={country.code} className="w-6 h-4" />
+                                        <span className="flex-1">{country.name}</span>
+                                        <Check
+                                          className={`ml-2 h-4 w-4 ${
+                                            defensiveCountry === country.code ? "opacity-100" : "opacity-0"
+                                          }`}
+                                        />
+                                      </div>
+                                    </CommandItem>
+                                  ))}
+                                </CommandGroup>
+                              </CommandList>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
+                      )}
                     </div>
                   </div>
 
                   <div>
                     <label className="text-base font-medium text-dark-text mb-3 block">Military Scenario Details</label>
                     <Textarea
-                      placeholder="Describe your military conflict scenario in detail. Include specific military actions, weapons, forces, or tactical elements. The system will automatically detect the conflict type (nuclear, territorial, naval, air, proxy, or conventional) based on your description..."
+                      placeholder="Describe your military conflict scenario in detail. Include specific military actions, weapons, forces, or tactical elements..."
                       className="min-h-[120px] bg-dark-bg border-dark-border text-dark-text placeholder:text-dark-muted text-base p-4"
                       value={scenarioDetails}
                       onChange={(e) => setScenarioDetails(e.target.value)}
@@ -1102,30 +1524,34 @@ export default function PoliticalAdvisor() {
               </Card>
             </div>
               
-            <div className="flex justify-between pt-6 border-t border-dark-border">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-0 sm:justify-between pt-6 border-t border-dark-border">
               <Button
                 onClick={clearForm}
                 variant="outline"
-                className="border-dark-border text-dark-text hover:bg-dark-border bg-transparent px-6 py-3 text-base"
+                size="responsive"
+                className="border-dark-border text-dark-text hover:bg-dark-border bg-transparent text-sm md:text-base"
               >
-                <RotateCcw className="w-5 h-5 mr-2" />
+                <RotateCcw className="w-4 h-4 md:w-5 md:h-5 mr-2" />
                 Clear All Fields
               </Button>
               
               <Button
                 onClick={generateBriefing}
                 disabled={!selectedCountry || !offensiveCountry || !defensiveCountry || !scenarioDetails.trim() || isGeneratingBriefing}
-                className="bg-flame hover:bg-flame/90 text-white px-8 py-3 text-base"
+                size="responsive-lg"
+                className="bg-flame hover:bg-flame/90 text-white"
               >
                 {isGeneratingBriefing ? (
                   <>
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                    Generating Briefing...
+                    <div className="animate-spin rounded-full h-4 w-4 md:h-5 md:w-5 border-b-2 border-white mr-2"></div>
+                    <span className="hidden xs:inline">Generating Briefing...</span>
+                    <span className="xs:hidden">Generating...</span>
                   </>
                 ) : (
                   <>
-                    <FileText className="w-5 h-5 mr-2" />
-                    Generate Briefing
+                    <FileText className="w-4 h-4 md:w-5 md:h-5 mr-2" />
+                    <span className="hidden xs:inline">Generate Briefing</span>
+                    <span className="xs:hidden">Generate</span>
                   </>
                 )}
               </Button>
