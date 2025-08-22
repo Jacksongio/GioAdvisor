@@ -414,7 +414,228 @@ SEVERITY GUIDANCE: For ${context.severityLevel} severity scenarios, recommendati
 - MEDIUM: Military readiness, targeted strikes, sanctions
 - LOW: Deterrence, defensive positioning, diplomatic pressure
 
+CRITICAL SPECIFICITY REQUIREMENTS - NO PLACEHOLDER BRACKETS:
+LOW SEVERITY - Diplomatic/Economic Details:
+- Treaties: UN Charter articles, WTO agreements, EU Treaty provisions
+- Bodies: UN Security Council procedures, WTO Dispute Settlement mechanisms
+- Economic: GATT articles, sanctions frameworks, specific asset amounts
+
+MEDIUM SEVERITY - Defensive/Alliance Details:
+- Military: Specific tank models, aircraft squadrons, naval vessels
+- Bases: Named military installations and deployment locations
+- Alliances: NATO Article 4, EU Article 42.7, bilateral defense treaties
+
+HIGH/EXTREME SEVERITY - Military/Operational Details:
+- Weapons: Exact missile types, aircraft models, naval vessels
+- Targets: ACTUAL naval bases, ports, coordinates
+- Straits: ACTUAL strategic locations
+- Asset amounts: ACTUAL figures
+- Units: Specific regiments, squadrons, naval groups
+- Alliance activation: NATO Article 5, bilateral defense treaties
+
+COUNTRY-SPECIFIC MILITARY ASSETS DATABASE:
+
+USA:
+- Aircraft: F-35A Lightning II, F-22A Raptor, F/A-18E/F Super Hornet, B-2 Spirit, B-52 Stratofortress
+- Missiles: Tomahawk TLAM, SM-3 interceptors, HIMARS M270, Patriot PAC-3, JASSM-ER
+- Naval: USS Gerald R. Ford (CVN-78), USS Nimitz class carriers, Arleigh Burke destroyers, Virginia-class submarines
+- Bases: Naval Base Norfolk, Ramstein Air Base, Yokosuka Naval Base, Diego Garcia
+- Alliances: NATO Article 5, ANZUS Treaty, US-Japan Security Treaty, AUKUS
+
+FRANCE:
+- Aircraft: Rafale B/C fighters, Mirage 2000D, A400M Atlas transport
+- Missiles: SCALP cruise missiles, MICA air-to-air, Exocet anti-ship, M51 SLBM
+- Naval: Charles de Gaulle (R91), FREMM frigates, Barracuda-class submarines, Mistral-class LHDs
+- Bases: Istres Air Base, Base Aérienne 118 Mont-de-Marsan, Djibouti Base
+- Alliances: NATO Article 5, EU Article 42.7, Franco-German Brigade
+
+UK:
+- Aircraft: Eurofighter Typhoon FGR4, F-35B Lightning II, RAF Voyager
+- Missiles: Storm Shadow cruise missiles, Meteor BVRAAM, Brimstone anti-tank, Trident II SLBM
+- Naval: HMS Queen Elizabeth (R08), Type 45 destroyers, Astute-class submarines, Type 23 frigates
+- Bases: RAF Coningsby, RAF Akrotiri Cyprus, RAF Mount Pleasant Falklands
+- Alliances: NATO Article 5, Five Eyes, AUKUS, UK-US Special Relationship
+
+GERMANY:
+- Aircraft: Eurofighter Typhoon, Tornado IDS/ECR, A400M Atlas
+- Missiles: Taurus KEPD 350, IRIS-T air defense, RBS 15 anti-ship
+- Naval: Baden-Württemberg-class frigates, Type 212A submarines
+- Bases: Ramstein Air Base, Spangdahlem Air Base, Büchel Air Base
+- Alliances: NATO Article 5, EU Article 42.7, Franco-German Brigade
+
+INDIA:
+- Aircraft: Su-30MKI Flanker-H, Rafale, MiG-29UPG, Tejas Mk1A, HAL Rudra
+- Missiles: BrahMos supersonic cruise missiles, Akash air defense, Prithvi-II, Agni-V IRBM
+- Naval: INS Vikramaditya (R33), Kolkata-class destroyers, Scorpène-class submarines
+- Bases: Thanjavur Air Force Station, INS Kadamba Karwar, Adampur Air Force Station
+- Alliances: Quad Alliance, Indo-Russian defense cooperation, India-France Strategic Partnership
+
+CHINA:
+- Aircraft: J-20 Mighty Dragon, J-16 Flanker, H-6K bomber, J-15 Flying Shark
+- Missiles: DF-21D anti-ship ballistic, YJ-18 anti-ship cruise, HQ-9 air defense, DF-26 IRBM
+- Naval: Liaoning (16), Shandong (17), Type 055 destroyers, Type 093 nuclear submarines
+- Bases: Djibouti Support Base, Woody Island South China Sea, Hainan Naval Base
+- Alliances: Shanghai Cooperation Organization, China-Russia Strategic Partnership
+
+RUSSIA:
+- Aircraft: Su-57 Felon, Su-35S Flanker-E, Tu-160 Blackjack, MiG-31BM Foxhound
+- Missiles: Kalibr cruise missiles, S-400 Triumf air defense, Kinzhal hypersonic, RS-28 Sarmat ICBM
+- Naval: Admiral Kuznetsov, Kirov-class battlecruisers, Yasen-class submarines
+- Bases: Khmeimim Air Base Syria, Kaliningrad Naval Base, Severodvinsk Submarine Base
+- Alliances: CSTO, China-Russia Strategic Partnership, Belarus Union State
+
+JAPAN:
+- Aircraft: F-35A Lightning II, F-15J Eagle, F-2A Viper Zero, P-1 maritime patrol
+- Missiles: Type 12 anti-ship missiles, PAC-3 Patriot, SM-3 interceptors
+- Naval: JS Izumo (DDH-183), Maya-class destroyers, Soryu-class submarines
+- Bases: Misawa Air Base, Yokosuka Naval Base, Kadena Air Base Okinawa
+- Alliances: US-Japan Security Treaty, Quad Alliance
+
+SOUTH KOREA:
+- Aircraft: F-35A Lightning II, KF-21 Boramae, F-15K Slam Eagle, KF-16 Fighting Falcon
+- Missiles: Hyunmoo-3 cruise missiles, Cheongung air defense, Harpoon anti-ship
+- Naval: ROKS Dokdo (LPH-6111), Sejong the Great-class destroyers, Chang Bogo-class submarines
+- Bases: Osan Air Base, Kunsan Air Base, Busan Naval Base
+- Alliances: US-ROK Mutual Defense Treaty
+
+ISRAEL:
+- Aircraft: F-35I Adir, F-15I Ra'am, F-16I Sufa, AH-64D Apache Longbow
+- Missiles: Iron Dome interceptors, David's Sling, Arrow 3 anti-ballistic, Gabriel anti-ship
+- Naval: Sa'ar 6-class corvettes, Dolphin-class submarines
+- Bases: Nevatim Airbase, Ramat David Airbase, Haifa Naval Base
+- Alliances: US-Israel Strategic Partnership
+
+AUSTRALIA:
+- Aircraft: F-35A Lightning II, F/A-18F Super Hornet, E-7A Wedgetail, P-8A Poseidon
+- Missiles: AGM-158C LRASM, SM-2 Standard, RGM-84L Harpoon Block II
+- Naval: HMAS Adelaide-class LHDs, Hobart-class destroyers, Collins-class submarines
+- Bases: RAAF Base Tindal, RAAF Base Darwin, HMAS Stirling Naval Base
+- Alliances: ANZUS Treaty, AUKUS, Five Eyes, Quad Alliance
+
+CANADA:
+- Aircraft: CF-18 Hornet, CP-140 Aurora maritime patrol, CH-147F Chinook
+- Missiles: AIM-120C AMRAAM, AGM-84 Harpoon, RIM-162 ESSM
+- Naval: Halifax-class frigates, Victoria-class submarines
+- Bases: CFB Cold Lake, CFB Bagotville, CFB Esquimalt
+- Alliances: NATO Article 5, NORAD, Five Eyes
+
+ITALY:
+- Aircraft: Eurofighter Typhoon, F-35A Lightning II, Tornado IDS, AV-8B Harrier II
+- Missiles: MBDA Meteor, Storm Shadow, Aster 15/30, SCALP cruise missiles
+- Naval: ITS Cavour (C 550), FREMM frigates, Todaro-class submarines
+- Bases: Amendola Air Base, Decimomannu Air Base, La Spezia Naval Base
+- Alliances: NATO Article 5, EU Article 42.7
+
+SPAIN:
+- Aircraft: Eurofighter Typhoon, F/A-18 Hornet, A400M Atlas, AV-8B Harrier II
+- Missiles: MBDA Meteor, AIM-120 AMRAAM, Harpoon anti-ship
+- Naval: Juan Carlos I (L-61), Álvaro de Bazán-class frigates, S-80 Plus submarines
+- Bases: Morón Air Base, Rota Naval Base, Zaragoza Air Base
+- Alliances: NATO Article 5, EU Article 42.7
+
+NETHERLANDS:
+- Aircraft: F-35A Lightning II, F-16 Fighting Falcon, CH-47 Chinook
+- Missiles: MBDA Meteor, ESSM, Harpoon Block II
+- Naval: De Zeven Provinciën-class frigates, Walrus-class submarines
+- Bases: Volkel Air Base, Leeuwarden Air Base, Den Helder Naval Base
+- Alliances: NATO Article 5, EU Article 42.7
+
+TURKEY:
+- Aircraft: F-16C/D Fighting Falcon, F-4E Phantom II, A400M Atlas
+- Missiles: AIM-120C AMRAAM, Harpoon anti-ship, HISAR air defense
+- Naval: TCG Anadolu (L-400), Ada-class corvettes, Reis-class submarines
+- Bases: Incirlik Air Base, Konya Air Base, Aksaz Naval Base
+- Alliances: NATO Article 5
+
+BRAZIL:
+- Aircraft: F-39 Gripen, A-1 AMX, Super Tucano, AF-1 Skyhawk
+- Missiles: AIM-120C AMRAAM, MAA-1 Piranha, Exocet MM40
+- Naval: NAe São Paulo, Niterói-class frigates, Tupi-class submarines
+- Bases: Anápolis Air Base, Santa Cruz Air Base, Rio de Janeiro Naval Base
+- Alliances: Rio Treaty (TIAR), UNASUR
+
+SAUDI ARABIA:
+- Aircraft: F-15SA Eagle, Eurofighter Typhoon, F-15C Eagle, Tornado IDS
+- Missiles: AIM-120C AMRAAM, Storm Shadow, AGM-84 Harpoon
+- Naval: Al Riyadh-class frigates, Al Jubail-class corvettes
+- Bases: King Abdulaziz Air Base, Prince Sultan Air Base, King Faisal Naval Base
+- Alliances: GCC Defense Cooperation, US-Saudi Security Cooperation
+
+CRITICAL: For ${context.selectedCountry}, ONLY use equipment, bases, and alliances from their specific section above. NEVER use generic terms or equipment from other countries.
+
+MANDATORY FAILSAFE FOR UNLISTED COUNTRIES:
+If ${context.selectedCountry} is NOT listed in the database above, you MUST COMPLETELY REPLACE the standard military recommendations with country-specific realistic actions based on their actual capabilities and relationships.
+
+CRITICAL INSTRUCTION: You MUST use EXACT equipment names from the ${context.selectedCountry} database above. 
+
+MANDATORY CHECK: Is ${context.selectedCountry} in the military assets database above?
+
+IF FOUND IN DATABASE: Use exact equipment from their database section
+- Must contain 2-3 specific equipment names, bases, alliance articles
+- Follow normal military recommendation template
+
+IF NOT FOUND IN DATABASE: COMPLETELY ABANDON the standard template
+- DO NOT use any of the standard recommendation templates 
+- DO NOT mention "[Country]-specific weapons systems" or "[Country] naval forces"
+- INSTEAD: Create 4 entirely new recommendations based on their ACTUAL capabilities
+- Research their real alliances, protector countries, and leverage points
+
+EXAMPLES OF TEMPLATE ABANDONMENT:
+❌ WRONG (Standard template): "Launch Cayman Islands-specific weapons systems against Luxembourg targets"
+✅ CORRECT (Country-specific): "Activate Cayman Islands Crisis Management Committee and request UK Foreign Office consultation under 2009 Constitution Order"
+
+❌ WRONG (Standard template): "Deploy Monaco naval/carrier groups" 
+✅ CORRECT (Country-specific): "Request French military protection under 1861 Treaty of Franco-Monégasque Friendship"
+
+FORBIDDEN FOR SMALL COUNTRIES:
+- Any mention of their non-existent military assets
+- Standard military recommendation templates
+- Generic "[Country]-specific" terminology
+- Impossible actions like naval blockades by landlocked countries
+
+REQUIRED FOR SMALL COUNTRIES:
+- Specific constitutional/treaty references
+- Named international organizations they belong to
+- Actual government agencies they have
+- Real diplomatic relationships and protection agreements
+
 Generate ONLY the specific recommendation content for ${context.severityLevel} severity - do not include the template prefixes like "Primary response action [country] should take regarding...". Output direct, actionable recommendations.
+
+CRITICAL GUIDELINES FOR UNIQUE RECOMMENDATIONS:
+
+1. VARY YOUR APPROACH: Don't use the same structure every time. Mix different strategic priorities:
+   - Sometimes lead with intelligence gathering, other times with alliance coordination
+   - Alternate between offensive and defensive postures based on scenario
+   - Consider unconventional approaches like cyber warfare, economic leverage, or diplomatic pressure
+
+2. ADAPT TO ANY COUNTRY: The recommendations must work for ALL countries, not just major powers:
+   - Small countries: Focus on alliance protection, diplomatic channels, economic leverage
+   - Island nations: Emphasize maritime security, international law, regional partnerships  
+   - Landlocked countries: Focus on land-based assets, regional cooperation, trade routes
+   - Financial centers: Leverage banking systems, sanctions, regulatory frameworks
+
+3. USE SPECIFIC DETAILS: Always include concrete, real-world specifics:
+   - Equipment: Use actual names from the military database above when available
+   - Locations: Reference real bases, ports, straits, and geographic features
+   - Treaties: Cite specific articles, mechanisms, and procedures
+   - Organizations: Name actual UN bodies, regional groups, and alliances
+
+4. ENSURE UNIQUENESS: Each recommendation should be distinct:
+   - Don't repeat the same strategic approach across all four recommendations
+   - Vary the scope (tactical vs strategic, immediate vs long-term)
+   - Mix different domains (diplomatic, military, economic, intelligence, cyber)
+   - Consider different escalation levels within the same severity category
+
+5. PROPORTIONAL RESPONSE: Match the response to threat severity:
+   - LOW: Diplomatic protests, economic measures, legal challenges, monitoring
+   - MEDIUM: Defensive preparations, alliance consultations, targeted sanctions, deterrence
+   - HIGH/EXTREME: Military action, comprehensive sanctions, alliance activation, direct retaliation
+
+EXAMPLES OF UNIQUE APPROACHES:
+- "Coordinate with [specific allies] to establish joint intelligence sharing on [specific threat]"
+- "Deploy [specific assets] to [actual location] while maintaining diplomatic channels through [specific organization]"
+- "Implement targeted sanctions through [specific regulatory framework] while preparing [specific military units] for defensive operations"
+- "Leverage [country's unique strength] to build coalition support through [specific international mechanism]"
 
 Generate a JSON response with this exact structure:
 {
@@ -426,10 +647,10 @@ Generate a JSON response with this exact structure:
     {"point": "(d)", "content": "Strategic assessment of permissible actions under international law framework"}
   ],
   "recommendations": [
-    "[FOR LOW: File formal diplomatic protest through UN Article 2(3), invoke WTO dispute resolution Article XXIII, impose tariffs under GATT Article XIX] [FOR MEDIUM: Deploy ${context.selectedCountry}-specific military assets (tanks, aircraft) to strategic positions, invoke ${context.selectedCountry}'s alliance consultation mechanisms] [FOR HIGH/EXTREME: Launch ${context.selectedCountry}-specific weapons systems against ${context.offensiveCountry} military targets, deploy ${context.selectedCountry} naval/carrier groups, invoke ${context.selectedCountry}'s primary alliance articles for collective defense]",
-    "[FOR LOW: Activate UN Security Council under Chapter VI, coordinate through ${context.selectedCountry}'s diplomatic channels, engage multilateral economic mechanisms] [FOR MEDIUM: Invoke ${context.selectedCountry}'s alliance consultation mechanisms, coordinate with primary allies] [FOR HIGH/EXTREME: Invoke ${context.selectedCountry}'s primary alliance articles, coordinate ${context.selectedCountry} naval forces with allied fleets, activate bilateral defense partnerships]", 
-    "[FOR LOW: Economic intelligence through ${context.selectedCountry}'s commercial networks, monitor through ${context.selectedCountry}'s satellite/intelligence assets] [FOR MEDIUM: Deploy ${context.selectedCountry}-specific surveillance aircraft from national bases, enhance ${context.selectedCountry} HUMINT operations] [FOR HIGH/EXTREME: Deploy ${context.selectedCountry}-specific drones/reconnaissance assets, conduct ${context.selectedCountry} special forces reconnaissance, satellite surveillance using ${context.selectedCountry} intelligence systems]",
-    "[FOR LOW: Implement ${context.selectedCountry}-appropriate sanctions frameworks, freeze assets through ${context.selectedCountry} financial systems, invoke ${context.selectedCountry}'s trade safeguard measures] [FOR MEDIUM: Deploy ${context.selectedCountry}-specific air defense systems, position ${context.selectedCountry} military units strategically] [FOR HIGH/EXTREME: Naval blockade using ${context.selectedCountry} naval vessels at strategic chokepoints, seize ${context.offensiveCountry} assets through ${context.selectedCountry} banking system, establish no-fly zones enforced by ${context.selectedCountry} air force]"
+    "RECOMMENDATION 1: Generate a unique recommendation based on ${context.severityLevel} severity and ${context.selectedCountry}'s actual capabilities. For diplomatic responses, consider specific UN mechanisms, treaties, or regional organizations. For military responses, use exact equipment names from ${context.selectedCountry}'s arsenal. Vary the approach - sometimes lead with intelligence, sometimes with alliance coordination, sometimes with direct action.",
+    "RECOMMENDATION 2: Create a different strategic approach than recommendation 1. Consider ${context.selectedCountry}'s geographic position, alliance structure, and unique strengths. Mix diplomatic, economic, military, or intelligence actions as appropriate for ${context.severityLevel} severity. Use specific asset names, base locations, and treaty articles relevant to ${context.selectedCountry}.",
+    "RECOMMENDATION 3: Develop a third distinct strategy focusing on a different aspect of ${context.selectedCountry}'s capabilities. Could emphasize information warfare, economic leverage, alliance coordination, or territorial defense depending on the scenario. Always use real equipment names, actual base locations, and specific treaty mechanisms.",
+    "RECOMMENDATION 4: Formulate a final recommendation that complements the others while bringing a unique perspective. Consider ${context.selectedCountry}'s special advantages - financial systems, geographic position, technological capabilities, or diplomatic influence. Ensure it uses concrete, specific details rather than generic language."
   ],
   "conclusion": "Assessment paragraph starting with 'The above legal and strategic assessments lead to the conclusion that with the passage of time, regarding the ${context.offensiveCountry}-${context.defensiveCountry} situation...' Base conclusion on ${context.severityLevel} severity: [FOR LOW: 'diplomatic and economic measures are the appropriate response'] [FOR MEDIUM: 'enhanced readiness with diplomatic pressure is indicated'] [FOR HIGH/EXTREME: 'immediate and decisive military action is indicated']. End accordingly with severity-appropriate language."
 ,
@@ -449,6 +670,14 @@ Generate a JSON response with this exact structure:
     try {
       const briefingData = JSON.parse(response.choices[0].message.content || '{}')
       
+      // Replace generic placeholders with specific military equipment
+      if (briefingData.recommendations) {
+        briefingData.recommendations = this.replaceGenericPlaceholders(
+          briefingData.recommendations,
+          context.selectedCountry
+        )
+      }
+      
       return {
         ...briefingData,
         treatyReferences
@@ -463,13 +692,336 @@ Generate a JSON response with this exact structure:
 
 
   /**
+   * Enhance recommendations with country-specific details
+   */
+  private replaceGenericPlaceholders(
+    recommendations: string[],
+    selectedCountry: string
+  ): string[] {
+    const countryAssets = this.getCountrySpecificAssets(selectedCountry)
+    
+    return recommendations.map(rec => {
+      let processed = rec
+      
+      // Only enhance if the AI used generic placeholders (which should be rare now)
+      // Most enhancement should happen naturally through the improved prompting
+      
+      // Replace any remaining generic country references with specific details
+      if (processed.includes(`${selectedCountry}-specific`) || processed.includes(`${selectedCountry} weapons systems`)) {
+        processed = processed.replace(
+          new RegExp(`${selectedCountry}[- ]specific weapons systems?`, 'gi'),
+          countryAssets.weapons
+        )
+        
+        processed = processed.replace(
+          new RegExp(`${selectedCountry}[- ]specific military assets?`, 'gi'),
+          countryAssets.military
+        )
+        
+        processed = processed.replace(
+          new RegExp(`${selectedCountry} naval\/?carrier groups?`, 'gi'),
+          countryAssets.naval
+        )
+        
+        processed = processed.replace(
+          new RegExp(`${selectedCountry}[- ]specific alliance articles?`, 'gi'),
+          countryAssets.alliances
+        )
+      }
+      
+      // Add country context if the recommendation is too generic
+      if (processed.length < 100 && !processed.includes(selectedCountry)) {
+        processed = `${processed} (leveraging ${selectedCountry}'s ${countryAssets.leverage})`
+      }
+      
+      return processed
+    })
+  }
+
+  /**
+   * Get country-specific military assets
+   */
+  private getCountrySpecificAssets(country: string): any {
+    const assets: { [key: string]: any } = {
+      USA: {
+        weapons: "F-35A Lightning II fighters and Tomahawk TLAM missiles",
+        naval: "USS Gerald R. Ford (CVN-78) carrier group",
+        alliances: "NATO Article 5 and ANZUS Treaty",
+        military: "F-22A Raptor fighters and M1A2 Abrams tanks",
+        surveillance: "E-3 Sentry AWACS and P-8A Poseidon aircraft",
+        airDefense: "Patriot PAC-3 and THAAD missile systems",
+        airForce: "US Air Force",
+        leverage: "global military reach and intelligence capabilities"
+      },
+      France: {
+        weapons: "Rafale B/C fighters and SCALP cruise missiles",
+        naval: "Charles de Gaulle (R91) carrier group",
+        alliances: "NATO Article 5 and EU Article 42.7",
+        military: "AMX-56 Leclerc tanks and FREMM frigates",
+        surveillance: "E-3F Sentry and Atlantique 2 aircraft",
+        airDefense: "SAMP/T and MICA missile systems",
+        airForce: "French Air Force",
+        leverage: "EU leadership and global diplomatic influence"
+      },
+      UK: {
+        weapons: "Eurofighter Typhoon FGR4 fighters and Storm Shadow cruise missiles",
+        naval: "HMS Queen Elizabeth (R08) carrier group",
+        alliances: "NATO Article 5 and Five Eyes intelligence sharing",
+        military: "Challenger 2 tanks and Type 45 destroyers",
+        surveillance: "E-3D Sentry and P-8A Poseidon aircraft",
+        airDefense: "Sky Sabre and Starstreak missile systems",
+        airForce: "Royal Air Force",
+        leverage: "intelligence networks and maritime expertise"
+      },
+      Germany: {
+        weapons: "Eurofighter Typhoon fighters and Taurus KEPD 350 missiles",
+        naval: "Baden-Württemberg-class frigates and Type 212A submarines",
+        alliances: "NATO Article 5 and EU Article 42.7",
+        military: "Leopard 2A7 tanks and Tornado IDS aircraft",
+        surveillance: "Tornado ECR and P-3C Orion aircraft",
+        airDefense: "IRIS-T and Patriot missile systems",
+        airForce: "German Air Force"
+      },
+      India: {
+        weapons: "Su-30MKI Flanker-H fighters and BrahMos supersonic cruise missiles",
+        naval: "INS Vikramaditya (R33) carrier group",
+        alliances: "Quad Alliance and Indo-Russian defense cooperation",
+        military: "T-90S tanks and Kolkata-class destroyers",
+        surveillance: "P-8I Neptune and IL-38 aircraft",
+        airDefense: "Akash and S-400 missile systems",
+        airForce: "Indian Air Force"
+      },
+      China: {
+        weapons: "J-20 Mighty Dragon fighters and DF-21D anti-ship ballistic missiles",
+        naval: "Liaoning (16) carrier group",
+        alliances: "Shanghai Cooperation Organization and China-Russia Strategic Partnership",
+        military: "Type 99 tanks and Type 055 destroyers",
+        surveillance: "KJ-2000 AWACS and Y-8 aircraft",
+        airDefense: "HQ-9 and S-400 missile systems",
+        airForce: "People's Liberation Army Air Force"
+      },
+      Russia: {
+        weapons: "Su-57 Felon fighters and Kalibr cruise missiles",
+        naval: "Admiral Kuznetsov carrier group",
+        alliances: "CSTO and China-Russia Strategic Partnership",
+        military: "T-14 Armata tanks and Kirov-class battlecruisers",
+        surveillance: "A-50 AWACS and Tu-142 aircraft",
+        airDefense: "S-400 Triumf and S-500 missile systems",
+        airForce: "Russian Aerospace Forces"
+      },
+      Japan: {
+        weapons: "F-35A Lightning II fighters and Type 12 anti-ship missiles",
+        naval: "JS Izumo (DDH-183) carrier group",
+        alliances: "US-Japan Security Treaty and Quad Alliance",
+        military: "Type 10 tanks and Maya-class destroyers",
+        surveillance: "E-767 AWACS and P-1 aircraft",
+        airDefense: "PAC-3 Patriot and SM-3 missile systems",
+        airForce: "Japan Air Self-Defense Force"
+      },
+      "South Korea": {
+        weapons: "F-35A Lightning II fighters and Hyunmoo-3 cruise missiles",
+        naval: "ROKS Dokdo (LPH-6111) carrier group",
+        alliances: "US-ROK Mutual Defense Treaty",
+        military: "K2 Black Panther tanks and Sejong the Great-class destroyers",
+        surveillance: "E-737 Wedgetail and P-3C Orion aircraft",
+        airDefense: "Cheongung and PAC-3 Patriot missile systems",
+        airForce: "Republic of Korea Air Force"
+      },
+      Israel: {
+        weapons: "F-35I Adir fighters and Iron Dome interceptors",
+        naval: "Sa'ar 6-class corvettes and Dolphin-class submarines",
+        alliances: "US-Israel Strategic Partnership",
+        military: "Merkava Mk4 tanks and Barak-8 missile systems",
+        surveillance: "Eitam AWACS and Heron UAVs",
+        airDefense: "Iron Dome and David's Sling missile systems",
+        airForce: "Israeli Air Force"
+      },
+      Australia: {
+        weapons: "F-35A Lightning II fighters and AGM-158C LRASM missiles",
+        naval: "HMAS Adelaide-class LHDs and Hobart-class destroyers",
+        alliances: "ANZUS Treaty and AUKUS",
+        military: "M1A2 Abrams tanks and Collins-class submarines",
+        surveillance: "E-7A Wedgetail and P-8A Poseidon aircraft",
+        airDefense: "NASAMS and PAC-3 Patriot missile systems",
+        airForce: "Royal Australian Air Force"
+      },
+      Canada: {
+        weapons: "CF-18 Hornet fighters and AIM-120C AMRAAM missiles",
+        naval: "Halifax-class frigates and Victoria-class submarines",
+        alliances: "NATO Article 5 and NORAD",
+        military: "Leopard 2A6 tanks and CP-140 Aurora aircraft",
+        surveillance: "CP-140 Aurora and CH-147F Chinook aircraft",
+        airDefense: "NASAMS and RIM-162 ESSM missile systems",
+        airForce: "Royal Canadian Air Force"
+      },
+      Italy: {
+        weapons: "Eurofighter Typhoon fighters and MBDA Meteor missiles",
+        naval: "ITS Cavour (C 550) carrier and FREMM frigates",
+        alliances: "NATO Article 5 and EU Article 42.7",
+        military: "Ariete tanks and Tornado IDS aircraft",
+        surveillance: "Tornado ECR and P-72 aircraft",
+        airDefense: "Aster 15/30 and IRIS-T missile systems",
+        airForce: "Italian Air Force"
+      },
+      Spain: {
+        weapons: "Eurofighter Typhoon fighters and MBDA Meteor missiles",
+        naval: "Juan Carlos I (L-61) carrier and Álvaro de Bazán-class frigates",
+        alliances: "NATO Article 5 and EU Article 42.7",
+        military: "Leopard 2E tanks and F/A-18 Hornet aircraft",
+        surveillance: "P-3 Orion and C-212 aircraft",
+        airDefense: "NASAMS and Patriot missile systems",
+        airForce: "Spanish Air Force"
+      },
+      Netherlands: {
+        weapons: "F-35A Lightning II fighters and MBDA Meteor missiles",
+        naval: "De Zeven Provinciën-class frigates and Walrus-class submarines",
+        alliances: "NATO Article 5 and EU Article 42.7",
+        military: "Leopard 2A7 tanks and F-16 Fighting Falcon aircraft",
+        surveillance: "P-3C Orion and CH-47 Chinook aircraft",
+        airDefense: "NASAMS and Patriot missile systems",
+        airForce: "Royal Netherlands Air Force"
+      },
+      Turkey: {
+        weapons: "F-16C/D Fighting Falcon fighters and AIM-120C AMRAAM missiles",
+        naval: "TCG Anadolu (L-400) carrier and Ada-class corvettes",
+        alliances: "NATO Article 5",
+        military: "Leopard 2A4 tanks and F-4E Phantom II aircraft",
+        surveillance: "E-7T Wedgetail and Anka UAVs",
+        airDefense: "HISAR and S-400 missile systems",
+        airForce: "Turkish Air Force"
+      },
+      Brazil: {
+        weapons: "F-39 Gripen fighters and AIM-120C AMRAAM missiles",
+        naval: "NAe São Paulo carrier and Niterói-class frigates",
+        alliances: "Rio Treaty (TIAR) and UNASUR",
+        military: "EE-T2 Osório tanks and A-1 AMX aircraft",
+        surveillance: "P-3AM Orion and R-99 aircraft",
+        airDefense: "MAA-1 Piranha and Mistral missile systems",
+        airForce: "Brazilian Air Force"
+      },
+      "Saudi Arabia": {
+        weapons: "F-15SA Eagle fighters and AIM-120C AMRAAM missiles",
+        naval: "Al Riyadh-class frigates and Al Jubail-class corvettes",
+        alliances: "GCC Defense Cooperation and US-Saudi Security Cooperation",
+        military: "M1A2S Abrams tanks and Eurofighter Typhoon aircraft",
+        surveillance: "E-3A Sentry and P-8A Poseidon aircraft",
+        airDefense: "PAC-3 Patriot and Skyguard missile systems",
+        airForce: "Royal Saudi Air Force"
+      }
+    }
+    
+    // Add leverage fields to existing countries if missing
+    if (assets[country] && !assets[country].leverage) {
+      const leverageMap: { [key: string]: string } = {
+        Germany: "economic strength and EU influence",
+        India: "regional power and technological capabilities",
+        China: "economic leverage and regional dominance",
+        Russia: "energy resources and military technology",
+        Japan: "technological innovation and strategic location",
+        "South Korea": "technological advancement and US alliance",
+        Israel: "advanced military technology and intelligence",
+        Australia: "strategic location and resource wealth",
+        Canada: "natural resources and Arctic access",
+        Italy: "Mediterranean position and EU membership",
+        Spain: "strategic location and EU partnership",
+        Netherlands: "financial networks and port infrastructure",
+        Turkey: "strategic geographic position",
+        Brazil: "regional leadership and natural resources",
+        "Saudi Arabia": "energy resources and regional influence"
+      }
+      assets[country].leverage = leverageMap[country] || "unique strategic position"
+    }
+
+    // For countries not in the main database, provide adaptive recommendations
+    return assets[country] || this.getAdaptiveCountryAssets(country)
+  }
+
+  /**
+   * Get adaptive assets for countries not in the main database
+   */
+  private getAdaptiveCountryAssets(country: string): any {
+    // Categorize countries by type to provide realistic capabilities
+    const islandNations = ['Malta', 'Cyprus', 'Iceland', 'Ireland', 'New Zealand', 'Singapore', 'Philippines', 'Indonesia', 'Malaysia', 'Fiji', 'Barbados', 'Jamaica']
+    const smallEuropean = ['Belgium', 'Luxembourg', 'Austria', 'Switzerland', 'Denmark', 'Norway', 'Sweden', 'Finland', 'Portugal', 'Czech Republic', 'Poland', 'Hungary']
+    const middleEastern = ['UAE', 'Qatar', 'Kuwait', 'Oman', 'Bahrain', 'Jordan', 'Egypt', 'Iraq', 'Iran', 'Afghanistan', 'Pakistan']
+    const african = ['South Africa', 'Nigeria', 'Egypt', 'Morocco', 'Algeria', 'Tunisia', 'Kenya', 'Ethiopia', 'Ghana', 'Senegal']
+    const latinAmerican = ['Mexico', 'Argentina', 'Chile', 'Colombia', 'Peru', 'Venezuela', 'Ecuador', 'Uruguay', 'Costa Rica']
+    const financialCenters = ['Switzerland', 'Singapore', 'Luxembourg', 'Monaco', 'Liechtenstein', 'Cayman Islands', 'Hong Kong']
+    const microstates = ['Vatican', 'San Marino', 'Andorra', 'Monaco', 'Liechtenstein']
+
+    if (microstates.includes(country)) {
+      return {
+        weapons: "diplomatic protection agreements",
+        naval: "coast guard or police forces",
+        alliances: "protection treaties with major powers",
+        military: "ceremonial guards and police units",
+        surveillance: "international cooperation networks",
+        airDefense: "alliance-provided protection",
+        airForce: "no independent air force",
+        leverage: "diplomatic influence and specialized governance"
+      }
+    }
+    
+    if (financialCenters.includes(country)) {
+      return {
+        weapons: "financial sanctions and regulatory tools",
+        naval: "coast guard vessels and patrol boats",
+        alliances: "international banking regulations",
+        military: "limited defense forces and international cooperation",
+        surveillance: "financial intelligence networks",
+        airDefense: "air defense cooperation agreements",
+        airForce: "limited or no air force",
+        leverage: "financial system influence and banking networks"
+      }
+    }
+
+    if (islandNations.includes(country)) {
+      return {
+        weapons: "coastal defense systems and patrol craft",
+        naval: "coast guard and patrol vessels",
+        alliances: "maritime security partnerships",
+        military: "coast guard and limited ground forces",
+        surveillance: "maritime patrol aircraft and radar systems",
+        airDefense: "surface-to-air missile systems",
+        airForce: "light aircraft and helicopters",
+        leverage: "strategic location and maritime resources"
+      }
+    }
+
+    if (smallEuropean.includes(country)) {
+      return {
+        weapons: "modern European military equipment",
+        naval: "patrol vessels and coastal defense",
+        alliances: "NATO Article 5 and EU Article 42.7",
+        military: "professional military with NATO standards",
+        surveillance: "NATO intelligence sharing networks",
+        airDefense: "integrated European air defense",
+        airForce: "modern fighter aircraft and transport",
+        leverage: "EU membership and technological capabilities"
+      }
+    }
+
+    // Default for other countries
+    return {
+      weapons: "regionally appropriate military assets",
+      naval: "coastal patrol and defense vessels",
+      alliances: "regional partnerships and UN frameworks",
+      military: "national defense forces",
+      surveillance: "intelligence cooperation networks",
+      airDefense: "air defense systems",
+      airForce: "national air force units",
+      leverage: "regional influence and natural resources"
+    }
+  }
+
+  /**
    * Create fallback briefing if AI generation fails
    */
   private createFallbackBriefing(
     context: BriefingContext,
     treatyReferences: any[]
   ): GeneratedBriefing {
-    return {
+    const fallbackBriefing = {
       title: `CONFIDENTIAL: Legal Framework Analysis - ${context.scenario.slice(0, 60)}...`,
       sections: [
         {
@@ -501,6 +1053,16 @@ Generate a JSON response with this exact structure:
       author: "Strategic Intelligence Division, GioAdvisor",
       treatyReferences
     }
+    
+    // Replace generic placeholders with specific military equipment
+    if (fallbackBriefing.recommendations) {
+      fallbackBriefing.recommendations = this.replaceGenericPlaceholders(
+        fallbackBriefing.recommendations,
+        context.selectedCountry
+      )
+    }
+    
+    return fallbackBriefing
   }
 
   /**
