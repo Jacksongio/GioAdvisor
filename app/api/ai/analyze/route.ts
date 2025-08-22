@@ -27,6 +27,14 @@ export async function POST(req: NextRequest) {
       publicOpinion
     } = body
 
+    // Prevent user from selecting their own country as the aggressor
+    if (selectedCountry === offensiveCountry) {
+      return NextResponse.json({
+        success: false,
+        error: "You cannot simulate your own country as the aggressor/offensive country"
+      }, { status: 400 })
+    }
+
     // Find country names (assume we can get these from the codes)
     const selectedCountryName = selectedCountry // Will be country name
     const offensiveCountryName = offensiveCountry

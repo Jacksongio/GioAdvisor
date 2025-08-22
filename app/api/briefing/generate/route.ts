@@ -35,6 +35,14 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
+    // Prevent user from selecting their own country as the aggressor
+    if (selectedCountry === offensiveCountry) {
+      return NextResponse.json({
+        success: false,
+        error: "You cannot simulate your own country as the aggressor/offensive country"
+      }, { status: 400 })
+    }
+
     console.log('🤖 Generating RAG-based intelligence briefing...')
 
     // Use RAG-based briefing generation

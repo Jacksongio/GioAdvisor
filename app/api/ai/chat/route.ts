@@ -28,6 +28,14 @@ export async function POST(req: NextRequest) {
       userMessage
     } = body
 
+    // Prevent user from selecting their own country as the aggressor
+    if (selectedCountry === offensiveCountry) {
+      return NextResponse.json({
+        success: false,
+        response: "You cannot simulate your own country as the aggressor/offensive country. Please select a different country as the aggressor or change your perspective country."
+      }, { status: 400 })
+    }
+
     // Build context about the current scenario
     let scenarioContext = `
 CURRENT POLITICAL SIMULATION SCENARIO:

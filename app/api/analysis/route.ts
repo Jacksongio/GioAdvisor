@@ -47,6 +47,14 @@ export async function POST(req: NextRequest) {
       )
     }
 
+    // Prevent user from selecting their own country as the aggressor
+    if (selectedCountry === offensiveCountry) {
+      return NextResponse.json(
+        { error: "You cannot simulate your own country as the aggressor/offensive country" },
+        { status: 400 }
+      )
+    }
+
     // Create analysis record (overwrite any existing one)
     const analysisData = {
       id: "current",

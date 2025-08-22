@@ -811,6 +811,10 @@ export default function PoliticalAdvisor() {
                                 key={country.code}
                                 value={`${country.name} ${country.code}`}
                                 onSelect={() => {
+                                  // If selecting a country that's currently the offensive country, clear it
+                                  if (country.code === offensiveCountry) {
+                                    setOffensiveCountry("")
+                                  }
                                   setSelectedCountry(country.code)
                                   setSelectedCountryOpen(false)
                                 }}
@@ -936,15 +940,15 @@ export default function PoliticalAdvisor() {
                                   <CommandItem
                                     key={country.code}
                                     value={`${country.name} ${country.code}`}
-                                    disabled={country.code === defensiveCountry}
+                                    disabled={country.code === defensiveCountry || country.code === selectedCountry}
                                     onSelect={() => {
-                                      if (country.code !== defensiveCountry) {
+                                      if (country.code !== defensiveCountry && country.code !== selectedCountry) {
                                         setOffensiveCountry(country.code)
                                         setOffensiveCountryOpen(false)
                                       }
                                     }}
                                     className={`text-dark-text hover:bg-dark-border ${
-                                      country.code === defensiveCountry ? "opacity-50 cursor-not-allowed" : ""
+                                      (country.code === defensiveCountry || country.code === selectedCountry) ? "opacity-50 cursor-not-allowed" : ""
                                     }`}
                                   >
                                     <div className="flex items-center space-x-2 w-full">
@@ -1359,7 +1363,7 @@ export default function PoliticalAdvisor() {
                           
                       {/* Estimated Time */}
                       <p className="text-dark-muted text-sm mt-4">
-                        ⏱️ Estimated processing time: 30-60 seconds
+                        Estimated processing time: 30-60 seconds
                       </p>
                       <p className="text-dark-muted text-xs">
                         Please remain on this page while the AI analyzes international treaties
