@@ -1,7 +1,8 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { Globe, Users, Target, BarChart3, Play, FileText, AlertTriangle, Sword, Shield, RotateCcw, MessageCircle, Send, Check, ChevronsUpDown, Settings, Loader2, Award, Calendar, Clock, File, Copy } from "lucide-react"
+import { Users, Target, BarChart3, Play, FileText, AlertTriangle, Sword, Shield, RotateCcw, MessageCircle, Send, Check, ChevronsUpDown, Settings, Loader2, Award, Calendar, Clock, File, Copy } from "lucide-react"
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -710,10 +711,16 @@ export default function PoliticalAdvisor() {
       {/* Header */}
       <header className="border-b border-dark-border bg-dark-card/80 backdrop-blur-sm">
         <div className="container mx-auto px-6 py-4">
-          <div className="flex items-center justify-between w-full">
-            <div className="flex items-center space-x-4 flex-1">
-              <div className="w-12 h-12 bg-flame rounded-lg flex items-center justify-center">
-                <Globe className="w-7 h-7 text-white" />
+          <div className="flex items-center justify-center w-full">
+            <div className="flex items-center space-x-4">
+              <div className="w-12 h-12 rounded-lg flex items-center justify-center overflow-hidden">
+                <Image 
+                  src="/gioadvisor.png" 
+                  alt="GioAdvisor Logo" 
+                  width={48} 
+                  height={48}
+                  className="w-full h-full object-contain"
+                />
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-dark-text">GioAdvisor</h1>
@@ -723,12 +730,12 @@ export default function PoliticalAdvisor() {
             
             
             
-            <div className="flex items-center justify-end space-x-4 flex-1">
+            {/* <div className="flex items-center justify-end space-x-4 flex-1">
               
               <Badge variant="outline" className="border-flame text-flame bg-transparent text-sm px-3 py-1">
                 Beta v1.4
               </Badge>
-            </div>
+            </div> */}
           </div>
         </div>
       </header>
@@ -1230,6 +1237,14 @@ export default function PoliticalAdvisor() {
                     </Card>
                   )}
 
+                  {/* AI Disclaimer for Legal Analysis */}
+                  <Card className="border-yellow-500/30 bg-yellow-500/10 mt-6">
+                    <CardContent className="p-4">
+                      <p className="text-yellow-400 text-sm leading-relaxed font-medium">
+                        ⚠️ <strong>IMPORTANT DISCLAIMER:</strong> This legal analysis is AI-generated content created for educational and simulation purposes only. This analysis should NOT be used as the basis for any real-world legal, military, diplomatic, or policy decisions. Any actual legal interpretation or strategic planning should involve consultation with qualified legal professionals, subject matter experts, and appropriate government authorities. The treaty interpretations and legal implications presented herein are hypothetical and do not reflect official government positions or legal opinions.
+                      </p>
+                    </CardContent>
+                  </Card>
 
                 </div>
               ) : (
@@ -1438,6 +1453,15 @@ export default function PoliticalAdvisor() {
                           </p>
                                     </div>
                       )}
+
+                      {/* AI Disclaimer - Under Briefing Content */}
+                      <div className="mt-8 pt-6 border-t border-dark-border">
+                        <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4">
+                          <p className="text-yellow-400 text-sm leading-relaxed font-medium">
+                            ⚠️ <strong>IMPORTANT DISCLAIMER:</strong> This briefing is AI-generated content created for educational and simulation purposes only. This analysis should NOT be used as the basis for any real-world military, diplomatic, or policy decisions. Any actual strategic planning or crisis response should involve consultation with qualified professionals, subject matter experts, and appropriate government authorities. The scenarios, recommendations, and assessments presented herein are hypothetical and do not reflect official government positions or classified intelligence.
+                          </p>
+                        </div>
+                      </div>
                                   </div>
 
                     {/* Signature Block */}
@@ -1449,6 +1473,17 @@ export default function PoliticalAdvisor() {
                         Generated: {new Date().toLocaleTimeString()}
                       </p>
                                 </div>
+
+                    {/* AI Disclaimer */}
+                    {briefingData.disclaimer && (
+                      <div className="mt-6 pt-4 border-t border-dark-border">
+                        <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4">
+                          <p className="text-yellow-400 text-sm leading-relaxed font-medium">
+                            {briefingData.disclaimer}
+                          </p>
+                        </div>
+                      </div>
+                    )}
 
                     {/* Action Buttons */}
                     <div className="flex justify-center space-x-4 mt-8 pt-6 border-t border-dark-border">
@@ -1493,10 +1528,18 @@ export default function PoliticalAdvisor() {
                               </div>
                                     `).join('')}
                             </div>
+                                  <div style="margin-top: 2em; padding: 1em; border: 1px solid #999; background-color: #f5f5f5;">
+                                    <p style="font-size: 10px; line-height: 1.4; margin: 0;"><strong>DISCLAIMER:</strong> This briefing is AI-generated content created for educational and simulation purposes only. This analysis should NOT be used as the basis for any real-world military, diplomatic, or policy decisions. Any actual strategic planning or crisis response should involve consultation with qualified professionals, subject matter experts, and appropriate government authorities. The scenarios, recommendations, and assessments presented herein are hypothetical and do not reflect official government positions or classified intelligence.</p>
+                                  </div>
                                   <div class="signature">
                                     <p>${briefingData.author}</p>
                                     <p>Generated: ${new Date().toLocaleString()}</p>
                         </div>
+                                  ${briefingData.disclaimer ? `
+                                    <div style="margin-top: 2em; padding: 1em; border: 1px solid #999; background-color: #f5f5f5;">
+                                      <p style="font-size: 10px; line-height: 1.4; margin: 0;"><strong>DISCLAIMER:</strong> ${briefingData.disclaimer}</p>
+                                    </div>
+                                  ` : ''}
                                 ` : ''}</body>
                               </html>
                             `)
@@ -1526,8 +1569,18 @@ Therefore it seems to me a more aggressive action is indicated than any heretofo
 
 ${briefingData.recommendations.map((r: string, i: number) => `(${i + 1}) ${r}`).join('\n\n')}
 
+${briefingData.finalRecommendation || ''}
+
+---
+DISCLAIMER: This briefing is AI-generated content created for educational and simulation purposes only. This analysis should NOT be used as the basis for any real-world military, diplomatic, or policy decisions. Any actual strategic planning or crisis response should involve consultation with qualified professionals, subject matter experts, and appropriate government authorities. The scenarios, recommendations, and assessments presented herein are hypothetical and do not reflect official government positions or classified intelligence.
+
 ${briefingData.author}
 Generated: ${new Date().toLocaleString()}
+
+${briefingData.disclaimer ? `
+---
+DISCLAIMER: ${briefingData.disclaimer}
+` : ''}
                           `
                           navigator.clipboard.writeText(briefingText.trim())
                           toast({
