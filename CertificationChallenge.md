@@ -8,7 +8,7 @@
 
 # Task 2: Propose a Solution
 ## Write 1-2 paragraphs on your proposed solution. How will it look and feel to the user?
-    My solution is a website called 'GioAdvisor', it will allow the user to set their country they are simulating, an aggressor and victim of each conflict. Also the user can choose the Conflict type, response timeframe, severity level, and many more advanced parameters. All these variables allow a very concise informative advice on what the country should respond with. Also there will be a page 'Treaty lookup' (name in progress) that will pull from a golden dataset, all necessary treaties and agreements that relate to the given conflict.
+    My solution is a website called 'FogReport', it will allow the user to set their country they are simulating, an aggressor and victim of each conflict. Also the user can choose the Conflict type, response timeframe, severity level, and many more advanced parameters. All these variables allow a very concise informative advice on what the country should respond with. Also there will be a page 'Treaty lookup' (name in progress) that will pull from a golden dataset, all necessary treaties and agreements that relate to the given conflict.
 
     The software will look intuitive to the user, and most importantly the flow will be simple and fast.
 ## Describe the tools you plan to use in each part of your stack. Write one sentence on why you made each tooling choice.

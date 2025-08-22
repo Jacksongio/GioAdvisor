@@ -1,4 +1,4 @@
-# RAG Stack Tooling Choices for GioAdvisor Treaty Research
+# RAG Stack Tooling Choices for FogReport Treaty Research
 
 ## 1. LLM: OpenAI GPT-4
 **Choice**: OpenAI GPT-4 for text generation, query analysis, and utilization guidance.

@@ -205,7 +205,7 @@ Write one clear, complete sentence explaining this treaty's relevance to this sp
     treaties: RetrievedDocument[],
     treatyCount: number
   ): Promise<string> {
-    const prompt = `As GioAdvisor's AI system, explain your reasoning for analyzing this military conflict scenario:
+    const prompt = `As FogReport's AI system, explain your reasoning for analyzing this military conflict scenario:
 
 SCENARIO: ${context.scenario}
 COUNTRIES: ${context.offensiveCountry} vs ${context.defensiveCountry} (Analysis from ${context.selectedCountry} perspective)
@@ -656,7 +656,7 @@ Generate a JSON response with this exact structure:
 ,
   "finalRecommendation": "Single paragraph explaining which of the 4 recommendations above is most critical for ${context.selectedCountry} and should be prioritized, with specific reasoning based on ${context.selectedCountry}'s capabilities and strategic interests",
   "classification": "CONFIDENTIAL",
-  "author": "Strategic Intelligence Division, GioAdvisor"
+  "author": "Strategic Intelligence Division, FogReport"
 }`
 
     const response = await openai.chat.completions.create({
@@ -1050,7 +1050,7 @@ Generate a JSON response with this exact structure:
       conclusion: `The above legal and strategic assessments lead to the conclusion that ${context.selectedCountry} response options must be carefully calibrated to comply with international legal obligations while maintaining strategic effectiveness.`,
       finalRecommendation: `Recommended approach prioritizes treaty-compliant diplomatic engagement while maintaining legal justification for graduated response options under applicable international law frameworks.`,
       classification: "CONFIDENTIAL",
-      author: "Strategic Intelligence Division, GioAdvisor",
+      author: "Strategic Intelligence Division, FogReport",
       treatyReferences
     }
     

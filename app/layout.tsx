@@ -7,7 +7,7 @@ import { Toaster } from "@/components/ui/toaster"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "GioAdvisor - Military Conflict Simulation Platform",
+  title: "FogReport - Military Conflict Simulation Platform",
   description: "Simulate military conflict scenarios and analyze international warfare with advanced AI-powered strategic insights.",
   icons: {
     shortcut: '/favicon.ico'

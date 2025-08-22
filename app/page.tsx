@@ -18,8 +18,10 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { useToast } from "@/hooks/use-toast"
 import { FlagIcon } from "@/components/ui/flag-icon"
 import { useIsMobile } from "@/components/ui/use-mobile"
+import LandingPage from "@/components/LandingPage"
 
 export default function PoliticalAdvisor() {
+  const [showLanding, setShowLanding] = useState(true)
   const [selectedCountry, setSelectedCountry] = useState("")
   const [conflictScenario, setConflictScenario] = useState("")
   const [offensiveCountry, setOffensiveCountry] = useState("")
@@ -93,13 +95,13 @@ export default function PoliticalAdvisor() {
   // Example questions that auto-fill all fields
   const exampleQuestions = [
     {
-      title: "Russia-Ukraine Escalation",
-      description: "Analysis of potential Russian naval expansion",
-      selectedCountry: "UA",
-      offensiveCountry: "RU",
-      defensiveCountry: "UA",
+      title: "Atlantic Space Port Rivalry",
+      description: "Competitive space launch facility expansion",
+      selectedCountry: "GB",
+      offensiveCountry: "FR",
+      defensiveCountry: "GB",
       conflictScenario: "Naval Expansion",
-      scenarioDetails: "Russia attempts to expand naval control in the Black Sea region, potentially blocking Ukrainian grain exports and challenging NATO naval presence.",
+      scenarioDetails: "France deploys advanced naval assets to secure exclusive Atlantic launch corridors for their expanding space program, challenging British satellite deployment zones and threatening UK space industry competitiveness.",
       severityLevel: "high",
       timeFrame: "long",
       tradeDependencies: 75,
@@ -110,13 +112,13 @@ export default function PoliticalAdvisor() {
       strategicResources: 55
     },
     {
-      title: "China-Taiwan Strait Crisis",
-      description: "Potential Taiwan Strait military confrontation",
-      selectedCountry: "TW",
-      offensiveCountry: "CN",
-      defensiveCountry: "TW",
+      title: "Alpine Energy Corridor Dispute",
+      description: "Strategic pipeline route disagreement",
+      selectedCountry: "IT",
+      offensiveCountry: "DE",
+      defensiveCountry: "IT",
       conflictScenario: "Territorial Dispute",
-      scenarioDetails: "Chinese military conducts large-scale exercises around Taiwan, escalating tensions and prompting international naval responses in the Taiwan Strait.",
+      scenarioDetails: "Germany establishes new energy infrastructure routes through disputed Alpine regions, challenging Italian territorial claims and prompting EU mediation responses in the area.",
       severityLevel: "extreme",
       timeFrame: "medium",
       tradeDependencies: 90,
@@ -127,13 +129,13 @@ export default function PoliticalAdvisor() {
       strategicResources: 80
     },
     {
-      title: "Israel-Iran Proxy Conflict",
-      description: "Regional escalation through proxy forces",
-      selectedCountry: "IL",
-      offensiveCountry: "IR",
-      defensiveCountry: "IL",
+      title: "Baltic Energy Infrastructure",
+      description: "Critical pipeline security concerns",
+      selectedCountry: "FI",
+      offensiveCountry: "RU",
+      defensiveCountry: "FI",
       conflictScenario: "Proxy Warfare",
-      scenarioDetails: "Iran-backed militias launch coordinated attacks across multiple fronts while Iran threatens direct military intervention if Israel responds.",
+      scenarioDetails: "Russian-backed groups target energy infrastructure in the Baltic region while Russia threatens direct intervention if Finland strengthens NATO cooperation.",
       severityLevel: "high",
       timeFrame: "medium",
       tradeDependencies: 60,
@@ -195,13 +197,13 @@ export default function PoliticalAdvisor() {
       strategicResources: 75
     },
     {
-      title: "Azerbaijan-Armenia Renewed Conflict",
-      description: "Nagorno-Karabakh territorial dispute",
-      selectedCountry: "AM",
-      offensiveCountry: "AZ",
-      defensiveCountry: "AM",
+      title: "Antarctic Research Zone Dispute",
+      description: "Scientific territory access rights",
+      selectedCountry: "CL",
+      offensiveCountry: "AR",
+      defensiveCountry: "CL",
       conflictScenario: "Territorial Dispute",
-      scenarioDetails: "Azerbaijan launches military operations to secure remaining disputed territories, potentially drawing in regional powers Russia and Turkey.",
+      scenarioDetails: "Argentina establishes expanded research stations in disputed Antarctic zones, challenging Chilean scientific claims and potentially drawing in international Antarctic Treaty partners.",
       severityLevel: "high",
       timeFrame: "medium",
       tradeDependencies: 30,
@@ -919,24 +921,32 @@ export default function PoliticalAdvisor() {
     setIsSimulating(false)
   }
 
+  // Show landing page first, then simulation
+  if (showLanding) {
+    return <LandingPage onEnterSimulation={() => setShowLanding(false)} />
+  }
+
   return (
     <div className="bg-dark-bg text-dark-text h-dvh flex flex-col">
       {/* Header */}
       <header className="border-b border-dark-border bg-dark-card/80 backdrop-blur-sm">
         <div className="container mx-auto px-3 sm:px-6 py-3 sm:py-4">
           <div className="flex items-center justify-start w-full">
-            <div className="flex items-center space-x-3 sm:space-x-4">
+            <div 
+              className="flex items-center space-x-3 sm:space-x-4 cursor-pointer hover:opacity-80 transition-opacity duration-200"
+              onClick={() => setShowLanding(true)}
+            >
               <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center overflow-hidden">
                 <Image 
-                  src="/gioadvisor.png" 
-                  alt="GioAdvisor Logo" 
+                  src="/fogreport.png" 
+                  alt="FogReport Logo" 
                   width={48} 
                   height={48}
                   className="w-full h-full object-contain"
                 />
               </div>
               <div>
-                <h1 className="text-xl sm:text-2xl font-bold text-dark-text">GioAdvisor</h1>
+                <h1 className="text-xl sm:text-2xl font-bold text-dark-text">FogReport</h1>
                 <p className="text-xs sm:text-sm text-dark-muted">Military Intelligence Briefing Platform</p>
               </div>
             </div>
@@ -1476,48 +1486,90 @@ export default function PoliticalAdvisor() {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="text-base font-medium text-dark-text mb-3 block">Severity Level</label>
-                      <Select value={severityLevel} onValueChange={setSeverityLevel}>
-                        <SelectTrigger className="bg-dark-bg border-dark-border text-dark-text">
-                          <SelectValue placeholder="Select severity" />
-                        </SelectTrigger>
-                        <SelectContent className="bg-dark-card border-dark-border">
-                          <SelectItem value="low" className="text-dark-text hover:bg-dark-border">
-                            Low - Minor tensions
-                          </SelectItem>
-                          <SelectItem value="medium" className="text-dark-text hover:bg-dark-border">
-                            Medium - Escalating dispute
-                          </SelectItem>
-                          <SelectItem value="high" className="text-dark-text hover:bg-dark-border">
-                            High - Critical situation
-                          </SelectItem>
-                          <SelectItem value="extreme" className="text-dark-text hover:bg-dark-border">
-                            Extreme - Imminent threat
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
+                      {isMobile ? (
+                        // Mobile: Native select
+                        <div className="relative">
+                          <select
+                            value={severityLevel}
+                            onChange={(e) => setSeverityLevel(e.target.value)}
+                            className="w-full h-12 px-3 bg-dark-bg border border-dark-border text-dark-text rounded-md text-base appearance-none focus:outline-none focus:ring-2 focus:ring-flame focus:border-transparent"
+                          >
+                            <option value="" disabled>Select severity</option>
+                            <option value="low">Low - Minor tensions</option>
+                            <option value="medium">Medium - Escalating dispute</option>
+                            <option value="high">High - Critical situation</option>
+                            <option value="extreme">Extreme - Imminent threat</option>
+                          </select>
+                          <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                            <ChevronsUpDown className="h-4 w-4 text-dark-muted" />
+                          </div>
+                        </div>
+                      ) : (
+                        // Desktop: Custom dropdown
+                        <Select value={severityLevel} onValueChange={setSeverityLevel}>
+                          <SelectTrigger className="bg-dark-bg border-dark-border text-dark-text">
+                            <SelectValue placeholder="Select severity" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-dark-card border-dark-border">
+                            <SelectItem value="low" className="text-dark-text hover:bg-dark-border">
+                              Low - Minor tensions
+                            </SelectItem>
+                            <SelectItem value="medium" className="text-dark-text hover:bg-dark-border">
+                              Medium - Escalating dispute
+                            </SelectItem>
+                            <SelectItem value="high" className="text-dark-text hover:bg-dark-border">
+                              High - Critical situation
+                            </SelectItem>
+                            <SelectItem value="extreme" className="text-dark-text hover:bg-dark-border">
+                              Extreme - Imminent threat
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      )}
                     </div>
 
                     <div>
                       <label className="text-base font-medium text-dark-text mb-3 block">Time Frame</label>
-                      <Select value={timeFrame} onValueChange={setTimeFrame}>
-                        <SelectTrigger className="bg-dark-bg border-dark-border text-dark-text">
-                          <SelectValue placeholder="Response timeframe" />
-                        </SelectTrigger>
-                        <SelectContent className="bg-dark-card border-dark-border">
-                          <SelectItem value="immediate" className="text-dark-text hover:bg-dark-border">
-                            Immediate (24 hours)
-                          </SelectItem>
-                          <SelectItem value="short" className="text-dark-text hover:bg-dark-border">
-                            Short-term (1 week)
-                          </SelectItem>
-                          <SelectItem value="medium" className="text-dark-text hover:bg-dark-border">
-                            Medium-term (1 month)
-                          </SelectItem>
-                          <SelectItem value="long" className="text-dark-text hover:bg-dark-border">
-                            Long-term (6+ months)
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
+                      {isMobile ? (
+                        // Mobile: Native select
+                        <div className="relative">
+                          <select
+                            value={timeFrame}
+                            onChange={(e) => setTimeFrame(e.target.value)}
+                            className="w-full h-12 px-3 bg-dark-bg border border-dark-border text-dark-text rounded-md text-base appearance-none focus:outline-none focus:ring-2 focus:ring-flame focus:border-transparent"
+                          >
+                            <option value="" disabled>Response timeframe</option>
+                            <option value="immediate">Immediate (24 hours)</option>
+                            <option value="short">Short-term (1 week)</option>
+                            <option value="medium">Medium-term (1 month)</option>
+                            <option value="long">Long-term (6+ months)</option>
+                          </select>
+                          <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                            <ChevronsUpDown className="h-4 w-4 text-dark-muted" />
+                          </div>
+                        </div>
+                      ) : (
+                        // Desktop: Custom dropdown
+                        <Select value={timeFrame} onValueChange={setTimeFrame}>
+                          <SelectTrigger className="bg-dark-bg border-dark-border text-dark-text">
+                            <SelectValue placeholder="Response timeframe" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-dark-card border-dark-border">
+                            <SelectItem value="immediate" className="text-dark-text hover:bg-dark-border">
+                              Immediate (24 hours)
+                            </SelectItem>
+                            <SelectItem value="short" className="text-dark-text hover:bg-dark-border">
+                              Short-term (1 week)
+                            </SelectItem>
+                            <SelectItem value="medium" className="text-dark-text hover:bg-dark-border">
+                              Medium-term (1 month)
+                            </SelectItem>
+                            <SelectItem value="long" className="text-dark-text hover:bg-dark-border">
+                              Long-term (6+ months)
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      )}
                     </div>
                   </div>
                 </CardContent>

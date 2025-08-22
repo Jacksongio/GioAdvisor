@@ -1,8 +1,8 @@
-# GioAdvisor - Military Conflict Simulation Platform
+# FogReport - Military Conflict Simulation Platform
 
 A sophisticated web application for simulating military conflict scenarios and analyzing international warfare with advanced AI-powered strategic insights.
 
-![GioAdvisor Screenshot](https://via.placeholder.com/800x400/cf5c36/ffffff?text=GioAdvisor+Military+Dashboard)
+![FogReport Screenshot](https://via.placeholder.com/800x400/cf5c36/ffffff?text=FogReport+Military+Dashboard)
 
 ## 🌟 Features
 
