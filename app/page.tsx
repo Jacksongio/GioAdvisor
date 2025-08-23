@@ -62,16 +62,10 @@ export default function PoliticalAdvisor() {
   const [offensiveCountryOpen, setOffensiveCountryOpen] = useState(false)
   const [defensiveCountryOpen, setDefensiveCountryOpen] = useState(false)
   
-  // Mobile search states
-  const [selectedCountrySearch, setSelectedCountrySearch] = useState("")
-  const [offensiveCountrySearch, setOffensiveCountrySearch] = useState("")
-  const [defensiveCountrySearch, setDefensiveCountrySearch] = useState("")
-
-  // Filter countries based on search
-  const filterCountries = (searchTerm: string, excludeCountries: string[] = []) => {
+  // Filter countries function for exclusions
+  const filterCountries = (excludeCountries: string[] = []) => {
     return countries.filter(country => 
-      !excludeCountries.includes(country.code) &&
-      country.name.toLowerCase().includes(searchTerm.toLowerCase())
+      !excludeCountries.includes(country.code)
     )
   }
   
@@ -1019,14 +1013,8 @@ export default function PoliticalAdvisor() {
                 </CardHeader>
                 <CardContent className="p-6">
                   {isMobile ? (
-                    // Mobile: Native select with search
+                    // Mobile: Simple native select
                     <div className="space-y-3">
-                      <Input
-                        placeholder="Search countries..."
-                        value={selectedCountrySearch}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSelectedCountrySearch(e.target.value)}
-                        className="bg-dark-bg border-dark-border text-dark-text h-12 text-base"
-                      />
                       <div className="relative">
                         <select
                           value={selectedCountry}
@@ -1037,12 +1025,11 @@ export default function PoliticalAdvisor() {
                               setOffensiveCountry("")
                             }
                             setSelectedCountry(value)
-                            setSelectedCountrySearch("") // Clear search after selection
                           }}
                           className="w-full h-12 px-3 bg-dark-bg border border-dark-border text-dark-text rounded-md text-base appearance-none focus:outline-none focus:ring-2 focus:ring-flame focus:border-transparent"
                         >
                           <option value="" disabled>Choose a country...</option>
-                          {filterCountries(selectedCountrySearch, []).map((country) => (
+                          {filterCountries([]).map((country) => (
                             <option key={country.code} value={country.code}>
                               {country.name} (Power: {country.power})
                             </option>
@@ -1260,14 +1247,8 @@ export default function PoliticalAdvisor() {
                         Attacking Military Force
                       </label>
                       {isMobile ? (
-                        // Mobile: Native select with search
+                        // Mobile: Simple native select
                         <div className="space-y-3">
-                          <Input
-                            placeholder="Search countries..."
-                            value={offensiveCountrySearch}
-                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setOffensiveCountrySearch(e.target.value)}
-                            className="bg-dark-bg border-dark-border text-dark-text h-12 text-base"
-                          />
                           <div className="relative">
                             <select
                               value={offensiveCountry}
@@ -1275,13 +1256,12 @@ export default function PoliticalAdvisor() {
                                 const value = e.target.value
                                 if (value !== defensiveCountry && value !== selectedCountry) {
                                   setOffensiveCountry(value)
-                                  setOffensiveCountrySearch("") // Clear search after selection
                                 }
                               }}
                               className="w-full h-12 px-3 bg-dark-bg border border-dark-border text-dark-text rounded-md text-base appearance-none focus:outline-none focus:ring-2 focus:ring-flame focus:border-transparent"
                             >
                               <option value="" disabled>Select aggressor...</option>
-                              {filterCountries(offensiveCountrySearch, [defensiveCountry, selectedCountry]).map((country) => (
+                              {filterCountries([defensiveCountry, selectedCountry]).map((country) => (
                                 <option key={country.code} value={country.code}>
                                   {country.name}
                                 </option>
@@ -1365,14 +1345,8 @@ export default function PoliticalAdvisor() {
                         Defending Military Force
                       </label>
                       {isMobile ? (
-                        // Mobile: Native select with search
+                        // Mobile: Simple native select
                         <div className="space-y-3">
-                          <Input
-                            placeholder="Search countries..."
-                            value={defensiveCountrySearch}
-                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDefensiveCountrySearch(e.target.value)}
-                            className="bg-dark-bg border-dark-border text-dark-text h-12 text-base"
-                          />
                           <div className="relative">
                             <select
                               value={defensiveCountry}
@@ -1380,13 +1354,12 @@ export default function PoliticalAdvisor() {
                                 const value = e.target.value
                                 if (value !== offensiveCountry) {
                                   setDefensiveCountry(value)
-                                  setDefensiveCountrySearch("") // Clear search after selection
                                 }
                               }}
                               className="w-full h-12 px-3 bg-dark-bg border border-dark-border text-dark-text rounded-md text-base appearance-none focus:outline-none focus:ring-2 focus:ring-flame focus:border-transparent"
                             >
                               <option value="" disabled>Select defender...</option>
-                              {filterCountries(defensiveCountrySearch, [offensiveCountry]).map((country) => (
+                              {filterCountries([offensiveCountry]).map((country) => (
                                 <option key={country.code} value={country.code}>
                                   {country.name}
                                 </option>
